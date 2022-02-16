@@ -1,0 +1,5 @@
+pysimplegui==4.56.0
+py-cord==1.7.3
+discord==1.7.3
+appdirs==1.4.4
+pyinstaller==4.9
