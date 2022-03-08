@@ -42,7 +42,7 @@ base_path = getattr(sys, '_MEIPASS', os.getcwd())
 default_font = ('Fixedsys', 11, 'normal')
 save_dir = user_data_dir(appname, appauthor)
 save_path = os.path.join(save_dir, 'save.pickle')
-version = "1.2.0"
+version = "1.1.0"
 
 
 files = []
