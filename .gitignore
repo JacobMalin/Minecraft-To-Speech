@@ -1,0 +1,4 @@
+# pyinstaller stuff
+/dist/
+/build/
+/installer.py
