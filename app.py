@@ -13,12 +13,12 @@ import sys
 import os.path
 
 import pickle
-import requests
-import json
 from dataclasses import dataclass
 
 import PySimpleGUI as sg
 from appdirs import *
+
+from sound import play
 
 """
 TODO:
@@ -31,15 +31,18 @@ TODO:
  - Version check on load save
  - Clear queue on exit / power off
  - Finish coloring listbox by is_on
+ - Voice selector
+ - Volume slider
+ - Speed slider
 """
 
 appname = 'MinecraftToSpeech'
 appauthor = 'Vos'
-base_path = getattr(sys, '_MEIPASS', '../../Desktop')
+base_path = getattr(sys, '_MEIPASS', os.getcwd())
 default_font = ('Fixedsys', 11, 'normal')
 save_dir = user_data_dir(appname, appauthor)
 save_path = os.path.join(save_dir, 'save.pickle')
-version = "1.1.0"
+version = "1.2.0"
 
 
 files = []
@@ -57,24 +60,11 @@ class File:
         return self.path
 
 
-def write(channel, message):
-    # Send http request to ECHO bot hosted on repl
-    url = "https://ECHO.jacobmalin1.repl.co/bot/write"
-
-    payload = json.dumps({
-        "channel": channel,
-        "message": message
-    })
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    try:
-        r = requests.request("POST", url, headers=headers, data=payload)
-        if r.content != b'Successfully written to ECHO':
-            print('ECHO is not online')
-    except requests.exceptions.ConnectionError:
-        print("'{}' not sent due to ConnectionError".format(message))
+def get_path(filename):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, filename)
+    else:
+        return filename
 
 
 def curr_file(values):
@@ -289,8 +279,8 @@ def interface():
                                 data += d[1:]
 
                             if data != '' and data != '\n':
-                                print(file.channel + ": " + repr(data))
-                                write(file.channel, data)
+                                print(repr(data))
+                                play(data)
 
     # Clean up file pointers
     for file in files:
