@@ -1,8 +1,7 @@
 """
 Minecraft To Speech
 
-Reads from .log files and outputs to a discord bot ECHO. Intended to be used with discord Text to Speech to output
-minecraft chat to a discord server.
+Reads minecraft chat messages from .log files using OS-specific text-to-speech.
 
 Written by Jacob Malin
 GUI and image design by Miah Sandvik
@@ -22,14 +21,7 @@ from sound import play
 
 """
 TODO:
-  - Add 'file remove' button
-  - Make right col reflect File dataclass for currently selected file
-  - Add guild changer in gui
-  - Check if bot is alive
-  - Merge messages together per second and implement a queue probably in File data type
   - Version check on load save
-  - Clear queue on exit / power off
-  - Finish coloring listbox by is_on
   - Voice selector
   - Volume slider
   - Speed slider
