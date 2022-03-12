@@ -1,8 +1,8 @@
 """
 Minecraft To Speech
 
-Reads from .log files and outputs to a discord bot ECHO. Intended to use with discord Text to Speech to output minecraft
-chat to a discord server.
+Reads from .log files and outputs to a discord bot ECHO. Intended to be used with discord Text to Speech to output
+minecraft chat to a discord server.
 
 Written by Jacob Malin
 GUI and image design by Miah Sandvik
@@ -22,18 +22,35 @@ from sound import play
 
 """
 TODO:
- - Add 'file remove' button and change 'find file' to 'add file'
- - Make right col only appear when a file is selected
- - Make right col reflect File dataclass for currently selected file
- - Add guild changer in gui
- - Check if bot is alive
- - Merge messages together per second and implement a queue probably in File data type
- - Version check on load save
- - Clear queue on exit / power off
- - Finish coloring listbox by is_on
- - Voice selector
- - Volume slider
- - Speed slider
+  - Add 'file remove' button
+  - Make right col reflect File dataclass for currently selected file
+  - Add guild changer in gui
+  - Check if bot is alive
+  - Merge messages together per second and implement a queue probably in File data type
+  - Version check on load save
+  - Clear queue on exit / power off
+  - Finish coloring listbox by is_on
+  - Voice selector
+  - Volume slider
+  - Speed slider
+  - Text output (either txt file or get discord working w/ andrew)
+  - Make it so all instances have equal priority (It swaps back and forth between files)
+  - Refactor gui (get miah to)
+ 
+Gui needs:
+  - Left side
+      - List box
+      - Colored items in listbox
+      - Add file
+      - Remove file
+  - Two versions of right side
+      - No file selected
+          - A message indicating that no file is selected
+      - A file is selected
+          - Name of selected file
+          - Power button
+          - Power indicator
+        
 """
 
 appname = 'MinecraftToSpeech'
@@ -44,15 +61,14 @@ save_dir = user_data_dir(appname, appauthor)
 save_path = os.path.join(save_dir, 'save.pickle')
 version = "1.1.0"
 
-
+# List of files
 files = []
 
 
+# Stores the file infos
 @dataclass
 class File:
     path: string
-    guild: string = "Discord Server"
-    channel: string = "general"
     is_on: bool = False
     fp = None
 
@@ -60,13 +76,16 @@ class File:
         return self.path
 
 
+# Get the path name, required to fix pyinstaller apps
 def get_path(filename):
     if hasattr(sys, "_MEIPASS"):
+        # noinspection PyProtectedMember
         return os.path.join(sys._MEIPASS, filename)
     else:
         return filename
 
 
+# Gets the file selected in the listbox
 def curr_file(values):
     if values['-FILE_LIST-']:
         return values['-FILE_LIST-'][0]
@@ -74,6 +93,14 @@ def curr_file(values):
     return None
 
 
+# Color the file names
+def update_colors(window):
+    for i, file in enumerate(files):
+        text_color = 'green' if file.is_on else 'red'
+        window['-FILE_LIST-'].Widget.itemconfig(i, bg=text_color)
+
+
+# Contains the main while loop, opens and maintains the GUI
 def interface():
     global files
 
@@ -91,7 +118,8 @@ def interface():
 
     # Create GUI
     sg.theme('DarkTeal6')  # Add a touch of color
-    # All the stuff inside your window.
+
+    # The left side of the window. Contains Listbox, file add, and file remove
     left_col = [
         [
             sg.Listbox(
@@ -106,64 +134,60 @@ def interface():
                 pad=0
             ),
             sg.Col(
-                [[
-                    sg.Input(
-                        key='-FILE_ADD-',
-                        enable_events=True,
-                        visible=False
-                    ),
-                    sg.FileBrowse(
-                        'Add File',
-                        target='-FILE_ADD-',
-                        file_types=[('Log Files', '.log'), ('ALL Files', '*.* *')],
-                        enable_events=True,
-                        pad=0
-                    )
-                ]],
+                [
+                    [
+                        sg.Input(
+                            key='-FILE_ADD-',
+                            enable_events=True,
+                            visible=False
+                        ),
+                        sg.FileBrowse(
+                            'Add File',
+                            target='-FILE_ADD-',
+                            file_types=[('Log Files', '.log'), ('ALL Files', '*.* *')],
+                            enable_events=True,
+                            pad=0
+                        ),
+                    ],
+                    [
+                        sg.Button(
+                            'Remove File',
+                            pad=0,
+                            key='-FILE_REMOVE-'
+                        )
+                    ]
+                ],
                 pad=((10, 0), (8, 0)),
                 vertical_alignment='top'
             )
         ]
     ]
 
+    # Right side of window. Contains "No file found" message OR control panel for file
     right_col = [
         [
             sg.Text(
-                'Current Channel: ',
-                key='-CHANNEL_DISPLAY-',
+                'Current File: ',
+                key='-FILE_NAME-',
                 pad=((2, 0), 0)
-            )
-        ],
-        [
-            sg.InputText(
-                'channel-name',
-                size=30,
-                key='-CHANNEL_INPUT-',
-                pad=(0, (13, 0))
-            )
-        ],
-        [
-            sg.Button(
-                'Select',
-                bind_return_key=True,
-                pad=((193, 0), (12, 0))
             )
         ],
         [
             sg.Image(
                 os.path.join(base_path, 'img', 'off_light.png'),
-                pad=((33, 0), (0, 0)),
+                pad=((33, 0), (10, 0)),
                 key='-POWER_DISPLAY-',
                 subsample=3
             ),
             sg.Button(
-                'Power',
+                '-POWER-',
                 size=8,
-                pad=((21, 0), (1, 0))
+                pad=((21, 0), (11, 0))
             )
         ]
     ]
 
+    # Main window layout
     layout = [
         [
             sg.Col(
@@ -196,30 +220,21 @@ def interface():
     )
     # , alpha_channel=0.9, keep_on_top=True, location=(400, 300)
 
-    # Set file selection
-    # window['-FILE_LIST-'].update(set_to_index=0)
-
-    # For file in files change color to match is_on
-
-    for i, file in enumerate(files):
-        text_color = 'green' if file.is_on else 'red'
-        window['-FILE_LIST-'].Widget.itemconfig(i, bg=text_color)
+    # Color the file names
+    update_colors(window)
 
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
+        # Read event
         event, values = window.read(timeout=10, timeout_key='-TIMEOUT-')
+
+        # On window close event
         if event == sg.WIN_CLOSED:  # if user closes window
             break
-        elif event == 'Select':
-            temp_channel = values['-CHANNEL_INPUT-']
-            if temp_channel != "":
-                curr_file(values).channel = temp_channel
-                window['-CHANNEL_INPUT-'].update(value="")
-                max_name = 13
-                shortened_channel = (curr_file(values).channel[:max_name - 2] + '..') \
-                    if len(curr_file(values).channel) > max_name else curr_file(values).channel
-                window['-CHANNEL_DISPLAY-'].update(value='Current Channel: ' + shortened_channel)
-        elif event == 'Power':
+
+        # When the power button is pushed
+        elif event == '-POWER-':
+            # If the current file is on
             if curr_file(values).is_on:
                 window['-POWER_DISPLAY-'].update(source=os.path.join(base_path, 'img', 'off_light.png'), subsample=3)
                 if curr_file(values).fp is not None:
@@ -229,28 +244,61 @@ def interface():
                 window['-POWER_DISPLAY-'].update(source=os.path.join(base_path, 'img', 'on_light.png'), subsample=3)
 
             curr_file(values).is_on = not curr_file(values).is_on
+
+            # Fix the colors
+            update_colors(window)
+
+        # When the list of files is touched
         elif event == '-FILE_LIST-':
+            # If a file is selected
             if curr_file(values):
+                # Hide "No File Selected" message and show control panel
                 window['-NO_FILE-'].update(visible=False)
                 window['-RIGHT-'].update(visible=True)
-                max_name = 13
-                shortened_channel = (curr_file(values).channel[:max_name - 2] + '..') \
-                    if len(curr_file(values).channel) > max_name else curr_file(values).channel
-                window['-CHANNEL_DISPLAY-'].update(value='Current Channel: ' + shortened_channel)
-                window['-CHANNEL_INPUT-'].update(value=curr_file(values).channel)
+
+                # Display currently selected path, which is shortened to 30 chars
+                max_path_len = 30
+                shortened_path = '...' + curr_file(values).path[-(max_path_len - 3):] \
+                    if len(curr_file(values).path) > max_path_len else curr_file(values).path
+                window['-FILE_NAME-'].update(value='Current Channel:\n' + shortened_path)
+
+                # Update power button
                 if curr_file(values).is_on:
                     window['-POWER_DISPLAY-'].update(source=os.path.join(base_path, 'img', 'on_light.png'), subsample=3)
                 else:
                     window['-POWER_DISPLAY-'].update(source=os.path.join(base_path, 'img', 'off_light.png'),
                                                      subsample=3)
             else:
+                # Hide control panel and show "No File Selected" Message
                 window['-RIGHT-'].update(visible=False)
                 window['-NO_FILE-'].update(visible=True)
+
+        # When the file add button is used
         elif event == '-FILE_ADD-':
+            # if the file is not already in the list, and it returned a real file
             if values['-FILE_ADD-'] not in [file.path for file in files] and values['-FILE_ADD-'] != '':
                 files += [File(values['-FILE_ADD-'])]
 
                 window['-FILE_LIST-'].update(values=files)
+                update_colors(window)  # Colors get removed on update for some reason, so this fixes that
+
+        # When the file remove button is used
+        elif event == '-FILE_REMOVE-':
+            # If a file is selected
+            if curr_file(values):
+                # Clean up file
+                if curr_file(values).fp:
+                    curr_file(values).fp.close()
+                    curr_file(values).fp = None
+
+                # Remove from files list
+                files.remove(curr_file(values))
+
+                # Update the listbox
+                window['-FILE_LIST-'].update(values=files)
+                update_colors(window)  # Colors get removed on update for some reason, so this fixes that
+
+        # If no other event occurs within the time limit
         elif event == '-TIMEOUT-':
             # Check for file update
             for file in files:
@@ -281,6 +329,8 @@ def interface():
                             if data != '' and data != '\n':
                                 print(repr(data))
                                 play(data)
+
+    # On exit from loop:
 
     # Clean up file pointers
     for file in files:
