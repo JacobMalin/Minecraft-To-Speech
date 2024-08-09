@@ -15,7 +15,7 @@ import pickle
 import PySimpleGUI as sg
 from appdirs import *
 
-from sound import play
+import sound
 from ui import define_layout
 from file import File
 
@@ -115,6 +115,9 @@ def interface():
     # Color the file names
     update_colors(window)
 
+    # Start sound thread
+    sound.init()
+
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
         # Read event
@@ -132,6 +135,7 @@ def interface():
                 if curr_file(values).fp is not None:
                     curr_file(values).fp.close()
                     curr_file(values).fp = None
+                sound.clear()
             else:
                 window['-POWER_DISPLAY-'].update(source=os.path.join(base_path, 'img', 'on_light.png'), subsample=3)
 
@@ -233,14 +237,14 @@ def interface():
 
 
                         # Replace all carrots with spaces
-                        # data = data.replace('<', ' ')
-                        # data = data.replace('>', ' ')
+                        data = data.replace('<', ' ')
+                        data = data.replace('>', ' ')
 
                         
 
                         if data != '' and data != '\n':
                             print(repr(data))
-                            play(preface + data)
+                            sound.play(preface + data)
 
     # On exit from loop:
 
@@ -256,6 +260,7 @@ def interface():
         pickle.dump(files, fp)
 
     # Cleanup
+    sound.exit()
     window.close()
 
 
