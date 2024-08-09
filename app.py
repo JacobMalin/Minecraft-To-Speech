@@ -7,17 +7,17 @@ Written by Jacob Malin
 GUI and image design by Miah Sandvik
 """
 
-import string
 import sys
 import os.path
 
 import pickle
-from dataclasses import dataclass
 
 import PySimpleGUI as sg
 from appdirs import *
 
 from sound import play
+from ui import define_layout
+from file import File
 
 """
 TODO:
@@ -28,6 +28,9 @@ TODO:
   - Text output (either txt file or get discord working w/ andrew)
   - Make it so all instances have equal priority (It swaps back and forth between files)
   - Refactor gui (get miah to)
+  - Fix broken characters
+  - Fix crash at midnight
+  - Add discord capabilities
  
 Gui needs:
   - Left side
@@ -57,17 +60,6 @@ version = "1.1.0"
 files = []
 
 
-# Stores the file infos
-@dataclass
-class File:
-    path: string
-    is_on: bool = False
-    fp = None
-
-    def __str__(self):
-        return self.path
-
-
 # Get the path name, required to fix pyinstaller apps
 def get_path(filename):
     if hasattr(sys, "_MEIPASS"):
@@ -89,7 +81,7 @@ def curr_file(values):
 def update_colors(window):
     for i, file in enumerate(files):
         text_color = 'green' if file.is_on else 'red'
-        window['-FILE_LIST-'].Widget.itemconfig(i, bg=text_color)
+        window['-FILE_LIST-'].set_index_color(i, background_color=text_color, highlight_background_color=text_color)
 
 
 # Contains the main while loop, opens and maintains the GUI
@@ -108,99 +100,7 @@ def interface():
     else:
         print('No save file')
 
-    # Create GUI
-    sg.theme('DarkTeal6')  # Add a touch of color
-
-    # The left side of the window. Contains Listbox, file add, and file remove
-    left_col = [
-        [
-            sg.Listbox(
-                files,
-                enable_events=True,
-                size=(23, 6),
-                no_scrollbar=False,
-                horizontal_scroll=True,
-                highlight_background_color="Gray",
-                highlight_text_color="White",
-                key="-FILE_LIST-",
-                pad=0
-            ),
-            sg.Col(
-                [
-                    [
-                        sg.Input(
-                            key='-FILE_ADD-',
-                            enable_events=True,
-                            visible=False
-                        ),
-                        sg.FileBrowse(
-                            'Add File',
-                            target='-FILE_ADD-',
-                            file_types=[('Log Files', '.log'), ('ALL Files', '*.* *')],
-                            enable_events=True,
-                            pad=0
-                        ),
-                    ],
-                    [
-                        sg.Button(
-                            'Remove File',
-                            pad=0,
-                            key='-FILE_REMOVE-'
-                        )
-                    ]
-                ],
-                pad=((10, 0), (8, 0)),
-                vertical_alignment='top'
-            )
-        ]
-    ]
-
-    # Right side of window. Contains "No file found" message OR control panel for file
-    right_col = [
-        [
-            sg.Text(
-                'Current File: ',
-                key='-FILE_NAME-',
-                pad=((2, 0), 0)
-            )
-        ],
-        [
-            sg.Image(
-                os.path.join(base_path, 'img', 'off_light.png'),
-                pad=((33, 0), (10, 0)),
-                key='-POWER_DISPLAY-',
-                subsample=3
-            ),
-            sg.Button(
-                '-POWER-',
-                size=8,
-                pad=((21, 0), (11, 0))
-            )
-        ]
-    ]
-
-    # Main window layout
-    layout = [
-        [
-            sg.Col(
-                left_col,
-                pad=((24, 0), (38, 33)),
-                vertical_alignment='top'
-            ),
-            sg.Col(
-                right_col,
-                pad=((26, 12), (19, 0)),
-                visible=False,
-                vertical_alignment='top',
-                key='-RIGHT-'
-            ),
-            sg.Text(
-                'No File Selected',
-                pad=((26, 12), (19, 0)),
-                key='-NO_FILE-'
-            )
-        ]
-    ]
+    layout = define_layout(files, base_path)
 
     # Create the Window
     window = sg.Window(
@@ -290,37 +190,57 @@ def interface():
                 window['-FILE_LIST-'].update(values=files)
                 update_colors(window)  # Colors get removed on update for some reason, so this fixes that
 
+                # Show "No File Selected" message and hide control panel
+                window['-NO_FILE-'].update(visible=True)
+                window['-RIGHT-'].update(visible=False)
+
         # If no other event occurs within the time limit
         elif event == '-TIMEOUT-':
-            # Check for file update
-            for file in files:
-                if file.is_on and os.path.exists(file.path):
-                    if file.fp is None:
-                        file.fp = open(file.path, "r")
-                        file.fp.seek(0, os.SEEK_END)
-                    elif file.fp.name is not file.path:
-                        file.fp.close()
-                        file.fp = open(file.path, "r")
-                        file.fp.seek(0, os.SEEK_END)
-                    else:
-                        data = file.fp.readline()
-                        if '[CHAT]' in data:
-                            # Remove [CHAT]
-                            data = data[data.index('[CHAT]') + 7:]
+            pass
 
-                            # Replace all carrots with curly braces
-                            data = data.replace('<', '{')
-                            data = data.replace('>', '}')
+        ## After Events ##
 
-                            # Remove all minecraft format tags
-                            split_data = data.split('§')
-                            data = split_data.pop(0)
-                            for d in split_data:
-                                data += d[1:]
+        # Check for file update
+        for file in files:
+            if file.is_on and os.path.exists(file.path):
+                if file.fp is None:
+                    file.fp = open(file.path, "r")
+                    file.fp.seek(0, os.SEEK_END)
+                elif file.fp.name is not file.path:
+                    file.fp.close()
+                    file.fp = open(file.path, "r")
+                    file.fp.seek(0, os.SEEK_END)
+                else:
+                    data = file.fp.readline()
+                    if '[CHAT]' in data:
+                        # Remove [CHAT]
+                        data = data[data.index('[CHAT]') + 7:]
 
-                            if data != '' and data != '\n':
-                                print(repr(data))
-                                play(data)
+                        # Remove all minecraft format tags
+                        split_data = data.split('§')
+                        data = split_data.pop(0)
+                        for d in split_data:
+                            data += d[1:]
+
+                        # Username says ...
+                        preface = ""
+                        left_carrot = data.find('<')
+                        right_carrot = data.find('>')
+                        if left_carrot == 0 and right_carrot > 0:
+                            username = data[1:right_carrot]
+                            data = data[right_carrot+1:]
+                            preface = username + " says"
+
+
+                        # Replace all carrots with spaces
+                        # data = data.replace('<', ' ')
+                        # data = data.replace('>', ' ')
+
+                        
+
+                        if data != '' and data != '\n':
+                            print(repr(data))
+                            play(preface + data)
 
     # On exit from loop:
 
