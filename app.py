@@ -47,7 +47,6 @@ from save import Save
 
 appname = 'MinecraftToSpeech'
 appauthor = 'Vos'
-version = "1.1.1"
 
 base_path = getattr(sys, '_MEIPASS', os.getcwd())
 
