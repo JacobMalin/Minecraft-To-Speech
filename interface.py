@@ -157,11 +157,11 @@ def interface(s, base_path):
         for file in files:
             if file.is_on and os.path.exists(file.path):
                 if file.fp is None:
-                    file.fp = open(file.path, "r", encoding="cp1252")
+                    file.fp = open(file.path, "r", errors="ignore")
                     file.fp.seek(0, os.SEEK_END)
                 elif file.fp.name is not file.path:
                     file.fp.close()
-                    file.fp = open(file.path, "r", encoding="cp1252")
+                    file.fp = open(file.path, "r", errors="ignore")
                     file.fp.seek(0, os.SEEK_END)
                 else:
                     data = file.fp.readline()
