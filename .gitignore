@@ -1,6 +1,6 @@
 # pyinstaller stuff
-/dist/
-/build/
+/dist
+/build
 /installer.py
 
 # VS code stuff
@@ -56,3 +56,6 @@ package.nls.*.json
 l10n/
 python-env-tools/**
 py_venv/
+
+# Why is this needed twice
+/build
