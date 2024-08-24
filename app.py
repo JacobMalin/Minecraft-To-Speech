@@ -35,27 +35,25 @@ Gui needs:
           - Power indicator
 """
 
-
-
-import sys
-import os
-
-import interface as itf
+from interface import Interface
 from save import Save
 
 
 
 appname = 'MinecraftToSpeech'
 appauthor = 'Vos'
-version = "1.1.2"
+version = "1.1.3"
 
-base_path = getattr(sys, '_MEIPASS', os.getcwd())
 
+
+def main():
+    # Save object
+    s = Save(appname, appauthor, version)
+    
+    i = Interface(s)
+    i.loop()
+    i.exit()
 
 
 if __name__ == '__main__':
-    # Save object
-    s = Save(appname, appauthor)
-
-    # Start App
-    itf.interface(s, base_path)
+    main()

@@ -7,7 +7,6 @@ Jacob Malin
 """
 
 import string
-
 from dataclasses import dataclass
 
 # Stores the file info
