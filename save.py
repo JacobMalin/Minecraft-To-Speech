@@ -85,5 +85,4 @@ class Save(metaclass=SingletonMeta):
 
     @bot_channel.setter
     def bot_channel(self, value):
-        print("update")
         self.data.bot_channel = value

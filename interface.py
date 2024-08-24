@@ -6,13 +6,13 @@ Handles interface.
 Jacob Malin
 """
 
-from multiprocessing import Process, Manager
+from multiprocessing import Manager
 import sys
 import os
 
 import PySimpleGUI as sg
 
-import bot
+from bot import Bot
 import sound
 import ui
 from file import File
@@ -49,6 +49,47 @@ class Interface():
         self.window['-MAIN-'].update(visible=(not value))
         self.window['-OPTIONS-'].update(visible=value)
 
+    def send(self, data):
+        if '[CHAT]' in data:
+            print(repr(data))
+            # Remove up to [CHAT]
+            chatless_data = data[data.index('[CHAT]') + 7:]
+            print(repr(chatless_data))
+
+            # Remove all minecraft format tags
+            split_data = chatless_data.split('§')
+            tagless_data = split_data.pop(0)
+            for d in split_data:
+                tagless_data += d[1:]
+            print(repr(tagless_data))
+
+            # Username says ...
+            username = ''
+            contents = ''
+            preface = ''
+            left_carrot = tagless_data.find('<')
+            right_carrot = tagless_data.find('>')
+            if left_carrot == 0 and right_carrot > 0:
+                username = tagless_data[1:right_carrot]
+                contents = tagless_data[right_carrot+2:]
+                preface = username + " says "
+            else:
+                contents = tagless_data
+            print(repr(username))
+            print(repr(contents))
+            print(repr(preface))
+
+            # Replace all carrots with spaces
+            contents = contents.replace('<', ' ')
+            contents = contents.replace('>', ' ')
+            print(repr(contents))
+
+            if contents != '' and contents != '\n':
+                print(repr(contents))
+                msg = preface + contents
+                sound.play(msg)
+                self.bot.send(tagless_data)
+
 
     def __init__(self, s):
         default_font = ('Fixedsys', 11, 'normal')
@@ -82,8 +123,8 @@ class Interface():
         self.ns.bot_channel = self.s.bot_channel
 
         # Start bot
-        self.bot_process = Process(target=bot.run, args=[self.ns, self.s.bot_token])
-        self.bot_process.start()
+        self.bot = Bot(self.ns, self.s.bot_token)
+        self.bot.start()
 
     # Contains the main while loop, opens and maintains the GUI
     def loop(self):
@@ -98,7 +139,6 @@ class Interface():
 
             elif event == 'Options::-OPEN_OPTIONS-':
                 self.window['-BOT_KEY-'].update(value=self.s.bot_token)
-                print(self.ns.s.bot_channel)
                 self.options_visible(True)
 
             elif event == '-CLOSE_OPTIONS-':
@@ -107,14 +147,14 @@ class Interface():
                     self.s.bot_token = get_token
                     self.s.bot_channel = self.ns.bot_channel
 
-                    self.bot_process.terminate()
-                    self.bot_process.join()
-                    self.bot_process.close()
+                    self.bot.terminate()
+                    self.bot.join()
+                    self.bot.close()
 
-                    print("Bot reset")
+                    print("Bot reset.")
 
-                    self.bot_process = Process(target=bot.run, args=[self.ns, self.s.bot_token])
-                    self.bot_process.start()
+                    self.bot = Bot(self.ns, self.s.bot_token)
+                    self.bot.start()
 
                 self.options_visible(False)
 
@@ -127,6 +167,7 @@ class Interface():
                         self.curr_file(values).fp.close()
                         self.curr_file(values).fp = None
                     sound.clear()
+                    self.bot.clear()
                 else:
                     self.window['-POWER_DISPLAY-'].update(source=os.path.join(self.base_path, 'img', 'on_light.png'), subsample=3)
 
@@ -190,9 +231,6 @@ class Interface():
             elif event == '-TIMEOUT-':
                 pass
 
-            else:
-                print(event)
-
             ## After Events ##
 
             # Check for file update
@@ -207,35 +245,7 @@ class Interface():
                         file.fp.seek(0, os.SEEK_END)
                     else:
                         data = file.fp.readline()
-                        if '[CHAT]' in data:
-                            # Remove [CHAT]
-                            data = data[data.index('[CHAT]') + 7:]
-
-                            # Remove all minecraft format tags
-                            split_data = data.split('§')
-                            data = split_data.pop(0)
-                            for d in split_data:
-                                data += d[1:]
-
-                            # Username says ...
-                            preface = ""
-                            left_carrot = data.find('<')
-                            right_carrot = data.find('>')
-                            if left_carrot == 0 and right_carrot > 0:
-                                username = data[1:right_carrot]
-                                data = data[right_carrot+1:]
-                                preface = username + " says"
-
-
-                            # Replace all carrots with spaces
-                            data = data.replace('<', ' ')
-                            data = data.replace('>', ' ')
-
-                            
-
-                            if data != '' and data != '\n':
-                                print(repr(data))
-                                sound.play(preface + data)
+                        self.send(data)
 
     # On exit from loop
     def exit(self):
@@ -250,11 +260,10 @@ class Interface():
         self.window.close()
 
         # Kill bot
-        print(self.ns)
         self.s.bot_channel = self.ns.bot_channel
-        self.bot_process.terminate()
-        self.bot_process.join()
-        self.bot_process.close()
+        self.bot.terminate()
+        self.bot.join()
+        self.bot.close()
 
         # Save data
         self.s.save()
