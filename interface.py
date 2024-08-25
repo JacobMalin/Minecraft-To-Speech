@@ -18,15 +18,6 @@ import ui
 from file import File
 
 class Interface():
-    # # Get the path name, required to fix pyinstaller apps
-    # def get_path(self, filename):
-    #     if hasattr(sys, "_MEIPASS"):
-    #         # noinspection PyProtectedMember
-    #         return os.path.join(sys._MEIPASS, filename)
-    #     else:
-    #         return filename
-
-
     # Gets the file selected in the listbox
     def curr_file(self, values):
         if values['-FILE_LIST-']:

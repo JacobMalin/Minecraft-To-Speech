@@ -35,6 +35,7 @@ Gui needs:
           - Power indicator
 """
 
+import multiprocessing
 from interface import Interface
 from save import Save
 
@@ -56,4 +57,5 @@ def main():
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     main()
