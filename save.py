@@ -20,7 +20,7 @@ from singleton_meta import SingletonMeta
 class SaveData:
     version: string
     files: list[File] = field(default_factory=list)
-    bot_token: string = None
+    bot_token: string = ""
     bot_channel: int = None
 
 
@@ -49,7 +49,7 @@ class Save(metaclass=SingletonMeta):
                     self.data = data
 
                     return
-            except (EOFError, ValueError):
+            except (EOFError, ValueError, pickle.UnpicklingError):
                 print('Save failed to parse')
         else:
             print('No save file')

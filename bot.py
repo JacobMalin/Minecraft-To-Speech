@@ -23,6 +23,10 @@ class DiscordBot(commands.Bot):
 
         @self.hybrid_command(name="here", description="sets chat publishing channel")
         async def here(ctx):
+            # Clear queue
+            while not self.q.empty():
+                self.q.get()
+
             self.ns.bot_channel = ctx.channel.id
             print(f"Chat logs moved to {ctx.channel} ({ctx.channel.id})")
             await ctx.send("Chat logs moved to this channel.")
@@ -60,7 +64,7 @@ class Bot(Process):
 
         try:
             self.bot.run(self.token)
-        except(discord.errors.LoginFailure):
+        except(discord.errors.LoginFailure, TypeError):
             print("Failed to Login")
     
     def send(self, msg):
@@ -84,7 +88,7 @@ class MessageCog(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def send_message(self):
-        if not self.q.empty():
+        if self.ns.bot_channel and not self.q.empty():
             msg = self.q.get()
             channel = self.bot.get_channel(self.ns.bot_channel)
             await channel.send(msg)
