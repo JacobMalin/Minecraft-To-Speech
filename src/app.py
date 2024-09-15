@@ -19,6 +19,7 @@ TODO:
   - Fix broken characters
   - Fix crash at midnight
   - Add discord capabilities
+  - Bug where if bot is missing privileged intents, it crashed
  
 Gui needs:
   - Left side

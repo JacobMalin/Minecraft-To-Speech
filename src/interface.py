@@ -44,17 +44,14 @@ class Interface():
 
     def send(self, data, is_tts, is_bot):
         if '[CHAT]' in data:
-            print(repr(data))
             # Remove up to [CHAT]
             chatless_data = data[data.index('[CHAT]') + 7:]
-            print(repr(chatless_data))
 
             # Remove all minecraft format tags
             split_data = chatless_data.split('§')
             tagless_data = split_data.pop(0)
             for d in split_data:
                 tagless_data += d[1:]
-            print(repr(tagless_data))
 
             # Username says ...
             username = ''
@@ -68,17 +65,12 @@ class Interface():
                 preface = username + " says "
             else:
                 contents = tagless_data
-            print(repr(username))
-            print(repr(contents))
-            print(repr(preface))
 
             # Replace all carrots with spaces
             contents = contents.replace('<', ' ')
             contents = contents.replace('>', ' ')
-            print(repr(contents))
 
             if contents != '' and contents != '\n':
-                print(repr(contents))
                 msg = preface + contents
                 if is_tts: sound.play(msg)
                 if is_bot: self.bot.send(tagless_data)
