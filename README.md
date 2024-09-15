@@ -6,3 +6,5 @@ Can also display the chat messages to a discord server.
 ## Discord Bot
 
 Using the discord functionality requires creating a discord bot from the discord bot [developer portal](https://discord.com/developers/applications).
+
+The bot requires the message contents intent.
