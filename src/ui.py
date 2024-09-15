@@ -83,9 +83,26 @@ def define_layout(files, base_path):
                 subsample=3
             ),
             sg.Button(
-                '-POWER-',
+                'POWER',
                 size=8,
                 pad=((21, 0), (11, 0)),
+                key='-POWER-',
+            )
+        ],
+        [
+            sg.Button(
+                'TTS',
+                size=8,
+                button_color='green',
+                pad=((21, 0), (11, 0)),
+                key='-TTS_TOGGLE-',
+            ),
+            sg.Button(
+                'Discord',
+                size=8,
+                button_color='red',
+                pad=((21, 0), (11, 0)),
+                key='-BOT_TOGGLE-',
             )
         ]
     ]

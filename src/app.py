@@ -38,12 +38,13 @@ Gui needs:
 import multiprocessing
 from interface import Interface
 from save import Save
+from file import File
 
 
 
 appname = 'MinecraftToSpeech'
 appauthor = 'Vos'
-version = "1.1.3"
+version = '1.1.4'
 
 
 

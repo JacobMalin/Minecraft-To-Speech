@@ -44,12 +44,28 @@ class Save(metaclass=SingletonMeta):
                         print('Save version mismatch')
 
                         self.data = SaveData(self.data.version)
+
+                        if data.files:
+                            for file in data.files:
+
+                                if file.path is not None: path = file.path
+                                if file.is_on is not None: is_on = file.is_on
+                                if file.is_tts is not None: is_tts = file.is_tts
+                                if file.is_bot is not None: is_bot = file.is_bot
+                                
+                                f = File(path=path, is_on=is_on, is_tts=is_tts, is_bot=is_bot)
+
+                                self.data.files += [f]
+
+                        if data.bot_token: self.data.bot_token = data.bot_token
+                        if data.bot_channel: self.data.bot_channel = data.bot_channel
+
                         return
 
                     self.data = data
 
                     return
-            except (EOFError, ValueError, pickle.UnpicklingError):
+            except (EOFError, ValueError, pickle.UnpicklingError, MemoryError):
                 print('Save failed to parse')
         else:
             print('No save file')

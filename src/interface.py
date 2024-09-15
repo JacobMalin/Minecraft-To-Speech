@@ -32,6 +32,8 @@ class Interface():
             text_color = 'green' if file.is_on else 'red'
             self.window['-FILE_LIST-'].set_index_color(i, background_color=text_color, highlight_background_color=text_color)
 
+            
+
     def control_visible(self, value):
         self.window['-NO_FILE-'].update(visible=(not value))
         self.window['-CONTROL_PANEL-'].update(visible=value)
@@ -40,7 +42,7 @@ class Interface():
         self.window['-MAIN-'].update(visible=(not value))
         self.window['-OPTIONS-'].update(visible=value)
 
-    def send(self, data):
+    def send(self, data, is_tts, is_bot):
         if '[CHAT]' in data:
             print(repr(data))
             # Remove up to [CHAT]
@@ -78,8 +80,8 @@ class Interface():
             if contents != '' and contents != '\n':
                 print(repr(contents))
                 msg = preface + contents
-                sound.play(msg)
-                self.bot.send(tagless_data)
+                if is_tts: sound.play(msg)
+                if is_bot: self.bot.send(tagless_data)
 
 
     def __init__(self, s):
@@ -166,6 +168,20 @@ class Interface():
 
                 # Fix the colors
                 self.update_colors()
+            
+            # When the tts button is pushed
+            elif event == '-TTS_TOGGLE-':
+                self.curr_file(values).is_tts ^= 1 # toggle value
+
+                color = 'green' if self.curr_file(values).is_tts else 'red'
+                self.window['-TTS_TOGGLE-'].update(button_color=color)
+            
+            # When the bot button is pushed
+            elif event == '-BOT_TOGGLE-':
+                self.curr_file(values).is_bot ^= 1 # toggle value
+
+                color = 'green' if self.curr_file(values).is_bot else 'red'
+                self.window['-BOT_TOGGLE-'].update(button_color=color)
 
             # When the list of f is touched
             elif event == '-FILE_LIST-':
@@ -178,14 +194,19 @@ class Interface():
                     max_path_len = 30
                     shortened_path = '...' + self.curr_file(values).path[-(max_path_len - 3):] \
                         if len(self.curr_file(values).path) > max_path_len else self.curr_file(values).path
-                    self.window['-FILE_NAME-'].update(value='Current Channel:\n' + shortened_path)
+                    self.window['-FILE_NAME-'].update(value='Current File:\n' + shortened_path)
 
                     # Update power button
-                    if self.curr_file(values).is_on:
-                        self.window['-POWER_DISPLAY-'].update(source=os.path.join(self.base_path, 'img', 'on_light.png'), subsample=3)
-                    else:
-                        self.window['-POWER_DISPLAY-'].update(source=os.path.join(self.base_path, 'img', 'off_light.png'),
-                                                        subsample=3)
+                    img = 'on_light.png' if self.curr_file(values).is_on else 'off_light.png'
+                    self.window['-POWER_DISPLAY-'].update(source=os.path.join(self.base_path, 'img', img), subsample=3)
+                        
+                    # Update tts button
+                    color = 'green' if self.curr_file(values).is_tts else 'red'
+                    self.window['-TTS_TOGGLE-'].update(button_color=color)
+
+                    # Update bot button
+                    color = 'green' if self.curr_file(values).is_bot else 'red'
+                    self.window['-BOT_TOGGLE-'].update(button_color=color)
                 else:
                     # Hide control panel and show "No File Selected" Message
                     self.control_visible(False)
@@ -236,7 +257,7 @@ class Interface():
                         file.fp.seek(0, os.SEEK_END)
                     else:
                         data = file.fp.readline()
-                        self.send(data)
+                        self.send(data, file.is_tts, file.is_bot)
 
     # On exit from loop
     def exit(self):

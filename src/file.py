@@ -13,7 +13,11 @@ from dataclasses import dataclass
 @dataclass
 class File:
     path: string
+
     is_on: bool = False
+    is_tts: bool = True
+    is_bot: bool = False
+
     fp = None
 
     def __str__(self):

@@ -4,10 +4,10 @@
 block_cipher = None
 
 
-a = Analysis(['app.py'],
+a = Analysis(['../src/app.py'],
              pathex=[],
              binaries=[],
-             datas=[('img/mts_icon.ico', 'img'), ('img/on_light.png', 'img'), ('img/off_light.png', 'img')],
+             datas=[('../img/mts_icon.ico', 'img'), ('../img/on_light.png', 'img'), ('../img/off_light.png', 'img')],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},
@@ -37,4 +37,4 @@ exe = EXE(pyz,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None , icon='img\\mts_icon.ico')
+          entitlements_file=None , icon='..\\img\\mts_icon.ico')
