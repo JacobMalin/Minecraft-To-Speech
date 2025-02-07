@@ -1,6 +1,0 @@
-pysimplegui==4.70.1
-appdirs==1.4.4
-pyinstaller==6.9.0
-pyttsx3==2.90
-discord.py==2.4.0
-pathos==0.3.2
