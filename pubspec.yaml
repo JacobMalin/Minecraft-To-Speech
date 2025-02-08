@@ -1,5 +1,5 @@
 name: minecraft_to_speech
-description: "A new Flutter project."
+description: "A minecraft chat reader."
 publish_to: 'none'
 version: 0.1.0
 
@@ -7,8 +7,11 @@ environment:
   sdk: ^3.6.2
 
 dependencies:
+  bitsdojo_window: ^0.1.6
   flutter:
     sdk: flutter
+  menu_bar: ^0.5.3
+  window_manager: ^0.4.3
 
 dev_dependencies:
   flutter_test:
