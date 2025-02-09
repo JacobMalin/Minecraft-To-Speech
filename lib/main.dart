@@ -1,10 +1,13 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:minecraft_to_speech/file_page.dart';
-import 'package:minecraft_to_speech/global_shortcuts.dart';
-import 'package:minecraft_to_speech/settings_page.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'file/file_theme.dart';
+import 'file/file_page.dart';
+import 'global_shortcuts.dart';
+import 'file/file_model.dart';
+import 'settings_page.dart';
 import 'top_bar.dart';
 
 void main() async {
@@ -16,17 +19,13 @@ void main() async {
     title: "Minecraft To Speech",
     titleBarStyle: TitleBarStyle.hidden,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    // await windowManager.focus();
-  });
+  windowManager.waitUntilReadyToShow(windowOptions, () async {});
 
   runApp(const MainApp());
 
   doWhenWindowReady(() {
     appWindow.size = Size(800, 500);
     appWindow.minSize = Size(600, 450);
-    appWindow.alignment = Alignment.center;
   });
 }
 
@@ -37,13 +36,33 @@ class MainApp extends StatefulWidget {
   State<MainApp> createState() => _MainAppState();
 }
 
-class _MainAppState extends State<MainApp> {
+class _MainAppState extends State<MainApp> with WindowListener {
   bool isSettings = false;
+
+  final seedColor = Color(0x00204969);
 
   void changePage(isSettings) {
     setState(() {
       this.isSettings = isSettings;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+    _init();
+  }
+
+  void _init() async {
+    await windowManager.setPreventClose(true);
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
   }
 
   @override
@@ -53,20 +72,55 @@ class _MainAppState extends State<MainApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0x00204969),
+          seedColor: seedColor,
+          brightness: Brightness.light,
+        ),
+      ).copyWith(extensions: <ThemeExtension<dynamic>>[
+        FileTheme.light(),
+      ]),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: seedColor,
           brightness: Brightness.dark,
         ),
+      ).copyWith(
+        extensions: <ThemeExtension<dynamic>>[
+          FileTheme.dark(),
+        ],
       ),
-      home: GlobalShortcuts(
-        changePage: changePage,
-        child: Scaffold(
-          appBar: TopBar(
-            isSettings: isSettings,
-            changePage: changePage,
+      themeMode: ThemeMode.system,
+      home: ChangeNotifierProvider(
+        create: (context) => FileModel(),
+        child: GlobalShortcuts(
+          changePage: changePage,
+          child: Scaffold(
+            appBar: TopBar(
+              isSettings: isSettings,
+              changePage: changePage,
+            ),
+            body: isSettings ? SettingsPage() : FilePage(),
           ),
-          body: isSettings ? SettingsPage() : FilePage(),
         ),
       ),
     );
+  }
+
+  @override
+  void onWindowClose() async {
+    bool isPreventClose = await windowManager.isPreventClose();
+    if (isPreventClose) {
+      // Made the window not visible to the user
+      windowManager.hide();
+
+      // Save data
+      // print(await windowManager.getPosition());
+      // TODO: Save position
+      // TODO: Save files
+      // TODO: Save user settings
+
+      // Kill for real
+      await windowManager.destroy();
+    }
   }
 }

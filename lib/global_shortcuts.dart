@@ -1,6 +1,8 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:minecraft_to_speech/file/file_model.dart';
+import 'package:provider/provider.dart';
 
 class GlobalShortcuts extends StatelessWidget {
   const GlobalShortcuts({
@@ -12,20 +14,22 @@ class GlobalShortcuts extends StatelessWidget {
   final Widget child;
   final Function changePage;
 
-  static const ctrlO = SingleActivator(LogicalKeyboardKey.keyO, control: true);
-  static const ctrlQ = SingleActivator(LogicalKeyboardKey.keyQ, control: true);
+  static const delete = SingleActivator(LogicalKeyboardKey.delete);
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: <ShortcutActivator, VoidCallback>{
-        ctrlO: () => changePage(true),
-        ctrlQ: () => appWindow.close(),
-      },
-      child: Focus(
-        autofocus: true,
-        child: child,
-      ),
+    return Consumer<FileModel>(
+      builder: (context, files, _) {
+        return CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            delete: () => files.remove(),
+          },
+          child: Focus(
+            autofocus: true,
+            child: child,
+          ),
+        );
+      }
     );
   }
 }

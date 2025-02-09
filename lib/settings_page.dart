@@ -7,6 +7,9 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Placeholder();
+    return Container();
   }
+
+  // TODO: Implement dark/light switch
+  // TODO: Add bot key field
 }
