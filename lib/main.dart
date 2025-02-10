@@ -1,5 +1,10 @@
+import 'dart:ui';
+
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:minecraft_to_speech/hive_adapter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -12,20 +17,38 @@ import 'top_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Hive setup
+  final dir = await getApplicationSupportDirectory();
+  Hive.defaultDirectory = dir.path;
+  Hive.registerAdapter('HiveOffset',
+      (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
+  Hive.registerAdapter('HiveSize',
+      (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
+
+  // Setup window manager
   await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = WindowOptions(
-    backgroundColor: Colors.transparent,
-    title: "Minecraft To Speech",
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {});
-
+  // Start application
   runApp(const MainApp());
 
+  // Window setup 2 (Must be after runApp)
+  var windowBox = Hive.box(name: 'window');
+  HiveOffset? startPosition = windowBox.get('position');
+  HiveSize? startSize = windowBox.get('size');
+  bool? startIsMaximized = windowBox.get('isMaximized');
+
   doWhenWindowReady(() {
-    appWindow.size = Size(800, 500);
+    appWindow.title = "Minecraft To Speech";
     appWindow.minSize = Size(600, 450);
+
+    appWindow.size = startSize ?? Size(800, 500);
+    // Must be after size
+    if (startPosition != null) appWindow.position = startPosition;
+
+    if (startIsMaximized != null && startIsMaximized) appWindow.maximize();
+
+    appWindow.show(); // Starts hidden to make less ugly
   });
 }
 
@@ -51,13 +74,13 @@ class _MainAppState extends State<MainApp> with WindowListener {
   void initState() {
     super.initState();
     windowManager.addListener(this);
-    _init();
+    // _init();
   }
 
-  void _init() async {
-    await windowManager.setPreventClose(true);
-    setState(() {});
-  }
+  // void _init() async {
+  //   await windowManager.setPreventClose(true);
+  //   setState(() {});
+  // }
 
   @override
   void dispose() {
@@ -106,21 +129,47 @@ class _MainAppState extends State<MainApp> with WindowListener {
     );
   }
 
+  // @override
+  // void onWindowClose() async {
+  //   bool isPreventClose = await windowManager.isPreventClose();
+  //   if (isPreventClose) {
+  //     // Made the window not visible to the user
+  //     windowManager.hide();
+
+  //     // Kill for real
+  //     await windowManager.destroy();
+  //   }
+  // }
+
   @override
-  void onWindowClose() async {
-    bool isPreventClose = await windowManager.isPreventClose();
-    if (isPreventClose) {
-      // Made the window not visible to the user
-      windowManager.hide();
+  void onWindowMoved() async {
+    var windowBox = Hive.box(name: 'window');
+    HiveOffset pos = HiveOffset.fromOffset(await windowManager.getPosition());
+    windowBox['position'] = pos;
+  }
 
-      // Save data
-      // print(await windowManager.getPosition());
-      // TODO: Save position
-      // TODO: Save files
-      // TODO: Save user settings
+  @override
+  void onWindowResized() async {
+    var windowBox = Hive.box(name: 'window');
+    HiveSize size = HiveSize.fromSize(await windowManager.getSize());
+    windowBox['size'] = size;
+  }
 
-      // Kill for real
-      await windowManager.destroy();
-    }
+  @override
+  void onWindowFocus() {
+    // Make sure to call once.
+    setState(() {});
+  }
+
+  @override
+  void onWindowMaximize() {
+    var windowBox = Hive.box(name: 'window');
+    windowBox['isMaximized'] = true;
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    var windowBox = Hive.box(name: 'window');
+    windowBox['isMaximized'] = false;
   }
 }

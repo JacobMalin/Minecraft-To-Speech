@@ -11,8 +11,11 @@ dependencies:
   file_picker: ^8.3.3
   flutter:
     sdk: flutter
+  hive: ^4.0.0-dev.2
+  isar_flutter_libs: ^4.0.0-dev.13
   menu_bar: ^0.5.3
   path: ^1.9.0
+  path_provider: ^2.1.5
   provider: ^6.1.2
   resizable_widget: ^1.0.5
   smooth_list_view: ^2.0.2
