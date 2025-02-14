@@ -26,8 +26,54 @@ class _FilePageState extends State<FilePage> {
       separatorColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       children: [
         FileList(),
-        Container(),
+        FileInfo(),
       ],
+    );
+  }
+}
+
+class FileInfo extends StatelessWidget {
+  const FileInfo({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FileModel>(
+      builder: (context, files, child) {
+        if (files.index == -1) return child!;
+
+        FileSettings selected = files.selected!;
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  selected.name,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  maxLines: 1,
+                ),
+                SizedBox(height: 5),
+                Text(
+                  // Makes spaces non-breaking and slash breaking
+                  selected.path
+                      .replaceAll(" ", "\u202f")
+                      .replaceAll("\\", "\\\u200b"),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Align(
+        alignment: Alignment.center,
+        child: Text("No File Selected"),
+      ),
     );
   }
 }
@@ -81,19 +127,22 @@ class FileTile extends StatelessWidget {
           contentPadding: EdgeInsets.only(left: 10, right: 10),
           title: Text(
             file.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            file.path.replaceFirst(":", ":\u2060"),
+            // Makes colon and space non-breaking
+            file.path.replaceFirst(":", ":\u2060").replaceAll(" ", "\u202f"),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
-          tileColor: file.enabled ? fileTheme.green : fileTheme.red,
-          hoverColor: file.enabled ? fileTheme.greenHover : fileTheme.redHover,
+          tileColor: file.isEnabled ? fileTheme.green : fileTheme.red,
+          hoverColor: file.isEnabled ? fileTheme.greenHover : fileTheme.redHover,
           selectedTileColor: Theme.of(context).colorScheme.secondary,
           onTap: () => files.choose(index),
           splashColor: Colors.transparent,
           textColor: Theme.of(context).colorScheme.secondary,
-          selectedColor: file.enabled ? fileTheme.green : fileTheme.red,
+          selectedColor: file.isEnabled ? fileTheme.green : fileTheme.red,
           selected: selected,
         );
       },

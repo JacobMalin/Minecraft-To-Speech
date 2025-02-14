@@ -2,39 +2,22 @@ import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 import 'file_settings.dart';
 
 class FileModel extends ChangeNotifier {
-  final files = <FileSettings>[
-    FileSettings.fromPath("a", enabled: true),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-    FileSettings.fromPath("b c d e f g h i j k l m n o p q r s t u v w x y z"),
-    FileSettings.fromPath("c"),
-  ];
+  final files = Hive.box(name: 'files');
   int index = -1;
   late ScrollController controller = ScrollController();
 
   get length => files.length;
-  get selected => index >= 0 && index < files.length ? files[index] : null;
+  FileSettings? get selected => index >= 0 && index < files.length ? files[index] : null;
 
   operator [](index) => files[index];
 
   choose(index) {
-    this.index = index;
+    this.index = this.index != index ? this.index = index : -1;
     notifyListeners();
   }
 
@@ -46,13 +29,27 @@ class FileModel extends ChangeNotifier {
 
     if (result == null) return; // If the user cancels the prompt, exit
 
-    files.add(FileSettings.fromPath(result.files.single.path!));
+    var path = result.files.single.path!;
+
+    // If file already exists, select the file and return
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].path == path) {
+        index = i;
+        notifyListeners();
+        return;
+      }
+    }
+
+    // Else if new file,
+    var file = FileSettings.fromPath(path);
+    files.add(file);
+    index = files.length - 1; // Select newly added file
     notifyListeners();
   }
 
   remove() {
     if (files.isNotEmpty && index >= 0) {
-      files.removeAt(index);
+      files.deleteAt(index);
       index = min(index, files.length - 1);
 
       notifyListeners();

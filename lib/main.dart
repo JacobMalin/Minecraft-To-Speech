@@ -1,17 +1,16 @@
-import 'dart:ui';
-
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:minecraft_to_speech/hive_adapter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'file/file_settings.dart';
 import 'file/file_theme.dart';
 import 'file/file_page.dart';
-import 'global_shortcuts.dart';
 import 'file/file_model.dart';
+import 'hive_adapter.dart';
+import 'global_shortcuts.dart';
 import 'settings_page.dart';
 import 'top_bar.dart';
 
@@ -25,6 +24,8 @@ void main() async {
       (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
   Hive.registerAdapter('HiveSize',
       (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
+  Hive.registerAdapter('FileSettings',
+      (dynamic json) => FileSettings.fromJson(json as Map<String, dynamic>));
 
   // Setup window manager
   await windowManager.ensureInitialized();
@@ -74,13 +75,7 @@ class _MainAppState extends State<MainApp> with WindowListener {
   void initState() {
     super.initState();
     windowManager.addListener(this);
-    // _init();
   }
-
-  // void _init() async {
-  //   await windowManager.setPreventClose(true);
-  //   setState(() {});
-  // }
 
   @override
   void dispose() {
@@ -128,18 +123,6 @@ class _MainAppState extends State<MainApp> with WindowListener {
       ),
     );
   }
-
-  // @override
-  // void onWindowClose() async {
-  //   bool isPreventClose = await windowManager.isPreventClose();
-  //   if (isPreventClose) {
-  //     // Made the window not visible to the user
-  //     windowManager.hide();
-
-  //     // Kill for real
-  //     await windowManager.destroy();
-  //   }
-  // }
 
   @override
   void onWindowMoved() async {
