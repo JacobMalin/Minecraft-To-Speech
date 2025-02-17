@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'file_settings.dart';
 
@@ -12,11 +13,12 @@ class FileModel extends ChangeNotifier {
   late ScrollController controller = ScrollController();
 
   get length => files.length;
-  FileSettings? get selected => index >= 0 && index < files.length ? files[index] : null;
+  FileSettings? get selected =>
+      index >= 0 && index < files.length ? files[index] : null;
 
   operator [](index) => files[index];
 
-  choose(index) {
+  choose(int index) {
     this.index = this.index != index ? this.index = index : -1;
     notifyListeners();
   }
@@ -26,6 +28,9 @@ class FileModel extends ChangeNotifier {
       type: FileType.custom,
       allowedExtensions: ['log'],
     );
+
+    // Focus window after picker
+    windowManager.focus();
 
     if (result == null) return; // If the user cancels the prompt, exit
 
@@ -54,5 +59,12 @@ class FileModel extends ChangeNotifier {
 
       notifyListeners();
     }
+  }
+
+  rename(int index, String name) {
+    var file = files[index];
+    file.name = name;
+    files[index] = file;
+    notifyListeners();
   }
 }

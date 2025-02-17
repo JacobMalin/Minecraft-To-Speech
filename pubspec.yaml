@@ -19,6 +19,7 @@ dependencies:
   provider: ^6.1.2
   resizable_widget: ^1.0.5
   smooth_list_view: ^2.0.2
+  win32: ^5.10.1
   window_manager: ^0.4.3
 
 dev_dependencies:

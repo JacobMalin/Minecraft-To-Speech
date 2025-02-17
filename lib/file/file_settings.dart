@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 
 class FileSettings {
   final File file;
-  final String name;
+  String name;
   bool isEnabled;
 
   FileSettings.fromPath(path, {name, isEnabled})

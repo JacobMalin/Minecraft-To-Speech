@@ -5,17 +5,13 @@ import 'package:menu_bar/menu_bar.dart';
 import 'package:provider/provider.dart';
 
 import 'file/file_model.dart';
-
+import 'settings/settings_model.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   const TopBar({
     super.key,
-    required this.isSettings,
-    required this.changePage,
   });
 
-  final bool isSettings;
-  final Function changePage;
   static const double height = 40;
 
   @override
@@ -34,12 +30,12 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               IntrinsicWidth(
-                child: MenuButtons(changePage: changePage),
+                child: MenuButtons(),
               ),
               Expanded(
                 child: MoveWindow(),
               ),
-              IconSwapButton(isSettings: isSettings, changePage: changePage),
+              IconSwapButton(),
               WindowButtons(),
             ],
           ),
@@ -55,12 +51,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
 class IconSwapButton extends StatelessWidget {
   const IconSwapButton({
     super.key,
-    required this.isSettings,
-    required this.changePage,
   });
-
-  final bool isSettings;
-  final Function changePage;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +92,9 @@ class IconSwapButton extends StatelessWidget {
       );
     }
 
+    final isSettings = Provider.of<SettingsModel>(context).isSettings;
+    final changePage = Provider.of<SettingsModel>(context, listen: false).changePage;
+
     final settingsIcon = iconStyle(
       () => changePage(true),
       Icon(Icons.settings),
@@ -117,10 +111,8 @@ class IconSwapButton extends StatelessWidget {
 class MenuButtons extends StatelessWidget {
   const MenuButtons({
     super.key,
-    required this.changePage,
   });
 
-  final Function changePage;
   static const double height = 40;
 
   @override
@@ -128,6 +120,9 @@ class MenuButtons extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color backgroundColor = theme.colorScheme.primaryContainer;
     final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
+
+    final isSettings = Provider.of<SettingsModel>(context).isSettings;
+    final changePage = Provider.of<SettingsModel>(context, listen: false).changePage;
 
     final menuStyle = MenuStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
@@ -165,53 +160,55 @@ class MenuButtons extends StatelessWidget {
       splashFactory: NoSplash.splashFactory,
     );
 
-    return Consumer<FileModel>(
-      builder: (context, files, child) {
-        return MenuBarWidget(
-          barStyle: menuStyle,
-          barButtonStyle: barButtonStyle,
-          menuButtonStyle: menuButtonStyle,
-          barButtons: [
-            BarButton(
-              text: Center(child: const Text('File')),
-              submenu: SubMenu(
-                menuItems: [
-                  MenuButton(
-                    text: const Text('Add File'),
-                    onTap: () => files.add(),
-                    // icon: const Icon(Icons.file_open_outlined),
-                    // shortcutText: 'Ctrl+O',
-                  ),
-                  MenuButton(
-                    text: const Text('Remove File'),
-                    onTap: () => files.remove(),
-                    shortcut: SingleActivator(LogicalKeyboardKey.backspace),
-                    shortcutText: 'Backspace',
-                  ),
-                  const MenuDivider(),
-                  MenuButton(
-                    text: const Text('Options'),
-                    onTap: () => changePage(true),
-                    icon: const Icon(Icons.settings),
-                    shortcut: SingleActivator(LogicalKeyboardKey.keyO, control: true),
-                    shortcutText: 'Ctrl+O',
-                  ),
-                  const MenuDivider(),
-                  MenuButton(
-                    text: const Text('Exit'),
-                    onTap: () => appWindow.close(),
-                    icon: const Icon(Icons.exit_to_app),
-                    shortcut: SingleActivator(LogicalKeyboardKey.keyQ, control: true),
-                    shortcutText: 'Ctrl+Q',
-                  ),
-                ],
-              ),
+    fileMenuItems(files) => [
+          MenuButton(
+            text: const Text('Add File'),
+            onTap: () => files.add(),
+            // icon: const Icon(Icons.file_open_outlined),
+            // shortcutText: 'Ctrl+O',
+          ),
+          MenuButton(
+            text: const Text('Remove File'),
+            onTap: () => files.remove(),
+            // shortcut: SingleActivator(LogicalKeyboardKey.backspace),
+            // shortcutText: 'Backspace',
+          ),
+          const MenuDivider()
+        ];
+    final alwaysMenuButtons = [
+      MenuButton(
+        text: const Text('Settings'),
+        onTap: () => changePage(true),
+        icon: const Icon(Icons.settings),
+        shortcut: SingleActivator(LogicalKeyboardKey.keyO, control: true),
+        shortcutText: 'Ctrl+O',
+      ),
+      const MenuDivider(),
+      MenuButton(
+        text: const Text('Exit'),
+        onTap: () => appWindow.close(),
+        icon: const Icon(Icons.exit_to_app),
+        shortcut: SingleActivator(LogicalKeyboardKey.keyQ, control: true),
+        shortcutText: 'Ctrl+Q',
+      ),
+    ];
+
+    return Consumer<FileModel>(builder: (context, files, child) {
+      return MenuBarWidget(
+        barStyle: menuStyle,
+        barButtonStyle: barButtonStyle,
+        menuButtonStyle: menuButtonStyle,
+        barButtons: [
+          BarButton(
+            text: Center(child: const Text('File')),
+            submenu: SubMenu(
+              menuItems: (isSettings ? alwaysMenuButtons : fileMenuItems(files) + alwaysMenuButtons),
             ),
-          ],
-          child: Container(),
-        );
-      }
-    );
+          ),
+        ],
+        child: Container(),
+      );
+    });
   }
 }
 

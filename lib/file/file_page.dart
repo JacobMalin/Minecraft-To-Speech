@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:minecraft_to_speech/file/file_shortcuts.dart';
 import 'package:provider/provider.dart';
 import 'package:resizable_widget/resizable_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
@@ -32,10 +34,30 @@ class _FilePageState extends State<FilePage> {
   }
 }
 
-class FileInfo extends StatelessWidget {
+class FileInfo extends StatefulWidget {
   const FileInfo({
     super.key,
   });
+
+  @override
+  State<FileInfo> createState() => _FileInfoState();
+}
+
+class _FileInfoState extends State<FileInfo> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final files = Provider.of<FileModel>(context, listen: false);
+    _controller = TextEditingController(text: files.selected?.name);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +72,17 @@ class FileInfo extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                Text(
-                  selected.name,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  maxLines: 1,
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: TextEditingController(text: files.selected?.name),
+                    // decoration: null,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                    onSubmitted: (newName) => files.rename(files.index, newName),                    
+                  ),
                 ),
-                SizedBox(height: 5),
+                SizedBox(height: 10),
                 Text(
                   // Makes spaces non-breaking and slash breaking
                   selected.path
@@ -137,7 +164,8 @@ class FileTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           tileColor: file.isEnabled ? fileTheme.green : fileTheme.red,
-          hoverColor: file.isEnabled ? fileTheme.greenHover : fileTheme.redHover,
+          hoverColor:
+              file.isEnabled ? fileTheme.greenHover : fileTheme.redHover,
           selectedTileColor: Theme.of(context).colorScheme.secondary,
           onTap: () => files.choose(index),
           splashColor: Colors.transparent,
