@@ -12,7 +12,6 @@ import 'file/file_theme.dart';
 import 'file/file_page.dart';
 import 'file/file_model.dart';
 import 'hive_adapter.dart';
-import 'file/file_shortcuts.dart';
 import 'settings/settings_model.dart';
 import 'settings/settings_page.dart';
 import 'top_bar.dart';
@@ -44,7 +43,7 @@ void main() async {
 
   doWhenWindowReady(() {
     appWindow.title = "Minecraft To Speech";
-    appWindow.minSize = Size(600, 450);
+    appWindow.minSize = Size(500, 260);
 
     appWindow.size = startSize ?? Size(800, 500);
     // Must be after size

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:minecraft_to_speech/file/file_shortcuts.dart';
 import 'package:provider/provider.dart';
 import 'package:resizable_widget/resizable_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
@@ -45,11 +43,13 @@ class FileInfo extends StatefulWidget {
 
 class _FileInfoState extends State<FileInfo> {
   late TextEditingController _controller;
+  late int selectedIndex;
 
   @override
   void initState() {
     super.initState();
     final files = Provider.of<FileModel>(context, listen: false);
+    selectedIndex = files.index;
     _controller = TextEditingController(text: files.selected?.name);
   }
 
@@ -66,31 +66,102 @@ class _FileInfoState extends State<FileInfo> {
         if (files.index == -1) return child!;
 
         FileSettings selected = files.selected!;
+        if (selectedIndex != files.index) {
+          selectedIndex = files.index;
+          _controller.text = selected.name;
+        }
+
+        final fileTheme = Theme.of(context).extension<FileTheme>()!;
+
         return Align(
           alignment: Alignment.topCenter,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: TextEditingController(text: files.selected?.name),
-                    // decoration: null,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                    onSubmitted: (newName) => files.rename(files.index, newName),                    
-                  ),
+                Row(
+                  children: [
+                    Flexible(flex: 1, child: Container()),
+                    Flexible(
+                      flex: 4,
+                      child: TextField(
+                        controller: _controller,
+                        // decoration: null,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                        onChanged: (newName) => files.fileWith(name: newName),
+                      ),
+                    ),
+                    Flexible(flex: 1, child: Container()),
+                  ],
                 ),
                 SizedBox(height: 10),
-                Text(
-                  // Makes spaces non-breaking and slash breaking
-                  selected.path
-                      .replaceAll(" ", "\u202f")
-                      .replaceAll("\\", "\\\u200b"),
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
+                SizedBox(
+                  height: 35,
+                  child: Text(
+                    // Makes spaces non-breaking and slash breaking
+                    selected.path
+                        .replaceAll(" ", "\u202f")
+                        .replaceAll("\\", "\\\u200b"),
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                  ),
+                ),
+                SizedBox(height: 25),
+                ClipRect(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Switch(
+                        value: selected.isEnabled,
+                        onChanged: (enabled) =>
+                            files.fileWith(enabled: enabled),
+                        activeColor: fileTheme.green,
+                        inactiveThumbColor: fileTheme.red,
+                        inactiveTrackColor: fileTheme.red.withAlpha(180),
+                        hoverColor: Colors.transparent,
+                        trackOutlineColor:
+                            WidgetStatePropertyAll(Colors.transparent),
+                        thumbIcon: WidgetStatePropertyAll(
+                          Icon(
+                            Icons.power_settings_new,
+                            color: Theme.of(context).colorScheme.surface,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      ToggleButtons(
+                        isSelected: [selected.isTts, selected.isDiscord],
+                        onPressed: selected.isEnabled
+                            ? (index) {
+                                switch (index) {
+                                  case 0:
+                                    files.fileWith(tts: !selected.isTts);
+                                  case 1:
+                                    files.fileWith(
+                                        discord: !selected.isDiscord);
+                                }
+                              }
+                            : null,
+                        borderRadius: BorderRadius.circular(10),
+                        fillColor: fileTheme.green.withAlpha(150),
+                        selectedColor: Theme.of(context).colorScheme.onSurface,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text("TTS"),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text("Discord"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

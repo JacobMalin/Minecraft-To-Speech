@@ -61,10 +61,16 @@ class FileModel extends ChangeNotifier {
     }
   }
 
-  rename(int index, String name) {
-    var file = files[index];
-    file.name = name;
-    files[index] = file;
+  fileWith({int? index, String? name, bool? enabled, bool? tts, bool? discord}) {
+    var indexOrSelected = index ?? this.index;
+    var file = files[indexOrSelected];
+
+    if (name != null) file.name = name;
+    if (enabled != null) file.isEnabled = enabled;
+    if (tts != null) file.isTts = tts;
+    if (discord != null) file.isDiscord = discord;
+
+    files[indexOrSelected] = file;
     notifyListeners();
   }
 }

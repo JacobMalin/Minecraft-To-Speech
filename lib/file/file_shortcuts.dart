@@ -25,8 +25,6 @@ class _FileShortcutsState extends State<FileShortcuts> {
   void initState() {
     super.initState();
 
-    final files = Provider.of<FileModel>(context, listen: false);
-
     _focusNode = FocusNode();
   }
 
@@ -41,10 +39,11 @@ class _FileShortcutsState extends State<FileShortcuts> {
     return Consumer<FileModel>(builder: (context, files, _) {
       return Focus(
         onKeyEvent: (node, event) {
-          print(_focusNode.hasFocus);
           if (_focusNode.hasPrimaryFocus &&
               event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.delete) files.remove();
+              event.logicalKey == LogicalKeyboardKey.delete) {
+            files.remove();
+          }
           return KeyEventResult.ignored;
         },
         autofocus: true,
