@@ -5,16 +5,26 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'file_settings.dart';
+import 'file_manager.dart';
 
 class FileModel extends ChangeNotifier {
-  final files = Hive.box(name: 'files');
+  final settingsBox = Hive.box(name: 'settings');
+  final List<FileManager> files = [];
+
   int index = -1;
   late ScrollController controller = ScrollController();
 
   get length => files.length;
-  FileSettings? get selected =>
+  FileManager? get selected =>
       index >= 0 && index < files.length ? files[index] : null;
+
+  FileModel() {
+    if (settingsBox.containsKey('paths')) {
+      for (var path in settingsBox['paths']) {
+        files.add(FileManager(path));
+      }
+    }
+  }
 
   operator [](index) => files[index];
 
@@ -46,31 +56,39 @@ class FileModel extends ChangeNotifier {
     }
 
     // Else if new file,
-    var file = FileSettings.fromPath(path);
-    files.add(file);
+    files.add(FileManager(path));
+    settingsBox['paths'] = files.map((file) => file.path).toList();
+
     index = files.length - 1; // Select newly added file
     notifyListeners();
   }
 
   remove() {
     if (files.isNotEmpty && index >= 0) {
-      files.deleteAt(index);
+      files.removeAt(index).cleanBox();
+      settingsBox['paths'] = files.map((file) => file.path).toList();
+
       index = min(index, files.length - 1);
 
       notifyListeners();
     }
   }
 
-  fileWith({int? index, String? name, bool? enabled, bool? tts, bool? discord}) {
+  updateWith(
+      {int? index, String? name, bool? enabled, bool? tts, bool? discord}) {
     var indexOrSelected = index ?? this.index;
-    var file = files[indexOrSelected];
 
-    if (name != null) file.name = name;
-    if (enabled != null) file.isEnabled = enabled;
-    if (tts != null) file.isTts = tts;
-    if (discord != null) file.isDiscord = discord;
+    files[indexOrSelected].updateWith(
+      name: name,
+      enabled: enabled,
+      tts: tts,
+      discord: discord,
+    );
 
-    files[indexOrSelected] = file;
     notifyListeners();
+  }
+
+  openSecondFolder() {
+    selected?.openSecondFolder();
   }
 }

@@ -14,6 +14,7 @@ dependencies:
   hive: ^4.0.0-dev.2
   isar_flutter_libs: ^4.0.0-dev.13
   menu_bar: ^0.5.3
+  open_file: ^3.5.10
   path: ^1.9.0
   path_provider: ^2.1.5
   provider: ^6.1.2

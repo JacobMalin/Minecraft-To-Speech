@@ -19,7 +19,7 @@ class SettingsPage extends StatelessWidget {
             "Settings",
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 15),
           TokenField(),
           SizedBox(height: 10),
           BrightnessSwitch(),

@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:win32/win32.dart';
 
-import 'file/file_settings.dart';
+import 'file/file_manager.dart';
 import 'file/file_theme.dart';
 import 'file/file_page.dart';
 import 'file/file_model.dart';
@@ -26,8 +26,8 @@ void main() async {
       (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
   Hive.registerAdapter('HiveSize',
       (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
-  Hive.registerAdapter('FileSettings',
-      (dynamic json) => FileSettings.fromJson(json as Map<String, dynamic>));
+  Hive.registerAdapter('FileInfo',
+      (dynamic json) => FileInfo.fromJson(json as Map<String, dynamic>));
 
   // Setup window manager
   await windowManager.ensureInitialized();
@@ -45,7 +45,7 @@ void main() async {
     appWindow.title = "Minecraft To Speech";
     appWindow.minSize = Size(500, 260);
 
-    appWindow.size = startSize ?? Size(800, 500);
+    appWindow.size = startSize ?? Size(500, 260);
     // Must be after size
     if (startPosition != null) appWindow.position = startPosition as Offset;
 

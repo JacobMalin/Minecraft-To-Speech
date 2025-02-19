@@ -4,7 +4,7 @@ import 'package:resizable_widget/resizable_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
 import 'file_theme.dart';
-import 'file_settings.dart';
+import 'file_manager.dart';
 import 'file_model.dart';
 
 class FilePage extends StatefulWidget {
@@ -26,22 +26,22 @@ class _FilePageState extends State<FilePage> {
       separatorColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       children: [
         FileList(),
-        FileInfo(),
+        FileInfoPage(),
       ],
     );
   }
 }
 
-class FileInfo extends StatefulWidget {
-  const FileInfo({
+class FileInfoPage extends StatefulWidget {
+  const FileInfoPage({
     super.key,
   });
 
   @override
-  State<FileInfo> createState() => _FileInfoState();
+  State<FileInfoPage> createState() => _FileInfoPageState();
 }
 
-class _FileInfoState extends State<FileInfo> {
+class _FileInfoPageState extends State<FileInfoPage> {
   late TextEditingController _controller;
   late int selectedIndex;
 
@@ -63,9 +63,12 @@ class _FileInfoState extends State<FileInfo> {
   Widget build(BuildContext context) {
     return Consumer<FileModel>(
       builder: (context, files, child) {
-        if (files.index == -1) return child!;
+        if (files.index == -1) {
+          selectedIndex = -1;
+          return child!;
+        }
 
-        FileSettings selected = files.selected!;
+        FileManager selected = files.selected!;
         if (selectedIndex != files.index) {
           selectedIndex = files.index;
           _controller.text = selected.name;
@@ -81,42 +84,40 @@ class _FileInfoState extends State<FileInfo> {
               children: [
                 Row(
                   children: [
-                    Flexible(flex: 1, child: Container()),
+                    Spacer(),
                     Flexible(
                       flex: 4,
                       child: TextField(
                         controller: _controller,
-                        // decoration: null,
                         style: Theme.of(context).textTheme.headlineMedium,
                         textAlign: TextAlign.center,
-                        onChanged: (newName) => files.fileWith(name: newName),
+                        onChanged: (newName) => files.updateWith(name: newName),
                       ),
                     ),
-                    Flexible(flex: 1, child: Container()),
+                    Spacer(),
                   ],
                 ),
                 SizedBox(height: 10),
-                SizedBox(
-                  height: 35,
-                  child: Text(
-                    // Makes spaces non-breaking and slash breaking
-                    selected.path
-                        .replaceAll(" ", "\u202f")
-                        .replaceAll("\\", "\\\u200b"),
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                  ),
+                Text(
+                  // Makes spaces non-breaking and slashes breaking
+                  selected.path
+                      .replaceAll(" ", "\u202f")
+                      .replaceAll("\\", "\\\u200b"),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 25),
                 ClipRect(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 10,
                     children: [
                       Switch(
                         value: selected.isEnabled,
                         onChanged: (enabled) =>
-                            files.fileWith(enabled: enabled),
+                            files.updateWith(enabled: enabled),
                         activeColor: fileTheme.green,
                         inactiveThumbColor: fileTheme.red,
                         inactiveTrackColor: fileTheme.red.withAlpha(180),
@@ -130,16 +131,15 @@ class _FileInfoState extends State<FileInfo> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 10),
                       ToggleButtons(
                         isSelected: [selected.isTts, selected.isDiscord],
                         onPressed: selected.isEnabled
                             ? (index) {
                                 switch (index) {
                                   case 0:
-                                    files.fileWith(tts: !selected.isTts);
+                                    files.updateWith(tts: !selected.isTts);
                                   case 1:
-                                    files.fileWith(
+                                    files.updateWith(
                                         discord: !selected.isDiscord);
                                 }
                               }
@@ -160,6 +160,10 @@ class _FileInfoState extends State<FileInfo> {
                           ),
                         ],
                       ),
+                      IconButton(
+                        onPressed: () => files.openSecondFolder(),
+                        icon: Icon(Icons.folder_open),
+                      ),
                     ],
                   ),
                 ),
@@ -168,10 +172,14 @@ class _FileInfoState extends State<FileInfo> {
           ),
         );
       },
-      child: Align(
-        alignment: Alignment.center,
-        child: Text("No File Selected"),
-      ),
+      child: Consumer<FileModel>(builder: (context, files, child) {
+        return Align(
+          alignment: Alignment.center,
+          child: files.length == 0
+              ? Text("Add a file to get started!")
+              : Text("No file selected."),
+        );
+      }),
     );
   }
 }
@@ -210,7 +218,7 @@ class FileTile extends StatelessWidget {
   });
 
   final int index;
-  final FileSettings file;
+  final FileManager file;
 
   @override
   Widget build(BuildContext context) {
