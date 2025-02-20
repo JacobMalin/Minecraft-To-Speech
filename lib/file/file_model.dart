@@ -11,12 +11,12 @@ class FileModel extends ChangeNotifier {
   final settingsBox = Hive.box(name: 'settings');
   final List<FileManager> files = [];
 
-  int index = -1;
-  late ScrollController controller = ScrollController();
+  int? get index => settingsBox['index'];
+  set index(int? index) => settingsBox['index'] = index;
 
   get length => files.length;
   FileManager? get selected =>
-      index >= 0 && index < files.length ? files[index] : null;
+      index != null && index! < files.length ? files[index!] : null;
 
   FileModel() {
     if (settingsBox.containsKey('paths')) {
@@ -28,8 +28,8 @@ class FileModel extends ChangeNotifier {
 
   operator [](index) => files[index];
 
-  choose(int index) {
-    this.index = this.index != index ? this.index = index : -1;
+  choose(int? index) {
+    this.index = this.index != index ? this.index = index : null;
     notifyListeners();
   }
 
@@ -64,11 +64,11 @@ class FileModel extends ChangeNotifier {
   }
 
   remove() {
-    if (files.isNotEmpty && index >= 0) {
-      files.removeAt(index).cleanBox();
+    if (files.isNotEmpty && index != null) {
+      files.removeAt(index!).cleanBox();
       settingsBox['paths'] = files.map((file) => file.path).toList();
 
-      index = min(index, files.length - 1);
+      index = min(index!, files.length - 1);
 
       notifyListeners();
     }
@@ -78,14 +78,16 @@ class FileModel extends ChangeNotifier {
       {int? index, String? name, bool? enabled, bool? tts, bool? discord}) {
     var indexOrSelected = index ?? this.index;
 
-    files[indexOrSelected].updateWith(
-      name: name,
-      enabled: enabled,
-      tts: tts,
-      discord: discord,
-    );
+    if (indexOrSelected != null) {
+      files[indexOrSelected].updateWith(
+        name: name,
+        enabled: enabled,
+        tts: tts,
+        discord: discord,
+      );
 
-    notifyListeners();
+      notifyListeners();
+    }
   }
 
   openSecondFolder() {

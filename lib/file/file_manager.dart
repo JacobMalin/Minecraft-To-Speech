@@ -7,8 +7,13 @@ import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
 class FileManager {
-  final _filesBox = Hive.box(name: 'files');
   final String path;
+
+  final _filesBox = Hive.box(name: 'files');
+  late final Stream<String> _uiStream, _ttsStream, _discordStream;
+  StreamSubscription<String>? _uiSubscription,
+      _ttsSubscription,
+      _discordSubscription;
 
   get info => _filesBox[path];
   get name => _filesBox[path].name;
@@ -18,13 +23,44 @@ class FileManager {
 
   FileManager(this.path) {
     if (!_filesBox.containsKey(path)) _filesBox[path] = FileInfo.fromPath(path);
-    fileStream(path).listen((line) {
-      if (isEnabled && isTts) print(line);
-    });
+
+    final Stream<String> stream = fileStream(path)
+        .where(FileFilter.onlyChat)
+        .map(FileFilter.commonMap)
+        .asBroadcastStream();
+    _uiStream = stream.map(FileFilter.uiMap);
+    _ttsStream = stream.map(FileFilter.ttsMap);
+    _discordStream = stream.map(FileFilter.discordMap);
+
+    updateSubscriptions();
   }
 
-  updateStream() {
-    // TODO update stream
+  static updateSubscrption(
+      Stream<String> stream,
+      StreamSubscription<String>? subscription,
+      bool condition,
+      void Function(String)? onData) {
+    if (condition) return subscription ?? stream.listen(onData);
+
+    subscription?.cancel();
+    return null;
+  }
+
+  updateSubscriptions() {
+    _uiSubscription =
+        updateSubscrption(_uiStream, _uiSubscription, isEnabled, (line) {
+      print("ui: $line");
+    });
+
+    _ttsSubscription = updateSubscrption(
+        _ttsStream, _ttsSubscription, isEnabled && isTts, (line) {
+      print("tts: $line");
+    });
+
+    _discordSubscription = updateSubscrption(
+        _discordStream, _discordSubscription, isEnabled && isDiscord, (line) {
+      print("discord: $line");
+    });
   }
 
   cleanBox() => _filesBox.delete(path);
@@ -38,7 +74,8 @@ class FileManager {
     if (discord != null) file.isDiscord = discord;
 
     _filesBox[path] = file;
-    updateStream();
+
+    updateSubscriptions();
   }
 
   openSecondFolder() {
@@ -48,26 +85,61 @@ class FileManager {
 
   static Stream<String> fileStream(String path) async* {
     File file = File(path);
-    Directory directory = Directory(p.dirname(path));
 
     if (!await file.exists()) return;
 
     int position = await file.length();
 
-    await for (final event in directory.watch()) {
-      if (event is FileSystemModifyEvent) {
-        int fileLength = await file.length();
-        if (fileLength < position) position = 0;
+    await for (final _ in Stream.periodic(Duration(milliseconds: 100))) {
+      int fileLength = await file.length();
+      if (fileLength < position) position = 0;
 
-        final stream = file.openRead(position);
-        var lines = utf8.decoder.bind(stream).transform(const LineSplitter());
-        await for (final line in lines) {
-          if (line.isNotEmpty) yield line;
-        }
-
-        position = fileLength;
+      final stream = file.openRead(position);
+      var lines = utf8.decoder.bind(stream).transform(const LineSplitter());
+      await for (final line in lines) {
+        if (line.isNotEmpty) yield line;
       }
+
+      position = fileLength;
     }
+  }
+}
+
+extension ChatTransform on String {
+  String afterChat() => split("[CHAT] ").last;
+  String timeStamp() => RegExp(r'[.*?]').stringMatch(this) ?? "";
+  String removeFormatTags() => replaceAll(RegExp(r'§.'), '');
+}
+
+class FileFilter {
+  static bool onlyChat(String line) {
+    return line.contains("[CHAT]");
+  }
+
+  static String commonMap(String line) {
+    return line.removeFormatTags();
+  }
+
+  static String uiMap(String line) {
+    final String timeStamp = line.timeStamp();
+    final String chatMessage = line.afterChat();
+    return "$timeStamp $chatMessage";
+  }
+
+  static String ttsMap(String line) {
+    final chatMessage = line.afterChat();
+
+    final Match? match = RegExp(r'^<(.*?)> (.*)$').firstMatch(chatMessage);
+    if (match == null) return chatMessage;
+
+    final String? username = match.group(1);
+    final String? message = match.group(2);
+
+    return "$username says $message";
+  }
+
+  static String discordMap(String line) {
+    return line.afterChat();
   }
 }
 
