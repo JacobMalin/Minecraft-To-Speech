@@ -1,4 +1,5 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:menu_bar/menu_bar.dart';
@@ -93,7 +94,8 @@ class IconSwapButton extends StatelessWidget {
     }
 
     final isSettings = Provider.of<SettingsModel>(context).isSettings;
-    final changePage = Provider.of<SettingsModel>(context, listen: false).changePage;
+    final changePage =
+        Provider.of<SettingsModel>(context, listen: false).changePage;
 
     final settingsIcon = iconStyle(
       () => changePage(true),
@@ -122,7 +124,8 @@ class MenuButtons extends StatelessWidget {
     final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
 
     final isSettings = Provider.of<SettingsModel>(context).isSettings;
-    final changePage = Provider.of<SettingsModel>(context, listen: false).changePage;
+    final changePage =
+        Provider.of<SettingsModel>(context, listen: false).changePage;
 
     final menuStyle = MenuStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
@@ -162,13 +165,13 @@ class MenuButtons extends StatelessWidget {
 
     fileMenuItems(files) => [
           MenuButton(
-            text: const Text('Add File'),
+            text: const Text('Add Log'),
             onTap: () => files.add(),
             // icon: const Icon(Icons.file_open_outlined),
             // shortcutText: 'Ctrl+O',
           ),
           MenuButton(
-            text: const Text('Remove File'),
+            text: const Text('Remove Log'),
             onTap: () => files.remove(),
             // shortcut: SingleActivator(LogicalKeyboardKey.backspace),
             // shortcutText: 'Backspace',
@@ -202,7 +205,20 @@ class MenuButtons extends StatelessWidget {
           BarButton(
             text: Center(child: const Text('File')),
             submenu: SubMenu(
-              menuItems: (isSettings ? alwaysMenuButtons : fileMenuItems(files) + alwaysMenuButtons),
+              menuItems: isSettings
+                  ? alwaysMenuButtons
+                  : fileMenuItems(files) + alwaysMenuButtons,
+            ),
+          ),
+          BarButton(
+            text: Center(child: const Text('Process')),
+            submenu: SubMenu(
+              menuItems: [
+                MenuButton(
+                  text: const Text("Process Log"),
+                  onTap: () => FileModel.process(),
+                ),
+              ],
             ),
           ),
         ],

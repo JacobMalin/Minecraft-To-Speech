@@ -76,10 +76,8 @@ class _FileInfoPageState extends State<FileInfoPage> {
         }
 
         FileManager selected = files.selected!;
-        if (selectedIndex != files.index) {
-          selectedIndex = files.index;
-          _controller.text = selected.name;
-        }
+        if (selectedIndex != files.index) selectedIndex = files.index;
+        if (_controller.text != selected.name) _controller.text = selected.name;
 
         final fileTheme = Theme.of(context).extension<FileTheme>()!;
 
@@ -119,63 +117,7 @@ class _FileInfoPageState extends State<FileInfoPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 25),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 10,
-                      children: [
-                        Switch(
-                          value: selected.isEnabled,
-                          onChanged: (enabled) =>
-                              files.updateWith(enabled: enabled),
-                          activeColor: fileTheme.green,
-                          inactiveThumbColor: fileTheme.red,
-                          inactiveTrackColor: fileTheme.red.withAlpha(180),
-                          hoverColor: Colors.transparent,
-                          trackOutlineColor:
-                              WidgetStatePropertyAll(Colors.transparent),
-                          thumbIcon: WidgetStatePropertyAll(
-                            Icon(
-                              Icons.power_settings_new,
-                              color: Theme.of(context).colorScheme.surface,
-                            ),
-                          ),
-                        ),
-                        ToggleButtons(
-                          isSelected: [selected.isTts, selected.isDiscord],
-                          onPressed: selected.isEnabled
-                              ? (index) {
-                                  switch (index) {
-                                    case 0:
-                                      files.updateWith(tts: !selected.isTts);
-                                    case 1:
-                                      files.updateWith(
-                                          discord: !selected.isDiscord);
-                                  }
-                                }
-                              : null,
-                          borderRadius: BorderRadius.circular(10),
-                          fillColor: fileTheme.green.withAlpha(150),
-                          selectedColor:
-                              Theme.of(context).colorScheme.onSurface,
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Text("TTS"),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Text("Discord"),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          onPressed: () => files.openSecondFolder(),
-                          icon: Icon(Icons.folder_open),
-                        ),
-                      ],
-                    ),
+                    FileInfoButtons(selected: selected, fileTheme: fileTheme),
                   ],
                 ),
               ),
@@ -196,6 +138,76 @@ class _FileInfoPageState extends State<FileInfoPage> {
   }
 }
 
+class FileInfoButtons extends StatelessWidget {
+  const FileInfoButtons({
+    super.key,
+    required this.selected,
+    required this.fileTheme,
+  });
+
+  final FileManager selected;
+  final FileTheme fileTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FileModel>(builder: (context, files, child) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 10,
+        children: [
+          Switch(
+            value: selected.isEnabled,
+            onChanged: (enabled) => files.updateWith(enabled: enabled),
+            activeColor: fileTheme.green,
+            inactiveThumbColor: fileTheme.red,
+            inactiveTrackColor: fileTheme.red.withAlpha(180),
+            hoverColor: Colors.transparent,
+            trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
+            thumbIcon: WidgetStatePropertyAll(
+              Icon(
+                Icons.power_settings_new,
+                color: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+          ),
+          ToggleButtons(
+            isSelected: [selected.isTts, selected.isDiscord],
+            onPressed: selected.isEnabled
+                ? (index) {
+                    switch (index) {
+                      case 0:
+                        files.updateWith(tts: !selected.isTts);
+                      case 1:
+                        files.updateWith(discord: !selected.isDiscord);
+                    }
+                  }
+                : null,
+            borderRadius: BorderRadius.circular(10),
+            fillColor: fileTheme.green.withAlpha(150),
+            selectedColor: Theme.of(context).colorScheme.onSurface,
+            splashColor: Colors.transparent,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Text("TTS"),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Text("Discord"),
+              ),
+            ],
+          ),
+          IconButton(
+            onPressed: () => files.openSecondFolder(),
+            icon: Icon(Icons.folder_open),
+            splashColor: Colors.transparent,
+          ),
+        ],
+      );
+    });
+  }
+}
+
 class ChatView extends StatefulWidget {
   const ChatView({
     super.key,
@@ -206,44 +218,61 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  var messages = ["<qwaszx100> aaa", "<qwaszx100> iii", for (int i = 0; i < 20; i++)"<qwaszx100> $i"];
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxHeight < 41) return Spacer();
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxHeight < 41) return Container();
 
-        return SmoothListView.builder(
-          duration: const Duration(milliseconds: 300),
-          padding: EdgeInsets.symmetric(vertical: 24),
-          reverse: true,
-          itemCount: messages.length,
-          itemBuilder: (context, index) => Material(
-            child: ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 8),
-              minVerticalPadding: 0,
-              minTileHeight: 0,
-              tileColor: Theme.of(context).colorScheme.surfaceContainer,
-              title: Text(
-                messages[index],
-                style: TextStyle(
-                  fontFamily: 'Minecraft', // Your Minecraft font
-                  fontSize: 20,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  shadows: [
-                    Shadow(
-                      color: Theme.of(context).colorScheme.onSurface.withAlpha(70),
-                      offset: Offset(2.49, 2.49),
-                    ),
-                  ],
+      return Consumer<FileModel>(
+        builder: (context, files, child) {
+          FileManager? selected = files.selected;
+          if (selected == null) return child!;
+
+          return SmoothListView.builder(
+            key: PageStorageKey('ChatViewSmoothListView${selected.path}'),
+            duration: const Duration(milliseconds: 400),
+            physics: ClampingScrollPhysics(),
+            padding: EdgeInsets.symmetric(vertical: 20),
+            reverse: true,
+            itemCount: selected.messages.length,
+            itemBuilder: (context, index) => Material(
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                minVerticalPadding: 0,
+                minTileHeight: 0,
+                tileColor: Theme.of(context).colorScheme.surfaceContainer,
+                title: SelectableText(
+                  selected.messages[index],
+                  key: PageStorageKey(
+                    'ChatViewSmoothListViewSelectableText${selected.path}$index',
+                  ),
+                  textHeightBehavior: TextHeightBehavior(
+                    applyHeightToFirstAscent: false,
+                    applyHeightToLastDescent: false,
+                  ),
+                  style: TextStyle(
+                    fontFamily: 'Minecraft', // Your Minecraft font
+                    fontSize: 20,
+                    height: 1,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    shadows: [
+                      Shadow(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withAlpha(70),
+                        offset: Offset(2.49, 2.49),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      }
-    );
+          );
+        },
+        child: Container(),
+      );
+    });
   }
 }
 
@@ -261,7 +290,7 @@ class FileList extends StatelessWidget {
           return LayoutBuilder(builder: (context, constraints) {
             return SmoothListView.builder(
               key: PageStorageKey('FileListSmoothListView'),
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 500),
               itemCount: files.length,
               itemBuilder: (context, index) =>
                   FileTile(index, files[index], constraints.maxHeight),

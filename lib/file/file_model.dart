@@ -21,7 +21,7 @@ class FileModel extends ChangeNotifier {
   FileModel() {
     if (settingsBox.containsKey('paths')) {
       for (var path in settingsBox['paths']) {
-        files.add(FileManager(path));
+        files.add(FileManager(path, notifyListeners));
       }
     }
   }
@@ -56,7 +56,7 @@ class FileModel extends ChangeNotifier {
     }
 
     // Else if new file,
-    files.add(FileManager(path));
+    files.add(FileManager(path, notifyListeners));
     settingsBox['paths'] = files.map((file) => file.path).toList();
 
     index = files.length - 1; // Select newly added file
@@ -92,5 +92,22 @@ class FileModel extends ChangeNotifier {
 
   openSecondFolder() {
     selected?.openSecondFolder();
+  }
+
+  static process() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['log'],
+      allowMultiple: true,
+    );
+
+    // Focus window after picker
+    windowManager.focus();
+
+    if (result == null) return; // If the user cancels the prompt, exit
+
+    for (final path in result.paths) {
+
+    }
   }
 }

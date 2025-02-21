@@ -3,17 +3,20 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hive/hive.dart';
+import 'package:minecraft_to_speech/file/file_filter.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
 class FileManager {
   final String path;
+  final List<String> messages = [];
 
   final _filesBox = Hive.box(name: 'files');
   late final Stream<String> _uiStream, _ttsStream, _discordStream;
   StreamSubscription<String>? _uiSubscription,
       _ttsSubscription,
       _discordSubscription;
+  final Function _notifyListeners;
 
   get info => _filesBox[path];
   get name => _filesBox[path].name;
@@ -21,7 +24,7 @@ class FileManager {
   get isTts => _filesBox[path].isTts;
   get isDiscord => _filesBox[path].isDiscord;
 
-  FileManager(this.path) {
+  FileManager(this.path, this._notifyListeners) {
     if (!_filesBox.containsKey(path)) _filesBox[path] = FileInfo.fromPath(path);
 
     final Stream<String> stream = fileStream(path)
@@ -49,7 +52,8 @@ class FileManager {
   updateSubscriptions() {
     _uiSubscription =
         updateSubscrption(_uiStream, _uiSubscription, isEnabled, (line) {
-      print("ui: $line");
+      messages.insert(0, line);
+      _notifyListeners();
     });
 
     _ttsSubscription = updateSubscrption(
@@ -102,44 +106,6 @@ class FileManager {
 
       position = fileLength;
     }
-  }
-}
-
-extension ChatTransform on String {
-  String afterChat() => split("[CHAT] ").last;
-  String timeStamp() => RegExp(r'[.*?]').stringMatch(this) ?? "";
-  String removeFormatTags() => replaceAll(RegExp(r'§.'), '');
-}
-
-class FileFilter {
-  static bool onlyChat(String line) {
-    return line.contains("[CHAT]");
-  }
-
-  static String commonMap(String line) {
-    return line.removeFormatTags();
-  }
-
-  static String uiMap(String line) {
-    final String timeStamp = line.timeStamp();
-    final String chatMessage = line.afterChat();
-    return "$timeStamp $chatMessage";
-  }
-
-  static String ttsMap(String line) {
-    final chatMessage = line.afterChat();
-
-    final Match? match = RegExp(r'^<(.*?)> (.*)$').firstMatch(chatMessage);
-    if (match == null) return chatMessage;
-
-    final String? username = match.group(1);
-    final String? message = match.group(2);
-
-    return "$username says $message";
-  }
-
-  static String discordMap(String line) {
-    return line.afterChat();
   }
 }
 
