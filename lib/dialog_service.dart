@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aligned_dialog/aligned_dialog.dart';
 
 class DialogService {
   static late final BuildContext _context;
@@ -11,10 +12,13 @@ class DialogService {
       throw Exception("DialogService must first be used in the tree.");
     }
 
-    showDialog(
+    showAlignedDialog(
       context: _context,
       builder: builder,
-      barrierColor: Colors.transparent,
+      isGlobal: false,
+      targetAnchor: Alignment.center,
+      followerAnchor: Alignment.center,
+      // barrierColor: Colors.transparent,
     );
   }
 }

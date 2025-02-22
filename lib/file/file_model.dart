@@ -131,15 +131,26 @@ class FileModel extends ChangeNotifier {
     await result.paths.map(_processFile).wait;
 
     DialogService.showDialogElsewhere(
-      builder: (context) => AlertDialog(
-        title: const Text("File Processed"),
-        content: Text("File processed and saved"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
-          ),
-        ],
+      builder: (context) => FutureBuilder(
+        future: null,
+        builder: (context, snapshot) {
+          return AlertDialog(
+            title: const Text(
+              "File Processed",
+              textAlign: TextAlign.center,
+            ),
+            content: Text(
+              "File processed and saved",
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        }
       ),
     );
   }
