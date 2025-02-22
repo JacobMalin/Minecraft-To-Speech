@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:path/path.dart' as p;
 
+import '../dialog_service.dart';
+import '../setup/window_setup.dart';
+import 'file_filter.dart';
 import 'file_manager.dart';
 
 class FileModel extends ChangeNotifier {
@@ -19,11 +24,25 @@ class FileModel extends ChangeNotifier {
       index != null && index! < files.length ? files[index!] : null;
 
   FileModel() {
+    final filesBox = Hive.box(name: 'files');
+
     if (settingsBox.containsKey('paths')) {
       for (var path in settingsBox['paths']) {
         files.add(FileManager(path, notifyListeners));
       }
+
+      // Remove broken files
+      final List<dynamic> paths = settingsBox['paths'];
+      for (String path in filesBox.keys) {
+        if (!paths.contains(path)) filesBox.delete(path);
+      }
+    } else {
+      filesBox.clear();
+      index = null;
     }
+
+    if (index != null) index = min(index!, files.length - 1);
+    if (index == -1) index = null;
   }
 
   operator [](index) => files[index];
@@ -35,12 +54,12 @@ class FileModel extends ChangeNotifier {
 
   add() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: "Select Minecraft Log File to Monitor",
       type: FileType.custom,
       allowedExtensions: ['log'],
     );
 
-    // Focus window after picker
-    windowManager.focus();
+    WindowSetup.focusAfterPicker();
 
     if (result == null) return; // If the user cancels the prompt, exit
 
@@ -63,12 +82,15 @@ class FileModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  remove() {
-    if (files.isNotEmpty && index != null) {
-      files.removeAt(index!).cleanBox();
+  remove([int? index]) {
+    index ??= this.index;
+
+    if (files.isNotEmpty && index != null && index < files.length) {
+      files.removeAt(index).cleanBox();
       settingsBox['paths'] = files.map((file) => file.path).toList();
 
-      index = min(index!, files.length - 1);
+      if (this.index != null) this.index = min(this.index!, files.length - 1);
+      if (this.index == -1) this.index = null;
 
       notifyListeners();
     }
@@ -96,18 +118,50 @@ class FileModel extends ChangeNotifier {
 
   static process() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: "Select Minecraft Log File to Process",
       type: FileType.custom,
       allowedExtensions: ['log'],
       allowMultiple: true,
     );
 
-    // Focus window after picker
-    windowManager.focus();
+    WindowSetup.focusAfterPicker();
 
     if (result == null) return; // If the user cancels the prompt, exit
 
-    for (final path in result.paths) {
+    await result.paths.map(_processFile).wait;
 
-    }
+    DialogService.showDialogElsewhere(
+      builder: (context) => AlertDialog(
+        title: const Text("File Processed"),
+        content: Text("File processed and saved"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _processFile(String? path) async {
+    final inFile = File(path!);
+
+    final pathWithoutExt = p.withoutExtension(path);
+    final extension = p.extension(path);
+    final outFile = File("$pathWithoutExt-cleaned$extension");
+
+    final (bool inExists, bool outExists) =
+        await (inFile.exists(), outFile.exists()).wait;
+    if (!inExists || outExists) return;
+
+    final stream = inFile.openRead();
+    final lines = utf8.decoder.bind(stream).transform(const LineSplitter());
+    final filtered = lines.where(FileFilter.onlyChat).map(FileFilter.commonMap);
+    final uiFilter = filtered.map(FileFilter.discordMap);
+
+    final IOSink outSink = outFile.openWrite();
+    outSink.writeAll(await uiFilter.toList(), "\n");
+    outSink.close();
   }
 }

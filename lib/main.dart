@@ -1,93 +1,36 @@
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:minecraft_to_speech/dialog_service.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
-import 'package:win32/win32.dart';
-
-import 'file/file_manager.dart';
 import 'file/file_theme.dart';
 import 'file/file_page.dart';
 import 'file/file_model.dart';
-import 'hive_adapter.dart';
+import 'setup/hive_setup.dart';
 import 'settings/settings_model.dart';
 import 'settings/settings_page.dart';
 import 'top_bar.dart';
+import 'setup/window_setup.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Hive setup
-  final dir = await getApplicationSupportDirectory();
-  Hive.defaultDirectory = dir.path;
-  Hive.registerAdapter('HiveOffset',
-      (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
-  Hive.registerAdapter('HiveSize',
-      (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
-  Hive.registerAdapter('FileInfo',
-      (dynamic json) => FileInfo.fromJson(json as Map<String, dynamic>));
+  await HiveSetup.setup();
 
-  // Setup window manager
-  await windowManager.ensureInitialized();
+  // Window setup 1
+  await WindowSetup.preRunApp();
 
   // Start application
   runApp(const MainApp());
 
   // Window setup 2 (Must be after runApp)
-  var settingsBox = Hive.box(name: 'settings');
-  HiveOffset? startPosition = settingsBox['position'];
-  HiveSize? startSize = settingsBox['size'];
-  bool? startIsMaximized = settingsBox['isMaximized'];
-
-  doWhenWindowReady(() {
-    appWindow.title = "Minecraft To Speech";
-    appWindow.minSize = Size(500, 260);
-
-    appWindow.size = startSize ?? Size(500, 260);
-    // Must be after size
-    if (startPosition != null) appWindow.position = startPosition as Offset;
-
-    // Check if window has landed offscreen
-    if (!isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
-
-    if (startIsMaximized != null && startIsMaximized) appWindow.maximize();
-
-    appWindow.show(); // Starts hidden to make less ugly
-  });
+  WindowSetup.postRunApp();
 }
 
-bool isWindowOnValidMonitor() {
-  final hwnd = GetForegroundWindow();
-  if (hwnd == 0) return false;
-
-  final monitor =
-      MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL);
-  return monitor != 0; // If 0, the window is offscreen
-}
-
-class MainApp extends StatefulWidget {
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
-  @override
-  State<MainApp> createState() => _MainAppState();
-}
-
-class _MainAppState extends State<MainApp> with WindowListener {
-  final seedColor = Color(0x00204969);
-
-  @override
-  void initState() {
-    super.initState();
-    windowManager.addListener(this);
-  }
-
-  @override
-  void dispose() {
-    windowManager.removeListener(this);
-    super.dispose();
-  }
+  final seedColor = const Color(0x00204969);
 
   @override
   Widget build(BuildContext context) {
@@ -112,8 +55,12 @@ class _MainAppState extends State<MainApp> with WindowListener {
       ],
     );
 
-    return ChangeNotifierProvider<SettingsModel>(
-      create: (_) => SettingsModel(),
+    return WindowWatcher(
+        child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+        ChangeNotifierProvider<FileModel>(create: (_) => FileModel()),
+      ],
       child: Consumer<SettingsModel>(
         builder: (context, settings, child) {
           return MaterialApp(
@@ -121,51 +68,16 @@ class _MainAppState extends State<MainApp> with WindowListener {
             theme: brightTheme,
             darkTheme: darkTheme,
             themeMode: settings.themeMode,
-            home: child,
+            home: Scaffold(
+              appBar: child as PreferredSizeWidget,
+              body: DialogProvider(
+                child: settings.isSettings ? SettingsPage() : FilePage(),
+              ),
+            ),
           );
         },
-        child: ChangeNotifierProvider<FileModel>(
-          create: (_) => FileModel(),
-          child: Consumer<SettingsModel>(builder: (context, settings, child) {
-            return Scaffold(
-              appBar: TopBar(),
-              body: settings.isSettings ? SettingsPage() : FilePage(),
-            );
-          }),
-        ),
+        child: TopBar(),
       ),
-    );
-  }
-
-  @override
-  void onWindowMoved() async {
-    var settingsBox = Hive.box(name: 'settings');
-    HiveOffset pos = HiveOffset.fromOffset(await windowManager.getPosition());
-    settingsBox['position'] = pos;
-  }
-
-  @override
-  void onWindowResized() async {
-    var settingsBox = Hive.box(name: 'settings');
-    HiveSize size = HiveSize.fromSize(await windowManager.getSize());
-    settingsBox['size'] = size;
-  }
-
-  @override
-  void onWindowFocus() {
-    // Make sure to call once.
-    setState(() {});
-  }
-
-  @override
-  void onWindowMaximize() {
-    var settingsBox = Hive.box(name: 'settings');
-    settingsBox['isMaximized'] = true;
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    var settingsBox = Hive.box(name: 'settings');
-    settingsBox['isMaximized'] = false;
+    ));
   }
 }

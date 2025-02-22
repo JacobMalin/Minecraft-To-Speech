@@ -322,31 +322,60 @@ class FileTile extends StatelessWidget {
       builder: (context, files, child) {
         bool selected = files.index == index;
 
-        return ListTile(
-          minTileHeight: 0,
-          contentPadding: EdgeInsets.only(left: 10, right: 10),
-          title: Text(
-            file.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        return GestureDetector(
+          onSecondaryTapDown: (details) => _showContextMenu(
+            context,
+            details.globalPosition,
+            removeFile: () => files.remove(index),
           ),
-          subtitle: Text(
-            // Makes colon and space non-breaking
-            file.path.replaceFirst(":", ":\u2060").replaceAll(" ", "\u202f"),
-            maxLines: maxHeight > 350 ? 3 : (maxHeight > 250 ? 2 : 1),
-            overflow: TextOverflow.ellipsis,
+          child: ListTile(
+            minTileHeight: 0,
+            contentPadding: EdgeInsets.only(left: 10, right: 10),
+            tileColor: file.isEnabled ? fileTheme.green : fileTheme.red,
+            hoverColor:
+                file.isEnabled ? fileTheme.greenHover : fileTheme.redHover,
+            selectedTileColor: Theme.of(context).colorScheme.secondary,
+            splashColor: Colors.transparent,
+            textColor: Theme.of(context).colorScheme.secondary,
+            selectedColor: file.isEnabled ? fileTheme.green : fileTheme.red,
+            title: Text(
+              file.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              // Makes colon and space non-breaking
+              file.path.replaceFirst(":", ":\u2060").replaceAll(" ", "\u202f"),
+              maxLines: maxHeight > 350 ? 3 : (maxHeight > 250 ? 2 : 1),
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => files.choose(index),
+            selected: selected,
           ),
-          tileColor: file.isEnabled ? fileTheme.green : fileTheme.red,
-          hoverColor:
-              file.isEnabled ? fileTheme.greenHover : fileTheme.redHover,
-          selectedTileColor: Theme.of(context).colorScheme.secondary,
-          onTap: () => files.choose(index),
-          splashColor: Colors.transparent,
-          textColor: Theme.of(context).colorScheme.secondary,
-          selectedColor: file.isEnabled ? fileTheme.green : fileTheme.red,
-          selected: selected,
         );
       },
     );
+  }
+
+  void _showContextMenu(BuildContext context, Offset position,
+      {required Function removeFile}) async {
+    final result = await showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+          position.dx, position.dy, position.dx, position.dy),
+      menuPadding: EdgeInsets.all(0),
+      popUpAnimationStyle: AnimationStyle.noAnimation,
+      items: [
+        PopupMenuItem(
+          value: "remove",
+          height: 40,
+          child: Text(
+            "Remove",
+          ),
+        ),
+      ],
+    );
+
+    if (result == "remove") removeFile();
   }
 }

@@ -1,5 +1,23 @@
 import 'dart:ui';
 
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../file/file_manager.dart';
+
+class HiveSetup {
+  static setup() async {
+    final dir = await getApplicationSupportDirectory();
+    Hive.defaultDirectory = dir.path;
+    Hive.registerAdapter('HiveOffset',
+        (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
+    Hive.registerAdapter('HiveSize',
+        (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
+    Hive.registerAdapter('FileInfo',
+        (dynamic json) => FileInfo.fromJson(json as Map<String, dynamic>));
+  }
+}
+
 class HiveOffset extends Offset {
   HiveOffset(super.dx, super.dy);
   HiveOffset.fromOffset(Offset offset) : super(offset.dx, offset.dy);

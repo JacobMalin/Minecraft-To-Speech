@@ -99,7 +99,7 @@ class FileManager {
       if (fileLength < position) position = 0;
 
       final stream = file.openRead(position);
-      var lines = utf8.decoder.bind(stream).transform(const LineSplitter());
+      final lines = utf8.decoder.bind(stream).transform(const LineSplitter());
       await for (final line in lines) {
         if (line.isNotEmpty) yield line;
       }
