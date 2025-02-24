@@ -18,7 +18,6 @@ class DialogService {
       isGlobal: false,
       targetAnchor: Alignment.center,
       followerAnchor: Alignment.center,
-      // barrierColor: Colors.transparent,
     );
   }
 }

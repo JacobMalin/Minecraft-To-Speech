@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:path/path.dart' as p;
+import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../dialog_service.dart';
 import '../setup/window_setup.dart';
-import 'file_filter.dart';
 import 'file_manager.dart';
 
 class FileModel extends ChangeNotifier {
@@ -128,51 +125,13 @@ class FileModel extends ChangeNotifier {
 
     if (result == null) return; // If the user cancels the prompt, exit
 
-    await result.paths.map(_processFile).wait;
+    final window = await WindowManagerPlus.createWindow([
+      'process',
+      jsonEncode({
+        'paths': result.paths,
+      })
+    ]);
 
-    DialogService.showDialogElsewhere(
-      builder: (context) => FutureBuilder(
-        future: null,
-        builder: (context, snapshot) {
-          return AlertDialog(
-            title: const Text(
-              "File Processed",
-              textAlign: TextAlign.center,
-            ),
-            content: Text(
-              "File processed and saved",
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("OK"),
-              ),
-            ],
-          );
-        }
-      ),
-    );
-  }
-
-  static Future<void> _processFile(String? path) async {
-    final inFile = File(path!);
-
-    final pathWithoutExt = p.withoutExtension(path);
-    final extension = p.extension(path);
-    final outFile = File("$pathWithoutExt-cleaned$extension");
-
-    final (bool inExists, bool outExists) =
-        await (inFile.exists(), outFile.exists()).wait;
-    if (!inExists || outExists) return;
-
-    final stream = inFile.openRead();
-    final lines = utf8.decoder.bind(stream).transform(const LineSplitter());
-    final filtered = lines.where(FileFilter.onlyChat).map(FileFilter.commonMap);
-    final uiFilter = filtered.map(FileFilter.discordMap);
-
-    final IOSink outSink = outFile.openWrite();
-    outSink.writeAll(await uiFilter.toList(), "\n");
-    outSink.close();
+    if (window == null) return;
   }
 }

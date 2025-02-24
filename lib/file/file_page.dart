@@ -3,7 +3,7 @@ import 'package:flutter_resizable_container/flutter_resizable_container.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
-import 'file_theme.dart';
+import '../setup/theme_setup.dart';
 import 'file_manager.dart';
 import 'file_model.dart';
 

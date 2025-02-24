@@ -5,6 +5,12 @@ class SettingsModel extends ChangeNotifier {
   bool isSettings = false;
   final settingsBox = Hive.box(name: 'settings');
 
+  SettingsModel() {
+    settingsBox.watchKey('themeMode').listen((_) {
+      notifyListeners();
+    });
+  }
+
   void changePage(isSettings) {
     this.isSettings = isSettings;
     notifyListeners();

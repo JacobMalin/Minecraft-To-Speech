@@ -1,51 +1,63 @@
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:menu_bar/menu_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
-import 'file/file_model.dart';
-import 'settings/settings_model.dart';
+import '../file/file_model.dart';
+import '../settings/settings_model.dart';
 
-class TopBar extends StatelessWidget implements PreferredSizeWidget {
-  const TopBar({
+class WindowButtons extends StatelessWidget {
+  const WindowButtons({
     super.key,
+    required this.brightness,
   });
-
-  static const double height = 40;
+  
+  final Brightness? brightness;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: WindowTitleBarBox(
-        child: Container(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          child: Row(
-            children: [
-              MoveWindow(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 6, 0),
-                  child: ImageIcon(AssetImage("assets/mts_icon.ico")),
-                ),
-              ),
-              IntrinsicWidth(
-                child: MenuButtons(),
-              ),
-              Expanded(
-                child: MoveWindow(),
-              ),
-              IconSwapButton(),
-              WindowButtons(),
-            ],
-          ),
+    return Row(
+      children: [
+        WindowCaptionButton.minimize(
+          brightness: brightness,
+          onPressed: () async {
+            bool isMinimized = await WindowManagerPlus.current.isMinimized();
+            if (isMinimized) {
+              WindowManagerPlus.current.restore();
+            } else {
+              WindowManagerPlus.current.minimize();
+            }
+          },
         ),
-      ),
+        FutureBuilder<bool>(
+          future: WindowManagerPlus.current.isMaximized(),
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (snapshot.data == true) {
+              return WindowCaptionButton.unmaximize(
+                brightness: brightness,
+                onPressed: () {
+                  WindowManagerPlus.current.unmaximize();
+                },
+              );
+            }
+            return WindowCaptionButton.maximize(
+              brightness: brightness,
+              onPressed: () {
+                WindowManagerPlus.current.maximize();
+              },
+            );
+          },
+        ),
+        WindowCaptionButton.close(
+          brightness: brightness,
+          onPressed: () {
+            WindowManagerPlus.current.close();
+          },
+        ),
+      ],
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(height);
 }
 
 class IconSwapButton extends StatelessWidget {
@@ -188,7 +200,7 @@ class MenuButtons extends StatelessWidget {
       const MenuDivider(),
       MenuButton(
         text: const Text('Exit'),
-        onTap: () => appWindow.close(),
+        onTap: () => WindowManagerPlus.current.close(),
         icon: const Icon(Icons.exit_to_app),
         shortcut: SingleActivator(LogicalKeyboardKey.keyQ, control: true),
         shortcutText: 'Ctrl+Q',
@@ -224,39 +236,5 @@ class MenuButtons extends StatelessWidget {
         child: Container(),
       );
     });
-  }
-}
-
-class WindowButtons extends StatelessWidget {
-  const WindowButtons({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
-
-    final colors = WindowButtonColors(
-      iconNormal: foregroundColor,
-      iconMouseOver: theme.colorScheme.primary,
-      iconMouseDown: theme.colorScheme.secondary,
-      mouseOver: theme.colorScheme.onPrimary,
-      mouseDown: theme.colorScheme.onSecondary,
-    );
-    final closeColors = WindowButtonColors(
-      iconNormal: foregroundColor,
-      mouseOver: Color(0xFFD32F2F),
-      mouseDown: Color(0xFFB71C1C),
-      iconMouseOver: Color(0xFFFFFFFF),
-    );
-
-    return Row(
-      children: [
-        MinimizeWindowButton(colors: colors),
-        MaximizeWindowButton(colors: colors),
-        CloseWindowButton(colors: closeColors),
-      ],
-    );
   }
 }

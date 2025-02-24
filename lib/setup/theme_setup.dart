@@ -1,5 +1,31 @@
 import 'package:flutter/material.dart';
 
+class ThemeSetup {
+  static final _seedColor = const Color(0x00204969);
+
+  static final brightTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _seedColor,
+      brightness: Brightness.light,
+    ),
+  ).copyWith(extensions: <ThemeExtension<dynamic>>[
+    FileTheme.light(),
+  ]);
+
+  static final darkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _seedColor,
+      brightness: Brightness.dark,
+    ),
+  ).copyWith(
+    extensions: <ThemeExtension<dynamic>>[
+      FileTheme.dark(),
+    ],
+  );
+}
+
 class FileTheme extends ThemeExtension<FileTheme> {
   final Color green, red;
   final Color greenHover, redHover;

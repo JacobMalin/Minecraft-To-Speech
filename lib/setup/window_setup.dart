@@ -3,24 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:minecraft_to_speech/setup/hive_setup.dart';
 import 'package:win32/win32.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
 class WindowSetup {
-  static preRunApp() async {
-    // Must wait for window manager setup
-    await windowManager.ensureInitialized();
-  }
-
-  static postRunApp() {
+  static mainPreRunApp() {
     var settingsBox = Hive.box(name: 'settings');
     HiveOffset? startPosition = settingsBox['position'];
     HiveSize? startSize = settingsBox['size'];
     bool? startIsMaximized = settingsBox['isMaximized'];
 
-    doWhenWindowReady(() {
-      appWindow.title = "Minecraft To Speech";
+    WindowOptions windowOptions = WindowOptions(
+      title: "Minecraft To Speech",
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
       appWindow.minSize = Size(500, 260);
-
       appWindow.size = startSize ?? Size(500, 260);
       // Must be after size
       if (startPosition != null) appWindow.position = startPosition as Offset;
@@ -28,9 +27,32 @@ class WindowSetup {
       // Check if window has landed offscreen
       if (!_isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
 
-      if (startIsMaximized != null && startIsMaximized) appWindow.maximize();
+      if (startIsMaximized != null && startIsMaximized) {
+        appWindow.alignment = Alignment.center;
+        appWindow.size = Size(500, 260); // Set starting size small
+        appWindow.maximize();
 
-      appWindow.show(); // Starts hidden to make less ugly
+      }
+
+      await WindowManagerPlus.current.show();
+      await WindowManagerPlus.current.focus();
+    });
+  }
+
+  static process() {
+    WindowOptions windowOptions = WindowOptions(
+      title: "Log Processing",
+      size: Size(300, 200),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+      await WindowManagerPlus.current.setResizable(false);
+
+      await WindowManagerPlus.current.show();
+      await WindowManagerPlus.current.focus();
     });
   }
 
@@ -44,9 +66,9 @@ class WindowSetup {
   }
 
   static void focusAfterPicker() async {
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setAlwaysOnTop(false);
-    await windowManager.focus();
+    await WindowManagerPlus.current.setAlwaysOnTop(true);
+    await WindowManagerPlus.current.setAlwaysOnTop(false);
+    await WindowManagerPlus.current.focus();
   }
 }
 
@@ -66,12 +88,13 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
+
+    WindowManagerPlus.current.addListener(this);
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    WindowManagerPlus.current.removeListener(this);
     super.dispose();
   }
 
@@ -83,33 +106,41 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
   }
 
   @override
-  void onWindowMoved() async {
+  void onWindowMoved([int? windowId]) async {
     var settingsBox = Hive.box(name: 'settings');
-    HiveOffset pos = HiveOffset.fromOffset(await windowManager.getPosition());
-    settingsBox['position'] = pos;
-  }
 
-  @override
-  void onWindowResized() async {
-    var settingsBox = Hive.box(name: 'settings');
-    HiveSize size = HiveSize.fromSize(await windowManager.getSize());
+    HiveOffset pos =
+        HiveOffset.fromOffset(await WindowManagerPlus.current.getPosition());
+    settingsBox['position'] = pos;
+
+    HiveSize size =
+        HiveSize.fromSize(await WindowManagerPlus.current.getSize());
     settingsBox['size'] = size;
   }
 
   @override
-  void onWindowFocus() {
+  void onWindowResized([int? windowId]) async {
+    var settingsBox = Hive.box(name: 'settings');
+
+    HiveSize size =
+        HiveSize.fromSize(await WindowManagerPlus.current.getSize());
+    settingsBox['size'] = size;
+  }
+
+  @override
+  void onWindowFocus([int? windowId]) {
     // Make sure to call once.
     setState(() {});
   }
 
   @override
-  void onWindowMaximize() {
+  void onWindowMaximize([int? windowId]) {
     var settingsBox = Hive.box(name: 'settings');
     settingsBox['isMaximized'] = true;
   }
 
   @override
-  void onWindowUnmaximize() {
+  void onWindowUnmaximize([int? windowId]) {
     var settingsBox = Hive.box(name: 'settings');
     settingsBox['isMaximized'] = false;
   }

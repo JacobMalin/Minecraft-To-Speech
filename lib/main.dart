@@ -1,83 +1,79 @@
-import 'package:flutter/material.dart';
-import 'package:minecraft_to_speech/dialog_service.dart';
-import 'package:provider/provider.dart';
+import 'dart:convert';
 
-import 'file/file_theme.dart';
-import 'file/file_page.dart';
+import 'package:flutter/material.dart';
+import 'package:minecraft_to_speech/process/process_window.dart';
+import 'package:provider/provider.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
+
 import 'file/file_model.dart';
+import 'file/file_page.dart';
 import 'setup/hive_setup.dart';
+import 'setup/theme_setup.dart';
+import 'setup/window_setup.dart';
 import 'settings/settings_model.dart';
 import 'settings/settings_page.dart';
-import 'top_bar.dart';
-import 'setup/window_setup.dart';
+import 'top_bar/top_bar.dart';
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Must add this line
+  await WindowManagerPlus.ensureInitialized(
+      args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
 
   // Hive setup
   await HiveSetup.setup();
 
-  // Window setup 1
-  await WindowSetup.preRunApp();
+  if (args.length >= 3 && args[1] == 'process') {
+    final argument = args.length > 2 && args[2].isNotEmpty
+        ? jsonDecode(args[2]) as Map<String, dynamic>
+        : const {};
 
-  // Start application
-  runApp(const MainApp());
+    WindowSetup.process();
 
-  // Window setup 2 (Must be after runApp)
-  WindowSetup.postRunApp();
+    runApp(ProcessWindow(
+      args: argument,
+    ));
+  } else {
+    WindowSetup.mainPreRunApp();
+
+    // Start application
+    runApp(const MainApp());
+  }
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
-  final seedColor = const Color(0x00204969);
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
 
+class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
-    var brightTheme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: Brightness.light,
-      ),
-    ).copyWith(extensions: <ThemeExtension<dynamic>>[
-      FileTheme.light(),
-    ]);
-    var darkTheme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: Brightness.dark,
-      ),
-    ).copyWith(
-      extensions: <ThemeExtension<dynamic>>[
-        FileTheme.dark(),
-      ],
-    );
-
     return WindowWatcher(
-        child: MultiProvider(
-      providers: [
-        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
-        ChangeNotifierProvider<FileModel>(create: (_) => FileModel()),
-      ],
-      child: Consumer<SettingsModel>(
-        builder: (context, settings, child) {
-          return MaterialApp(
-            title: "MTS",
-            theme: brightTheme,
-            darkTheme: darkTheme,
-            themeMode: settings.themeMode,
-            home: Scaffold(
-              appBar: child as PreferredSizeWidget,
-              body: DialogProvider(
-                child: settings.isSettings ? SettingsPage() : FilePage(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+          ChangeNotifierProvider<FileModel>(create: (_) => FileModel()),
+        ],
+        child: Consumer<SettingsModel>(
+          builder: (context, settings, child) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: "Minecraft To Speech",
+              theme: ThemeSetup.brightTheme,
+              darkTheme: ThemeSetup.darkTheme,
+              themeMode: settings.themeMode,
+              home: Scaffold(
+                appBar: child as PreferredSizeWidget,
+                body: settings.isSettings ? SettingsPage() : FilePage(),
               ),
-            ),
-          );
-        },
-        child: TopBar(),
+            );
+          },
+          child: MainTopBar(),
+        ),
       ),
-    ));
+    );
   }
 }

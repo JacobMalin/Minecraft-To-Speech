@@ -11,17 +11,16 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
         children: [
           Text(
             "Settings",
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          SizedBox(height: 15),
           TokenField(),
-          SizedBox(height: 10),
           BrightnessSwitch(),
         ],
       ),
