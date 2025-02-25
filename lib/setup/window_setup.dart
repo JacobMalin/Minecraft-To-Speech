@@ -54,15 +54,18 @@ class WindowSetup {
     final hwnd = GetForegroundWindow();
     if (hwnd == 0) return false;
 
-    final monitor =
-        MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL);
+    final monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
     return monitor != 0; // If 0, the window is offscreen
   }
 
-  static Future<void> focusAndBringToFront() async {
-    await WindowManagerPlus.current.setAlwaysOnTop(true);
-    await WindowManagerPlus.current.setAlwaysOnTop(false);
-    await WindowManagerPlus.current.focus();
+  static Future<void> focusAndBringToFront([int? windowId]) async {
+    final window = windowId != null
+        ? WindowManagerPlus.fromWindowId(windowId)
+        : WindowManagerPlus.current;
+
+    await window.setAlwaysOnTop(true);
+    await window.setAlwaysOnTop(false);
+    await window.focus();
   }
 }
 

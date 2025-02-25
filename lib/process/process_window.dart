@@ -15,6 +15,7 @@ import '../settings/settings_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/window_setup.dart';
 import '../top_bar/top_bar.dart';
+import 'process_controller.dart';
 
 class ProcessWindow extends StatefulWidget {
   const ProcessWindow({
@@ -23,6 +24,8 @@ class ProcessWindow extends StatefulWidget {
   });
 
   final Map args;
+
+  static const success = "Success";
 
   @override
   State<ProcessWindow> createState() => _ProcessWindowState();
@@ -81,25 +84,37 @@ class _ProcessWindowState extends State<ProcessWindow> {
     if (isCompleted) {
       final results = await futures;
 
-      final sucessCount = results.where((result) => result == "Sucess").length;
+      final sucessCount =
+          results.where((result) => result == ProcessWindow.success).length;
 
       if (sucessCount == results.length) {
-        await OpenFile.open(p.dirname(paths.first));
+        var mainWindow = WindowManagerPlus.fromWindowId(0);
 
-        await WindowManagerPlus.current
-            .invokeMethodToWindow(0, "quickProcessSucess", results.length);
+        await mainWindow.setAlwaysOnTop(true);
+        await OpenFile.open(p.dirname(paths.first));
+        await Future.delayed(Duration(milliseconds: 500));
+        await WindowSetup.focusAndBringToFront(0);
+
+        await WindowManagerPlus.current.invokeMethodToWindow(
+            0, ProcessController.quickSuccess, results.length);
         await WindowManagerPlus.current.close();
+        return;
       }
     }
 
     // For slow completion (or failure), show the window
-    await WindowManagerPlus.current.show();
-    await WindowManagerPlus.current.focus();
+    await WindowManagerPlus.current.waitUntilReadyToShow(WindowOptions(),
+        () async {
+      await WindowManagerPlus.current.show();
+      await WindowManagerPlus.current.focus();
+    });
 
     // Focus just in case user got bored and clicked away
     await futures;
-    await WindowSetup.focusAndBringToFront();
+    await WindowManagerPlus.current.setAlwaysOnTop(true);
     await OpenFile.open(p.dirname(paths.first));
+    await Future.delayed(Duration(milliseconds: 500));
+    await WindowSetup.focusAndBringToFront();
   }
 
   static Future<String> _processFile(String? path) async {
@@ -130,7 +145,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
 
     await outFile.writeAsString(lines.join('\n'));
 
-    return "Sucess";
+    return ProcessWindow.success;
   }
 }
 
@@ -155,8 +170,9 @@ class ProcessBody extends StatelessWidget {
           );
         }
 
-        final successCount =
-            snapshot.data!.where((result) => result == "Sucess").length;
+        final successCount = snapshot.data!
+            .where((result) => result == ProcessWindow.success)
+            .length;
         final plural = pathCount == 1 ? "" : "s";
 
         if (successCount < pathCount) {
@@ -232,7 +248,6 @@ class ProcessCloseButton extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: TextButton(
         style: ButtonStyle(
-          splashFactory: NoSplash.splashFactory,
           shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
           ),
@@ -264,7 +279,7 @@ class _ErrorListState extends State<ErrorList> {
   @override
   Widget build(BuildContext context) {
     final badResults = widget.results
-        .where((result) => result != "Sucess")
+        .where((result) => result != ProcessWindow.success)
         .toList(growable: false);
 
     return Expanded(

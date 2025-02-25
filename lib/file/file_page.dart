@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_resizable_container/flutter_resizable_container.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
@@ -19,19 +18,32 @@ class FilePage extends StatefulWidget {
 class _FilePageState extends State<FilePage> {
   @override
   Widget build(BuildContext context) {
-    return ResizableContainer(
-      direction: Axis.horizontal,
+    // return ResizableContainer(
+    //   direction: Axis.horizontal,
+    //   children: [
+    //     ResizableChild(
+    //       divider: ResizableDivider(
+    //         thickness: 3,
+    //         color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    //       ),
+    //       size: ResizableSize.pixels(170, min: 70),
+    //       child: FileList(),
+    //     ),
+    //     ResizableChild(
+    //       size: ResizableSize.expand(min: 272),
+    //       child: FileInfoPage(),
+    //     ),
+    //   ],
+    // );
+
+    return Row(
       children: [
-        ResizableChild(
-          divider: ResizableDivider(
-            thickness: 3,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          size: ResizableSize.pixels(170, min: 70),
+        Flexible(
+          flex: 3,
           child: FileList(),
         ),
-        ResizableChild(
-          size: ResizableSize.expand(min: 272),
+        Flexible(
+          flex: 7,
           child: FileInfoPage(),
         ),
       ],
@@ -201,10 +213,6 @@ class FileInfoButtons extends StatelessWidget {
             onPressed: () => files.openSecondFolder(),
             icon: Icon(Icons.folder_open),
             splashColor: Colors.transparent,
-          style: ButtonStyle(
-            animationDuration: Duration.zero,
-            splashFactory: NoSplash.splashFactory,
-          ),
           ),
         ],
       );
@@ -295,9 +303,18 @@ class FileList extends StatelessWidget {
             return SmoothListView.builder(
               key: PageStorageKey('FileListSmoothListView'),
               duration: const Duration(milliseconds: 500),
-              itemCount: files.length,
-              itemBuilder: (context, index) =>
-                  FileTile(index, files[index], constraints.maxHeight),
+              itemCount: files.length + 1,
+              itemBuilder: (context, index) {
+                if (index < files.length) {
+                  return FileTile(index, files[index], constraints.maxHeight);
+                }
+
+                return ListTile(
+                  leading: Icon(Icons.add),
+                  title: Text("Add File"),
+                  onTap: () => files.add(),
+                );
+              },
             );
           });
         },

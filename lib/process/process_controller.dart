@@ -15,6 +15,8 @@ class ProcessController extends StatefulWidget {
 
   final Widget child;
 
+  static const quickSuccess = 'quickProcessSuccess';
+
   @override
   State<ProcessController> createState() => _ProcessControllerState();
 
@@ -66,7 +68,7 @@ class _ProcessControllerState extends State<ProcessController>
   @override
   Future<dynamic> onEventFromWindow(
       String eventName, int fromWindowId, dynamic arguments) async {
-    if (eventName == 'quickProcessSucess') {
+    if (eventName == ProcessController.quickSuccess) {
       final logCount = arguments as int;
 
       final plural = logCount == 1 ? "" : "s";

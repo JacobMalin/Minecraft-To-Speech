@@ -3,23 +3,31 @@ import 'package:flutter/material.dart';
 class ThemeSetup {
   static final _seedColor = const Color(0x00204969);
 
-  static final brightTheme = ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: _seedColor,
-      brightness: Brightness.light,
-    ),
-  ).copyWith(extensions: <ThemeExtension<dynamic>>[
-    FileTheme.light(),
-  ]);
+  static final _buttonStyle = ButtonStyle(
+    splashFactory: NoSplash.splashFactory
+  );
 
-  static final darkTheme = ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: _seedColor,
-      brightness: Brightness.dark,
-    ),
-  ).copyWith(
+  static ThemeData _baseTheme(Brightness brightness) {
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _seedColor,
+        brightness: brightness,
+      ),
+      splashFactory: NoSplash.splashFactory,
+      elevatedButtonTheme: ElevatedButtonThemeData(style: _buttonStyle),
+      textButtonTheme: TextButtonThemeData(style: _buttonStyle),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: _buttonStyle),
+      iconButtonTheme: IconButtonThemeData(style: _buttonStyle),
+    );
+  }
+
+  static final brightTheme = _baseTheme(Brightness.light).copyWith(
+    extensions: <ThemeExtension<dynamic>>[
+      FileTheme.light(),
+    ],
+  );
+
+  static final darkTheme = _baseTheme(Brightness.dark).copyWith(
     extensions: <ThemeExtension<dynamic>>[
       FileTheme.dark(),
     ],

@@ -96,9 +96,6 @@ class IconSwapButton extends StatelessWidget {
               }
               return theme.colorScheme.primaryContainer;
             }),
-            overlayColor: WidgetStatePropertyAll(Colors.transparent),
-            animationDuration: Duration.zero,
-            splashFactory: NoSplash.splashFactory,
           ),
           icon: icon,
         ),
@@ -162,17 +159,12 @@ class MenuButtons extends StatelessWidget {
       minimumSize: WidgetStatePropertyAll(Size(40, 20)),
       padding:
           WidgetStatePropertyAll(const EdgeInsets.fromLTRB(10, 10, 10, 12)),
-      animationDuration: Duration.zero,
       alignment: Alignment.center,
-      splashFactory: NoSplash.splashFactory,
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(5)),
         ),
       ),
-    );
-    final menuButtonStyle = ButtonStyle(
-      splashFactory: NoSplash.splashFactory,
     );
 
     fileMenuItems(files) => [
@@ -212,7 +204,6 @@ class MenuButtons extends StatelessWidget {
       return MenuBarWidget(
         barStyle: menuStyle,
         barButtonStyle: barButtonStyle,
-        menuButtonStyle: menuButtonStyle,
         barButtons: [
           BarButton(
             text: Center(child: const Text('File')),
