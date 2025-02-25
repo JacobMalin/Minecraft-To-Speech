@@ -201,6 +201,10 @@ class FileInfoButtons extends StatelessWidget {
             onPressed: () => files.openSecondFolder(),
             icon: Icon(Icons.folder_open),
             splashColor: Colors.transparent,
+          style: ButtonStyle(
+            animationDuration: Duration.zero,
+            splashFactory: NoSplash.splashFactory,
+          ),
           ),
         ],
       );
