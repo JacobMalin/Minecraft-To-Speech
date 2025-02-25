@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../setup/window_setup.dart';
 import 'file_manager.dart';
@@ -56,7 +54,7 @@ class FileModel extends ChangeNotifier {
       allowedExtensions: ['log'],
     );
 
-    WindowSetup.focusAfterPicker();
+    WindowSetup.focusAndBringToFront();
 
     if (result == null) return; // If the user cancels the prompt, exit
 
@@ -111,27 +109,5 @@ class FileModel extends ChangeNotifier {
 
   openSecondFolder() {
     selected?.openSecondFolder();
-  }
-
-  static process() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      dialogTitle: "Select Minecraft Log File to Process",
-      type: FileType.custom,
-      allowedExtensions: ['log'],
-      allowMultiple: true,
-    );
-
-    WindowSetup.focusAfterPicker();
-
-    if (result == null) return; // If the user cancels the prompt, exit
-
-    final window = await WindowManagerPlus.createWindow([
-      'process',
-      jsonEncode({
-        'paths': result.paths,
-      })
-    ]);
-
-    if (window == null) return;
   }
 }

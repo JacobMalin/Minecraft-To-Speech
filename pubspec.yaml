@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_resizable_container: ^4.0.0
+  fluttertoast: ^8.2.12
   hive: ^4.0.0-dev.2
   isar_flutter_libs: ^4.0.0-dev.13
   menu_bar: ^0.5.3

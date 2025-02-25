@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:minecraft_to_speech/process/process_controller.dart';
 import 'package:minecraft_to_speech/process/process_window.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
@@ -24,14 +26,14 @@ void main(List<String> args) async {
   await HiveSetup.setup();
 
   if (args.length >= 3 && args[1] == 'process') {
-    final argument = args.length > 2 && args[2].isNotEmpty
+    final argTwo = args.length > 2 && args[2].isNotEmpty
         ? jsonDecode(args[2]) as Map<String, dynamic>
         : const {};
 
     WindowSetup.process();
 
     runApp(ProcessWindow(
-      args: argument,
+      args: argTwo,
     ));
   } else {
     WindowSetup.mainPreRunApp();
@@ -51,28 +53,35 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
-    return WindowWatcher(
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
-          ChangeNotifierProvider<FileModel>(create: (_) => FileModel()),
-        ],
-        child: Consumer<SettingsModel>(
-          builder: (context, settings, child) {
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: "Minecraft To Speech",
-              theme: ThemeSetup.brightTheme,
-              darkTheme: ThemeSetup.darkTheme,
-              themeMode: settings.themeMode,
-              home: Scaffold(
-                appBar: child as PreferredSizeWidget,
-                body: settings.isSettings ? SettingsPage() : FilePage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+        ChangeNotifierProvider<FileModel>(create: (_) => FileModel()),
+      ],
+      child: Consumer<SettingsModel>(
+        builder: (context, settings, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "Minecraft To Speech",
+            theme: ThemeSetup.brightTheme,
+            darkTheme: ThemeSetup.darkTheme,
+            themeMode: settings.themeMode,
+            builder: (context, child) {
+              child = WindowWatcher(child!);
+              child = ProcessController(child);
+              child = FToastBuilder()(context, child);
+
+              return child;
+            },
+            home: Scaffold(
+              appBar: MainTopBar(),
+              body: Consumer<SettingsModel>(
+                builder: (context, settings, child) =>
+                    settings.isSettings ? SettingsPage() : FilePage(),
               ),
-            );
-          },
-          child: MainTopBar(),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../file/file_model.dart';
+import '../process/process_controller.dart';
 import '../settings/settings_model.dart';
 
 class WindowButtons extends StatelessWidget {
@@ -227,7 +228,7 @@ class MenuButtons extends StatelessWidget {
               menuItems: [
                 MenuButton(
                   text: const Text("Process Log"),
-                  onTap: () => FileModel.process(),
+                  onTap: () => ProcessController.process(),
                 ),
               ],
             ),

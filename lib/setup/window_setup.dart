@@ -15,7 +15,6 @@ class WindowSetup {
     WindowOptions windowOptions = WindowOptions(
       title: "Minecraft To Speech",
       backgroundColor: Colors.transparent,
-      skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
     );
     WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
@@ -31,7 +30,6 @@ class WindowSetup {
         appWindow.alignment = Alignment.center;
         appWindow.size = Size(500, 260); // Set starting size small
         appWindow.maximize();
-
       }
 
       await WindowManagerPlus.current.show();
@@ -42,17 +40,13 @@ class WindowSetup {
   static process() {
     WindowOptions windowOptions = WindowOptions(
       title: "Log Processing",
-      size: Size(300, 200),
+      size: Size(350, 200),
       center: true,
       backgroundColor: Colors.transparent,
-      skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
     );
     WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
       await WindowManagerPlus.current.setResizable(false);
-
-      await WindowManagerPlus.current.show();
-      await WindowManagerPlus.current.focus();
     });
   }
 
@@ -65,7 +59,7 @@ class WindowSetup {
     return monitor != 0; // If 0, the window is offscreen
   }
 
-  static void focusAfterPicker() async {
+  static Future<void> focusAndBringToFront() async {
     await WindowManagerPlus.current.setAlwaysOnTop(true);
     await WindowManagerPlus.current.setAlwaysOnTop(false);
     await WindowManagerPlus.current.focus();
@@ -73,9 +67,9 @@ class WindowSetup {
 }
 
 class WindowWatcher extends StatefulWidget {
-  const WindowWatcher({
+  const WindowWatcher(
+    this.child, {
     super.key,
-    required this.child,
   });
 
   final Widget child;
