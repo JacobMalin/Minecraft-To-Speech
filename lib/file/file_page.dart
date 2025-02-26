@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
+import '../settings/settings_model.dart';
 import '../setup/theme_setup.dart';
 import 'file_manager.dart';
 import 'file_model.dart';
@@ -93,6 +94,10 @@ class _FileInfoPageState extends State<FileInfoPage> {
 
         final fileTheme = Theme.of(context).extension<FileTheme>()!;
 
+        if (selected.isNotValid) {
+          return FileNotFound();
+        }
+
         return Align(
           alignment: Alignment.topCenter,
           child: Column(
@@ -147,6 +152,19 @@ class _FileInfoPageState extends State<FileInfoPage> {
         );
       }),
     );
+  }
+}
+
+class FileNotFound extends StatelessWidget {
+  const FileNotFound({
+    super.key,
+  });
+
+  // TODO: Implement
+
+  @override
+  Widget build(BuildContext context) {
+    return Placeholder();
   }
 }
 
@@ -309,11 +327,24 @@ class FileList extends StatelessWidget {
                   return FileTile(index, files[index], constraints.maxHeight);
                 }
 
-                return ListTile(
-                  leading: Icon(Icons.add),
-                  title: Text("Add File"),
-                  onTap: () => files.add(),
-                );
+                return Consumer<SettingsModel>(
+                    builder: (context, settings, child) {
+                  return ListTile(
+                    minTileHeight: 50,
+                    tileColor: settings.themeMode == ThemeMode.dark
+                        ? Theme.of(context).colorScheme.surfaceContainerHigh
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
+                    leading: Icon(
+                      Icons.add,
+                      size: 24,
+                    ),
+                    title: Text(
+                      "Add Log",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    onTap: () => files.add(),
+                  );
+                });
               },
             );
           });
@@ -334,6 +365,8 @@ class FileTile extends StatelessWidget {
   final int index;
   final FileManager file;
   final double maxHeight;
+
+  // TODO: Change color on file broken
 
   @override
   Widget build(BuildContext context) {

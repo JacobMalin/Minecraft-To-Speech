@@ -64,6 +64,7 @@ class _TokenFieldState extends State<TokenField> {
               border: OutlineInputBorder(),
               hintText: 'Enter a token to enable the discord bot!',
             ),
+            maxLines: 1, // TODO make 2 lines
             onChanged: (newKey) => settings.botKey = newKey,
           ),
         ),
