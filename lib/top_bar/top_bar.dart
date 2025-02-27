@@ -5,17 +5,17 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 import '../settings/settings_model.dart';
 import 'top_bar_items.dart';
 
+/// The top bar of the main window.
 class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const MainTopBar({
-    super.key,
-  });
+  /// The top bar of the main window.
+  const MainTopBar({super.key});
 
-  static const double height = 40;
+  static const double _height = 40;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return _TopBar(
-      height: height,
+      height: _height,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       icon: const Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 6, 0),
@@ -27,20 +27,20 @@ class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(height);
+  Size get preferredSize => const Size.fromHeight(_height);
 }
 
+/// The top bar of the process window.
 class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const ProcessTopBar({
-    super.key,
-  });
+  /// The top bar of the process window.
+  const ProcessTopBar({super.key});
 
-  static const double height = 30;
+  static const double _height = 30;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return _TopBar(
-      height: height,
+      height: _height,
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? Theme.of(context).colorScheme.onSecondary
           : Theme.of(context).colorScheme.secondaryFixed,
@@ -62,13 +62,13 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(height);
+  Size get preferredSize => const Size.fromHeight(_height);
 }
 
 class _TopBar extends StatefulWidget {
   const _TopBar({
-    required final double height,
-    required final Color backgroundColor,
+    required double height,
+    required Color backgroundColor,
     this.icon = const SizedBox(),
     this.title = const SizedBox(),
     this.menuButtons = const SizedBox(),
@@ -102,50 +102,51 @@ class _TopBarState extends State<_TopBar> with WindowListener {
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return Consumer<SettingsModel>(
-        builder: (final context, final settings, final child) {
-      final Brightness brightness = settings.themeMode == ThemeMode.dark
-          ? Brightness.dark
-          : Brightness.light;
+      builder: (context, settings, child) {
+        final Brightness brightness = settings.themeMode == ThemeMode.dark
+            ? Brightness.dark
+            : Brightness.light;
 
-      return DecoratedBox(
-        decoration: BoxDecoration(color: widget._backgroundColor),
-        child: SizedBox(
-          height: widget._height,
-          child: Row(
-            children: [
-              DragToMoveArea(
-                child: Row(
-                  children: [
-                    widget.icon,
-                    widget.title,
-                  ],
+        return DecoratedBox(
+          decoration: BoxDecoration(color: widget._backgroundColor),
+          child: SizedBox(
+            height: widget._height,
+            child: Row(
+              children: [
+                DragToMoveArea(
+                  child: Row(
+                    children: [
+                      widget.icon,
+                      widget.title,
+                    ],
+                  ),
                 ),
-              ),
-              widget.menuButtons,
-              const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
-              widget.nextToWindowButtons,
-              WindowButtons(brightness: brightness),
-            ],
+                widget.menuButtons,
+                const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
+                widget.nextToWindowButtons,
+                WindowsButtons(brightness: brightness),
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   @override
-  void onWindowMaximize([final int? windowId]) {
+  void onWindowMaximize([int? windowId]) {
     setState(() {});
   }
 
   @override
-  void onWindowUnmaximize([final int? windowId]) {
+  void onWindowUnmaximize([int? windowId]) {
     setState(() {});
   }
 
   @override
-  void onWindowFocus([final int? windowId]) {
+  void onWindowFocus([int? windowId]) {
     // Make sure to call once.
     setState(() {});
   }

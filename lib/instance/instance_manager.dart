@@ -10,47 +10,36 @@ import 'package:path/path.dart' as p;
 import '../setup/hive_setup.dart';
 import 'log_filter.dart';
 
+/// Manages a minecraft instance. This includes the log streams and instance
+/// info.
 class InstanceController {
-  String path;
-  final List<String> messages = [];
-
-  final Box _instancesBox = HiveSetup.instancesBox();
-  late LogStreamController _uiStream, _ttsStream, _discordStream;
-  final Function _notifyListeners;
-
-  InstanceInfo get info => _instancesBox[path];
-  String get name => _instancesBox[path].name;
-  bool get isEnabled => _instancesBox[path].isEnabled;
-  bool get isTts => _instancesBox[path].isTts;
-  bool get isDiscord => _instancesBox[path].isDiscord;
-
-  bool get isValid => File(path).existsSync();
-  bool get isNotValid => !isValid;
-
+  /// Creates a controller for a minecraft instance.
   InstanceController(this.path, this._notifyListeners) {
     _uiStream = LogStreamController(
       path,
       notifyListeners: _notifyListeners,
       map: LogFilter.uiMap,
-      onData: (final line) {
+      onData: (line) {
         messages.insert(0, line);
         _notifyListeners();
       },
     );
+
     _ttsStream = LogStreamController(
       path,
       notifyListeners: _notifyListeners,
       map: LogFilter.ttsMap,
-      onData: (final line) {
+      onData: (line) {
         // TODO: Finish tts implementation
         if (kDebugMode) print('tts: $line');
       },
     );
+
     _discordStream = LogStreamController(
       path,
       notifyListeners: _notifyListeners,
       map: LogFilter.discordMap,
-      onData: (final line) {
+      onData: (line) {
         // TODO: Finish discord implementation
         if (kDebugMode) print('discord: $line');
       },
@@ -65,14 +54,52 @@ class InstanceController {
     _discordStream.enabled = isEnabled && isDiscord;
   }
 
+  /// The path to the "latest.log" file of the instance.
+  String path;
+
+  /// The chat messages that have been received during this session. This is
+  /// empty on boot.
+  final List<String> messages = [];
+
+  final Box _instancesBox = HiveSetup.instancesBox();
+  late LogStreamController _uiStream, _ttsStream, _discordStream;
+  final VoidCallback _notifyListeners;
+
+  /// The persitent data of the instance.
+  InstanceInfo get info => _instancesBox[path];
+
+  /// The user-defined name of the instance.
+  String get name => info.name;
+
+  /// Whether the instance is enabled. Disabled instances will not consume chat
+  /// messages
+  bool get isEnabled => info.isEnabled;
+
+  /// Whether the instance should use text-to-speech. Text-to-speech is also
+  /// disabled when isEnabled is false.
+  bool get isTts => info.isTts;
+
+  /// Whether the instance should use send chat messages to Discord. Discord is
+  /// also disabled when isEnabled is false.
+  bool get isDiscord => info.isDiscord;
+
+  /// Whether the log file for the instance exists.
+  bool get isValid => File(path).existsSync();
+
+  /// Whether the log file for the instance does not exist.
+  bool get isNotValid => !isValid;
+
+  /// Delete all stored persistent data.
   void cleanBox() => _instancesBox.delete(path);
 
+  /// Update the instance with new data. This will update the persistent data
+  /// and the streams.
   void updateWith({
-    final String? name,
-    final String? path,
-    final bool? enabled,
-    final bool? tts,
-    final bool? discord,
+    String? name,
+    String? path,
+    bool? enabled,
+    bool? tts,
+    bool? discord,
   }) {
     final InstanceInfo instance = _instancesBox[this.path];
 
@@ -97,38 +124,53 @@ class InstanceController {
     _discordStream.enabled = isEnabled && isDiscord;
   }
 
-  Future<void> openSecondFolder() async {
+  /// Open the instance folder, which is one level above the log folder.
+  Future<void> openInstanceFolder() async {
     if (isNotValid) return;
 
-    final String secondPath = p.dirname(p.dirname(path));
-    await OpenFile.open(secondPath);
+    final String secondDirectory = p.dirname(p.dirname(path));
+    await OpenFile.open(secondDirectory);
   }
 }
 
+/// The persistent data of a minecraft instance.
 class InstanceInfo {
-  String name;
-  bool isEnabled, isTts, isDiscord;
-
-  InstanceInfo.fromPath(final path,
-      {final name, final enabled, final tts, final discord})
-      : name = name ?? secondFolder(path) ?? path,
+  /// Creates an instance info from a path to "latest.log".
+  InstanceInfo.fromPath(path, {name, enabled, tts, discord})
+      : name = name ?? instanceDirectoryName(path) ?? path,
         isEnabled = enabled ?? true,
         isTts = tts ?? true,
         isDiscord = discord ?? false;
 
-  InstanceInfo.fromName(this.name, {final enabled, final tts, final discord})
+  InstanceInfo._fromName(this.name, {enabled, tts, discord})
       : isEnabled = enabled ?? true,
         isTts = tts ?? true,
         isDiscord = discord ?? false;
 
-  factory InstanceInfo.fromJson(final Map<String, dynamic> json) =>
-      InstanceInfo.fromName(
+  /// Creates an instance info from a json object. This is used to recall
+  /// persistent data.
+  factory InstanceInfo.fromJson(Map<String, dynamic> json) =>
+      InstanceInfo._fromName(
         json['name'] as String,
         enabled: json['isEnabled'] is bool ? json['isEnabled'] as bool : null,
         tts: json['isTts'] is bool ? json['isTts'] as bool : null,
         discord: json['isDiscord'] is bool ? json['isDiscord'] as bool : null,
       );
 
+  /// The user-defined name of the instance.
+  String name;
+
+  /// Whether the instance is enabled. Disabled instances will not consume chat.
+  bool isEnabled;
+
+  /// Whether the instance should use text-to-speech.
+  bool isTts;
+
+  /// Whether the instance should use send chat messages to Discord.
+  bool isDiscord;
+
+  /// Converts the instance info to a json object. This is used to store
+  /// persistent data.
   Map<String, dynamic> toJson() => {
         'name': name,
         'isEnabled': isEnabled,
@@ -136,51 +178,58 @@ class InstanceInfo {
         'isDiscord': isDiscord,
       };
 
-  static String? secondFolder(final path) {
+  /// Gets the name of the instance directory from the path to "latest.log".
+  static String? instanceDirectoryName(path) {
     final List<String> parts = p.split(path);
 
     return parts.length > 3 ? parts[parts.length - 3] : null;
   }
 }
 
+/// Manages a stream of log messages from "latest.log". This is used to manage
+/// the chat, text-to-speech, and Discord streams.
 class LogStreamController {
+  /// Creates a controller for a log stream.
+  LogStreamController(
+    path, {
+    required VoidCallback notifyListeners,
+    required String Function(String) map,
+    required void Function(String)? onData,
+  })  : _notifyListeners = notifyListeners,
+        _streamMap = map,
+        _onData = onData {
+    unawaited(_initializeStream(path));
+  }
+
   final String Function(String) _streamMap;
   final Function(String)? _onData;
 
-  set path(final String value) {
+  set path(String value) {
     unawaited(_initializeStream(value));
   }
 
-  bool _enabled = false;
-  set enabled(final bool value) {
+  var _enabled = false;
+  set enabled(bool value) {
     if (value == _enabled) return;
 
     _enabled = value;
 
-    unawaited(_unsubscribe().then((final _) {
-      if (_enabled) _subscribe();
-    }));
+    unawaited(
+      _unsubscribe().then((_) {
+        if (_enabled) _subscribe();
+      }),
+    );
   }
 
   Stream<String>? _stream;
   StreamSubscription<String>? _subscription;
   StreamSubscription<FileSystemEvent>? _logWatch;
 
-  final Function _notifyListeners;
+  final VoidCallback _notifyListeners;
 
-  LogStreamController(final path,
-      {required final Function notifyListeners,
-      required final String Function(String) map,
-      required final void Function(String)? onData})
-      : _notifyListeners = notifyListeners,
-        _streamMap = map,
-        _onData = onData {
-    unawaited(_initializeStream(path));
-  }
-
-  Future<void> _initializeStream(final String path) async {
+  Future<void> _initializeStream(String path) async {
     unawaited(_logWatch?.cancel());
-    _logWatch = Directory(p.dirname(path)).watch().listen((final event) {
+    _logWatch = Directory(p.dirname(path)).watch().listen((event) {
       if (event.path == path) {
         if (event is FileSystemDeleteEvent) {
           _stream = null;
@@ -205,7 +254,7 @@ class LogStreamController {
     if (_enabled) _subscribe();
   }
 
-  void _makeStream(final String path) {
+  void _makeStream(String path) {
     _stream = _logStream(path)
         .where(LogFilter.onlyChat)
         .map(LogFilter.commonMap)
@@ -222,8 +271,8 @@ class LogStreamController {
     _subscription = null;
   }
 
-  static Stream<String> _logStream(final String path) async* {
-    final File log = File(path);
+  static Stream<String> _logStream(String path) async* {
+    final log = File(path);
 
     int position = await log.length();
 

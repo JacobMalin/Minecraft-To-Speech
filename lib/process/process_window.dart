@@ -17,14 +17,15 @@ import '../setup/window_setup.dart';
 import '../top_bar/top_bar.dart';
 import 'process_controller.dart';
 
+/// A window for processing Minecraft logs.
 class ProcessWindow extends StatefulWidget {
-  const ProcessWindow({
-    super.key,
-    required final Map<dynamic, dynamic> args,
-  }) : _args = args;
+  /// A window for processing Minecraft logs.
+  const ProcessWindow({required List<String> paths, super.key})
+      : _paths = paths;
 
-  final Map _args;
+  final List<String> _paths;
 
+  /// The event name used when the process completes with no errors.
   static const success = 'Success';
 
   @override
@@ -39,24 +40,23 @@ class _ProcessWindowState extends State<ProcessWindow> {
   void initState() {
     super.initState();
 
-    final List<String> paths = widget._args['paths'].cast<String>();
-    _pathCount = paths.length;
-    unawaited(process(paths));
+    _pathCount = widget._paths.length;
+    unawaited(process(widget._paths));
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SettingsModel>(
-          create: (final _) => SettingsModel(),
+          create: (_) => SettingsModel(),
         ),
         ChangeNotifierProvider<InstanceModel>(
-          create: (final _) => InstanceModel(),
+          create: (_) => InstanceModel(),
         ),
       ],
       child: Consumer<SettingsModel>(
-        builder: (final context, final settings, final child) {
+        builder: (context, settings, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Log Processing',
@@ -73,7 +73,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
     );
   }
 
-  Future<void> process(final List<String> paths) async {
+  Future<void> process(List<String> paths) async {
     var isCompleted = false;
     _futures = paths.map(_processLog).wait.whenComplete(() {
       isCompleted = true;
@@ -88,9 +88,8 @@ class _ProcessWindowState extends State<ProcessWindow> {
     if (isCompleted) {
       final List<String> results = await _futures;
 
-      final int sucessCount = results
-          .where((final result) => result == ProcessWindow.success)
-          .length;
+      final int sucessCount =
+          results.where((result) => result == ProcessWindow.success).length;
 
       if (sucessCount == results.length) {
         final WindowManagerPlus mainWindow = WindowManagerPlus.fromWindowId(0);
@@ -101,7 +100,10 @@ class _ProcessWindowState extends State<ProcessWindow> {
         await WindowSetup.focusAndBringToFront(0);
 
         await WindowManagerPlus.current.invokeMethodToWindow(
-            0, ProcessController.quickSuccess, results.length);
+          0,
+          ProcessController.quickSuccess,
+          results.length,
+        );
         await WindowManagerPlus.current.close();
         return;
       }
@@ -122,7 +124,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
     await WindowSetup.focusAndBringToFront();
   }
 
-  static Future<String> _processLog(final String? path) async {
+  static Future<String> _processLog(String? path) async {
     final inFile = File(path!);
 
     final String pathWithoutExt = p.withoutExtension(path);
@@ -154,22 +156,21 @@ class _ProcessWindowState extends State<ProcessWindow> {
   }
 }
 
+/// The main body of the process window.
 class ProcessBody extends StatelessWidget {
-  const ProcessBody(
-    final Future<List<String>> futures,
-    final int pathCount, {
-    super.key,
-  })  : _futures = futures,
+  /// The main body of the process window.
+  const ProcessBody(Future<List<String>> futures, int pathCount, {super.key})
+      : _futures = futures,
         _pathCount = pathCount;
 
   final Future<List<String>> _futures;
   final int _pathCount;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return FutureBuilder<List<String>>(
       future: _futures,
-      builder: (final context, final snapshot) {
+      builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -177,7 +178,7 @@ class ProcessBody extends StatelessWidget {
         }
 
         final int successCount = snapshot.data!
-            .where((final result) => result == ProcessWindow.success)
+            .where((result) => result == ProcessWindow.success)
             .length;
         final plural = _pathCount == 1 ? '' : 's';
 
@@ -190,7 +191,7 @@ class ProcessBody extends StatelessWidget {
               : Colors.amber.shade300;
 
           return Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: Column(
               spacing: 6,
               children: [
@@ -213,7 +214,7 @@ class ProcessBody extends StatelessWidget {
 
         // If all goes well
         return Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: Stack(
             children: [
               Center(
@@ -243,13 +244,13 @@ class ProcessBody extends StatelessWidget {
   }
 }
 
+/// A close button for the process window.
 class ProcessCloseButton extends StatelessWidget {
-  const ProcessCloseButton({
-    super.key,
-  });
+  /// A close button for the process window.
+  const ProcessCloseButton({super.key});
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
@@ -267,9 +268,11 @@ class ProcessCloseButton extends StatelessWidget {
   }
 }
 
+/// A list of errors that occurred during processing.
 class ErrorList extends StatefulWidget {
+  /// A list of errors that occurred during processing.
   const ErrorList(
-    final List<String> results, {
+    List<String> results, {
     super.key,
   }) : _results = results;
 
@@ -283,9 +286,9 @@ class _ErrorListState extends State<ErrorList> {
   final _scrollController = ScrollController();
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     final List<String> badResults = widget._results
-        .where((final result) => result != ProcessWindow.success)
+        .where((result) => result != ProcessWindow.success)
         .toList(growable: false);
 
     return Expanded(
@@ -296,7 +299,7 @@ class _ErrorListState extends State<ErrorList> {
           duration: const Duration(milliseconds: 300),
           controller: _scrollController,
           itemCount: badResults.length,
-          itemBuilder: (final context, final index) {
+          itemBuilder: (context, index) {
             final String result = badResults[index];
             return Text(result);
           },

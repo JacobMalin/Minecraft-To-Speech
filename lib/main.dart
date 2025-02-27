@@ -19,33 +19,36 @@ import 'top_bar/top_bar.dart';
 
 // TODO: Finish going through linters
 
-void main(final List<String> args) async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line
   await WindowManagerPlus.ensureInitialized(
-      args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
+    args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0,
+  );
 
   // Hive setup
   await HiveSetup.setup();
 
   if (args.length >= 3 && args[1] == 'process') {
-    final Map<String, dynamic> argTwo =
+    final Map<String, dynamic> argMap =
         args.length > 2 && args[2].isNotEmpty ? jsonDecode(args[2]) : const {};
 
     WindowSetup.process();
 
-    runApp(ProcessWindow(
-      args: argTwo,
-    ));
+    runApp(
+      ProcessWindow(paths: [...argMap['paths']]),
+    );
   } else {
-    WindowSetup.mainPreRunApp();
+    WindowSetup.main();
 
     // Start application
     runApp(const MainApp());
   }
 }
 
+/// The main application.
 class MainApp extends StatefulWidget {
+  /// The main application.
   const MainApp({super.key});
 
   @override
@@ -54,25 +57,25 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SettingsModel>(
-          create: (final _) => SettingsModel(),
+          create: (_) => SettingsModel(),
         ),
         ChangeNotifierProvider<InstanceModel>(
-          create: (final _) => InstanceModel(),
+          create: (_) => InstanceModel(),
         ),
       ],
       child: Consumer<SettingsModel>(
-        builder: (final context, final settings, final child) {
+        builder: (context, settings, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Minecraft To Speech',
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
             themeMode: settings.themeMode,
-            builder: (final context, child) {
+            builder: (context, child) {
               child = WindowWatcher(child!);
               child = ProcessController(child);
               child = FToastBuilder()(context, Toaster(child));
@@ -82,10 +85,9 @@ class _MainAppState extends State<MainApp> {
             home: Scaffold(
               appBar: const MainTopBar(),
               body: Consumer<SettingsModel>(
-                builder: (final context, final settings, final child) =>
-                    settings.isSettings
-                        ? const SettingsPage()
-                        : const InstancePage(),
+                builder: (context, settings, child) => settings.isSettings
+                    ? const SettingsPage()
+                    : const InstancePage(),
               ),
             ),
           );

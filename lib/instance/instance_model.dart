@@ -10,30 +10,20 @@ import '../setup/window_setup.dart';
 import '../toaster.dart';
 import 'instance_manager.dart';
 
+/// Model for the minecraft instances.
 class InstanceModel extends ChangeNotifier {
-  final Box settingsBox = HiveSetup.settingsBox();
-  final List<InstanceController> instances = [];
-
-  int? get selectedIndex => settingsBox['index'];
-  set selectedIndex(final int? index) => settingsBox['index'] = index;
-
-  int get length => instances.length;
-  InstanceController? get selected =>
-      selectedIndex != null && selectedIndex! < instances.length
-          ? instances[selectedIndex!]
-          : null;
-
+  /// Constructor for the instance model.
   InstanceModel() {
     final Box instancesBox = HiveSetup.instancesBox();
 
-    if (settingsBox.containsKey('paths')) {
-      for (String path in settingsBox['paths']) {
+    if (_settingsBox.containsKey('paths')) {
+      for (final String path in _settingsBox['paths']) {
         instances.add(InstanceController(path, notifyListeners));
       }
 
       // Remove broken files
-      final List<dynamic> paths = settingsBox['paths'];
-      for (String path in instancesBox.keys) {
+      final List<dynamic> paths = _settingsBox['paths'];
+      for (final String path in instancesBox.keys) {
         if (!paths.contains(path)) instancesBox.delete(path);
       }
     } else {
@@ -47,13 +37,38 @@ class InstanceModel extends ChangeNotifier {
     if (selectedIndex == -1) selectedIndex = null;
   }
 
-  InstanceController operator [](final index) => instances[index];
+  /// List of instances opened by the user. These are generated at runtime from
+  /// the paths stored in the settings box.
+  final List<InstanceController> instances = [];
 
-  void choose(final int? index) {
+  /// Index of the currently selected instance. If no instance is selected, this
+  /// value is null.
+  int? get selectedIndex => _settingsBox['index'];
+  set selectedIndex(int? index) => _settingsBox['index'] = index;
+
+  /// Number of instances.
+  int get length => instances.length;
+
+  /// Get the currently selected index. If no instance is selected, this value
+  /// is null.
+  InstanceController? get selected =>
+      selectedIndex != null && selectedIndex! < instances.length
+          ? instances[selectedIndex!]
+          : null;
+
+  final Box _settingsBox = HiveSetup.settingsBox();
+
+  /// Get the instance at the provided index.
+  InstanceController operator [](index) => instances[index];
+
+  /// Select an instance. If the instance is already selected, deselect it.
+  void choose(int? index) {
     selectedIndex = selectedIndex != index ? selectedIndex = index : null;
     notifyListeners();
   }
 
+  /// Add a new instance to the list of instances. If the instance already
+  /// exists, select the instance.
   Future<void> add() async {
     // TODO: Add easier onboarding process for adding instances
     /* In doing so, 
@@ -92,13 +107,14 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     instances.add(InstanceController(path, notifyListeners));
-    settingsBox['paths'] =
-        instances.map((final instance) => instance.path).toList();
+    _settingsBox['paths'] = instances.map((instance) => instance.path).toList();
 
     selectedIndex = instances.length - 1; // Select newly added instance
     notifyListeners();
   }
 
+  /// Remove an instance from the list of instances. If no index is provided,
+  /// the currently selected instance is removed.
   void remove([int? index]) {
     index ??= selectedIndex;
 
@@ -108,8 +124,7 @@ class InstanceModel extends ChangeNotifier {
     }
 
     instances.removeAt(index).cleanBox();
-    settingsBox['paths'] =
-        instances.map((final instance) => instance.path).toList();
+    _settingsBox['paths'] = instances.map((instance) => instance.path).toList();
 
     if (selectedIndex != null) {
       selectedIndex = min(selectedIndex!, instances.length - 1);
@@ -119,12 +134,15 @@ class InstanceModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateWith(
-      {final int? index,
-      final String? name,
-      final bool? enabled,
-      final bool? tts,
-      final bool? discord}) {
+  /// Update an instance with the provided values. If no index is provided, the
+  /// selected instance is updated.
+  void updateWith({
+    int? index,
+    String? name,
+    bool? enabled,
+    bool? tts,
+    bool? discord,
+  }) {
     final int? indexOrSelected = index ?? selectedIndex;
 
     if (indexOrSelected != null) {
@@ -139,7 +157,8 @@ class InstanceModel extends ChangeNotifier {
     }
   }
 
-  Future<void> openSecondFolder() async {
-    await selected?.openSecondFolder();
+  /// Open the instance folder of the selected instance.
+  Future<void> openInstanceFolder() async {
+    await selected?.openInstanceFolder();
   }
 }

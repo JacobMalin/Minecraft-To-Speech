@@ -1,12 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+/// A widget that provides a statically accessable toasts. The Toaster widget
+/// must be placed in the widget tree after the FToastBuilder widget.
+///
+/// Optionally, both widgets can be placed in the builder of the MaterialApp:
+/// ```dart
+/// MaterialApp(
+///   builder: (context, child) {
+///     child = FToastBuilder()(context, Toaster(child));
+///     return child;
+///   },
+///   home: HomePage(),
+/// );
+/// ```
 class Toaster extends StatefulWidget {
+  /// A widget that provides a statically accessable toasts. The Toaster widget
+  /// must be placed in the widget tree after the FToastBuilder widget.
+  ///
+  /// Optionally, both widgets can be placed in the builder of the MaterialApp:
+  /// ```dart
+  /// MaterialApp(
+  ///   builder: (context, child) {
+  ///     child = FToastBuilder()(context, Toaster(child));
+  ///     return child;
+  ///   },
+  ///   home: HomePage(),
+  /// );
+  /// ```
   const Toaster(
     this.child, {
     super.key,
   });
 
+  /// The child widget.
   final Widget child;
 
   static late final FToast _fToast;
@@ -15,11 +42,15 @@ class Toaster extends StatefulWidget {
   @override
   State<Toaster> createState() => _ToasterState();
 
-  static void showToast(final String msg) {
+  /// Shows a toast with the given message. The toast will be displayed at the
+  /// location of the Toaster widget in the tree.
+  ///
+  /// Both the FToastBuilder and the Toaster widgets must be in the widget tree.
+  static void showToast(String msg) {
     final Widget toast = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25.0),
+        borderRadius: BorderRadius.circular(25),
         color: _color,
       ),
       child: Text(msg),
@@ -27,11 +58,10 @@ class Toaster extends StatefulWidget {
 
     _fToast.showToast(
       child: toast,
-      positionedToastBuilder: (final context, final child, final gravity) =>
-          Positioned(
+      positionedToastBuilder: (context, child, gravity) => Positioned(
         left: 0,
         right: 0,
-        bottom: 20.0,
+        bottom: 20,
         child: child,
       ),
       toastDuration: const Duration(seconds: 3),
@@ -56,7 +86,5 @@ class _ToasterState extends State<Toaster> {
   }
 
   @override
-  Widget build(final BuildContext context) {
-    return widget.child;
-  }
+  Widget build(BuildContext context) => widget.child;
 }

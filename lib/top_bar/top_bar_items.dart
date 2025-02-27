@@ -11,16 +11,20 @@ import '../instance/instance_model.dart';
 import '../process/process_controller.dart';
 import '../settings/settings_model.dart';
 
-class WindowButtons extends StatelessWidget {
-  const WindowButtons({
-    super.key,
+/// The Windows buttons in the top bar of the window. This includes the
+/// minimize, maximize, and close buttons.
+class WindowsButtons extends StatelessWidget {
+  /// The Windows buttons in the top bar of the window. This includes the
+  /// minimize, maximize, and close buttons.
+  const WindowsButtons({
     required final Brightness? brightness,
+    super.key,
   }) : _brightness = brightness;
 
   final Brightness? _brightness;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return Row(
       children: [
         WindowCaptionButton.minimize(
@@ -39,7 +43,7 @@ class WindowButtons extends StatelessWidget {
           // Both options are not valid
           // ignore: discarded_futures
           future: WindowManagerPlus.current.isMaximized(),
-          builder: (final context, final snapshot) {
+          builder: (context, snapshot) {
             if (snapshot.data == true) {
               return WindowCaptionButton.unmaximize(
                 brightness: _brightness,
@@ -67,18 +71,20 @@ class WindowButtons extends StatelessWidget {
   }
 }
 
+/// The icon button in the top bar of the window. This button swaps between the
+/// settings and home pages.
 class IconSwapButton extends StatelessWidget {
-  const IconSwapButton({
-    super.key,
-  });
+  /// The icon button in the top bar of the window. This button swaps between
+  /// the settings and home pages.
+  const IconSwapButton({super.key});
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color hoverColor = theme.colorScheme.onPrimary;
     final Color selectedColor = theme.colorScheme.onSecondary;
 
-    Widget iconStyle(final VoidCallback? onPressed, final Icon icon) {
+    Widget iconStyle(VoidCallback? onPressed, Icon icon) {
       return SizedBox(
         height: 33,
         width: 33,
@@ -88,13 +94,13 @@ class IconSwapButton extends StatelessWidget {
           highlightColor: selectedColor,
           onPressed: onPressed,
           style: ButtonStyle(
-            foregroundColor: WidgetStateProperty.resolveWith((final states) {
+            foregroundColor: WidgetStateProperty.resolveWith((states) {
               if (states.contains(WidgetState.pressed)) {
                 return theme.colorScheme.secondary;
               }
               return theme.colorScheme.onPrimaryContainer;
             }),
-            backgroundColor: WidgetStateProperty.resolveWith((final states) {
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
               if (states.contains(WidgetState.pressed)) {
                 return theme.colorScheme.onSecondary;
               } else if (states.contains(WidgetState.hovered)) {
@@ -125,15 +131,17 @@ class IconSwapButton extends StatelessWidget {
   }
 }
 
+/// The menu buttons in the top bar of the window. This includes the file and
+/// process menus.
 class MenuButtons extends StatelessWidget {
-  const MenuButtons({
-    super.key,
-  });
+  /// The menu buttons in the top bar of the window. This includes the file and
+  /// process menus.
+  const MenuButtons({super.key});
 
-  static const double height = 40;
+  static const double _height = 40;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color backgroundColor = theme.colorScheme.primaryContainer;
     final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
@@ -145,7 +153,7 @@ class MenuButtons extends StatelessWidget {
     final menuStyle = MenuStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
       shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-      minimumSize: const WidgetStatePropertyAll(Size.fromHeight(height)),
+      minimumSize: const WidgetStatePropertyAll(Size.fromHeight(_height)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.only(top: 15, bottom: 15),
       ),
@@ -153,7 +161,7 @@ class MenuButtons extends StatelessWidget {
     final barButtonStyle = ButtonStyle(
       textStyle: WidgetStatePropertyAll(theme.textTheme.labelLarge),
       foregroundColor: WidgetStatePropertyAll(foregroundColor),
-      backgroundColor: WidgetStateProperty.resolveWith((final states) {
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
           return theme.colorScheme.onSecondary;
         } else if (states.contains(WidgetState.hovered)) {
@@ -173,16 +181,16 @@ class MenuButtons extends StatelessWidget {
       ),
     );
 
-    List<MenuEntry> instanceMenuItems(final instances) => [
+    List<MenuEntry> instanceMenuItems(InstanceModel instances) => [
           MenuButton(
             text: const Text('Add Instance'),
-            onTap: () => instances.add(),
+            onTap: () async => instances.add(),
           ),
           MenuButton(
             text: const Text('Remove Instance'),
             onTap: () => instances.remove(),
           ),
-          const MenuDivider()
+          const MenuDivider(),
         ];
     final List<MenuEntry> alwaysMenuButtons = [
       MenuButton(
@@ -203,33 +211,34 @@ class MenuButtons extends StatelessWidget {
     ];
 
     return Consumer<InstanceModel>(
-        builder: (final context, final instances, final child) {
-      return MenuBarWidget(
-        barStyle: menuStyle,
-        barButtonStyle: barButtonStyle,
-        barButtons: [
-          BarButton(
-            text: const Center(child: Text('File')),
-            submenu: SubMenu(
-              menuItems: isSettings
-                  ? alwaysMenuButtons
-                  : instanceMenuItems(instances) + alwaysMenuButtons,
+      builder: (context, instances, child) {
+        return MenuBarWidget(
+          barStyle: menuStyle,
+          barButtonStyle: barButtonStyle,
+          barButtons: [
+            BarButton(
+              text: const Center(child: Text('File')),
+              submenu: SubMenu(
+                menuItems: isSettings
+                    ? alwaysMenuButtons
+                    : instanceMenuItems(instances) + alwaysMenuButtons,
+              ),
             ),
-          ),
-          BarButton(
-            text: const Center(child: Text('Process')),
-            submenu: SubMenu(
-              menuItems: [
-                MenuButton(
-                  text: const Text('Process Log'),
-                  onTap: () async => ProcessController.process(),
-                ),
-              ],
+            BarButton(
+              text: const Center(child: Text('Process')),
+              submenu: SubMenu(
+                menuItems: [
+                  MenuButton(
+                    text: const Text('Process Log'),
+                    onTap: () async => ProcessController.process(),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-        child: Container(),
-      );
-    });
+          ],
+          child: Container(),
+        );
+      },
+    );
   }
 }

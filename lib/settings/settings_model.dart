@@ -3,34 +3,39 @@ import 'package:hive/hive.dart';
 
 import '../setup/hive_setup.dart';
 
+/// A model for the application settings.
 class SettingsModel extends ChangeNotifier {
-  bool isSettings = false;
-  final Box settingsBox = HiveSetup.settingsBox();
-
+  /// A model for the application settings.
   SettingsModel() {
-    settingsBox.watchKey('themeMode').listen((final _) {
+    _settingsBox.watchKey('themeMode').listen((_) {
       notifyListeners();
     });
   }
 
-  void changePage({required final bool isSettings}) {
-    this.isSettings = isSettings;
+  /// Whether the current page is the settings page.
+  var isSettings = false;
+
+  /// The discord bot key.
+  String? get botKey => _settingsBox['botKey'];
+  set botKey(String? key) {
+    _settingsBox['botKey'] = key;
     notifyListeners();
   }
 
-  String? get botKey => settingsBox['botKey'];
-
-  set botKey(final String? key) {
-    settingsBox['botKey'] = key;
-    notifyListeners();
-  }
-
-  ThemeMode get themeMode => settingsBox['themeMode'] == null
+  /// The theme brightness mode.
+  ThemeMode get themeMode => _settingsBox['themeMode'] == null
       ? ThemeMode.system
-      : ThemeMode.values[settingsBox['themeMode']];
+      : ThemeMode.values[_settingsBox['themeMode']];
+  set themeMode(ThemeMode mode) {
+    _settingsBox['themeMode'] = mode.index;
+    notifyListeners();
+  }
 
-  set themeMode(final ThemeMode mode) {
-    settingsBox['themeMode'] = mode.index;
+  final Box _settingsBox = HiveSetup.settingsBox();
+
+  /// Changes to or from the settings page.
+  void changePage({required bool isSettings}) {
+    this.isSettings = isSettings;
     notifyListeners();
   }
 }

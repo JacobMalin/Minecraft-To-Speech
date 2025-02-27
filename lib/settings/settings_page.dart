@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 
 import 'settings_model.dart';
 
+/// The settings page. This page allows the user to change settings.
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({
-    super.key,
-  });
+  /// The settings page. This page allows the user to change settings.
+  const SettingsPage({super.key});
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
@@ -28,10 +28,10 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
+/// A field to enter the discord bot token.
 class TokenField extends StatefulWidget {
-  const TokenField({
-    super.key,
-  });
+  /// A field to enter the discord bot token.
+  const TokenField({super.key});
 
   @override
   State<TokenField> createState() => _TokenFieldState();
@@ -49,7 +49,7 @@ class _TokenFieldState extends State<TokenField> {
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     // TODO: Add discord settings / bot monitor
     // TODO: Add tts options
     // TODO: Add background process option
@@ -64,7 +64,7 @@ class _TokenFieldState extends State<TokenField> {
         ),
         const SizedBox(height: 10),
         Consumer<SettingsModel>(
-          builder: (final context, final settings, final child) => TextField(
+          builder: (context, settings, child) => TextField(
             controller: _controller,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -73,7 +73,7 @@ class _TokenFieldState extends State<TokenField> {
             // TODO: Make 2 lines
             // ignore: avoid_redundant_argument_values
             maxLines: 1,
-            onChanged: (final newKey) => settings.botKey = newKey,
+            onChanged: (newKey) => settings.botKey = newKey,
           ),
         ),
       ],
@@ -81,13 +81,15 @@ class _TokenFieldState extends State<TokenField> {
   }
 }
 
+/// A switch to change the brightness mode. Before the user uses the switch, the
+/// switch will display the operating system's brightness mode.
 class BrightnessSwitch extends StatelessWidget {
-  const BrightnessSwitch({
-    super.key,
-  });
+  /// A switch to change the brightness mode. Before the user uses the switch,
+  /// the switch will display the operating system's brightness mode.
+  const BrightnessSwitch({super.key});
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,15 +103,16 @@ class BrightnessSwitch extends StatelessWidget {
           child: FittedBox(
             fit: BoxFit.fill,
             child: Consumer<SettingsModel>(
-                builder: (final context, final settings, final child) {
-              return Switch(
-                value: settings.themeMode == ThemeMode.system
-                    ? Theme.of(context).brightness == Brightness.dark
-                    : settings.themeMode == ThemeMode.dark,
-                onChanged: (final mode) => settings.themeMode =
-                    mode ? ThemeMode.dark : ThemeMode.light,
-              );
-            }),
+              builder: (context, settings, child) {
+                return Switch(
+                  value: settings.themeMode == ThemeMode.system
+                      ? Theme.of(context).brightness == Brightness.dark
+                      : settings.themeMode == ThemeMode.dark,
+                  onChanged: (mode) => settings.themeMode =
+                      mode ? ThemeMode.dark : ThemeMode.light,
+                );
+              },
+            ),
           ),
         ),
       ],

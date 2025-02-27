@@ -7,19 +7,25 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 import '../setup/window_setup.dart';
 import '../toaster.dart';
 
+/// A controller for processing Minecraft logs.
 class ProcessController extends StatefulWidget {
+  /// A controller for processing Minecraft logs.
   const ProcessController(
     this.child, {
     super.key,
   });
 
+  /// The child widget.
   final Widget child;
 
+  /// The event name for a quick success.
   static const quickSuccess = 'quickProcessSuccess';
 
   @override
   State<ProcessController> createState() => _ProcessControllerState();
 
+  /// Processes Minecraft logs. This will open a new process window. If the
+  /// log(s) process quickly, a toast will appear instead of the new window.
   static Future<void> process() async {
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       dialogTitle: 'Select Minecraft Log File to Process',
@@ -34,7 +40,7 @@ class ProcessController extends StatefulWidget {
 
     await WindowManagerPlus.createWindow([
       'process',
-      jsonEncode({'paths': result.paths})
+      jsonEncode({'paths': result.paths}),
     ]);
   }
 }
@@ -54,15 +60,13 @@ class _ProcessControllerState extends State<ProcessController>
   }
 
   @override
-  Widget build(final BuildContext context) {
-    return widget.child;
-  }
+  Widget build(BuildContext context) => widget.child;
 
   @override
   Future<dynamic> onEventFromWindow(
-    final String eventName,
-    final int fromWindowId,
-    final dynamic arguments,
+    String eventName,
+    int fromWindowId,
+    dynamic arguments,
   ) async {
     if (eventName == ProcessController.quickSuccess) {
       final logCount = arguments as int;

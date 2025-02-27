@@ -8,14 +8,16 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 
 import 'hive_setup.dart';
 
+/// Setup for the application window.
 class WindowSetup {
-  static void mainPreRunApp() {
+  /// Setup for the main window that is run before the application starts.
+  static void main() {
     final Box settingsBox = HiveSetup.settingsBox();
     final HiveOffset? startPosition = settingsBox['position'];
     final HiveSize? startSize = settingsBox['size'];
     final bool? startIsMaximized = settingsBox['isMaximized'];
 
-    final WindowOptions windowOptions = const WindowOptions(
+    const windowOptions = WindowOptions(
       title: 'Minecraft To Speech',
       backgroundColor: Colors.transparent,
       titleBarStyle: TitleBarStyle.hidden,
@@ -42,8 +44,10 @@ class WindowSetup {
     );
   }
 
+  /// Setup for the log processing window that is run before the application
+  /// starts.
   static void process() {
-    final WindowOptions windowOptions = const WindowOptions(
+    const windowOptions = WindowOptions(
       title: 'Log Processing',
       size: Size(350, 200),
       center: true,
@@ -65,7 +69,9 @@ class WindowSetup {
     return monitor != 0; // If 0, the window is offscreen
   }
 
-  static Future<void> focusAndBringToFront([final int? windowId]) async {
+  /// Focus and bring the window to the front. This is useful because just
+  /// focusing the window may not bring it to the front.
+  static Future<void> focusAndBringToFront([int? windowId]) async {
     final WindowManagerPlus window = windowId != null
         ? WindowManagerPlus.fromWindowId(windowId)
         : WindowManagerPlus.current;
@@ -76,12 +82,16 @@ class WindowSetup {
   }
 }
 
+/// A widget that watches the window for changes and saves them to the settings.
 class WindowWatcher extends StatefulWidget {
+  /// A widget that watches the window for changes and saves them to the
+  /// settings.
   const WindowWatcher(
     this.child, {
     super.key,
   });
 
+  /// The child widget.
   final Widget child;
 
   @override
@@ -103,48 +113,42 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
   }
 
   @override
-  Widget build(final BuildContext context) {
-    return Container(
-      child: widget.child,
-    );
-  }
+  Widget build(BuildContext context) => widget.child;
 
   @override
-  Future<void> onWindowMoved([final int? windowId]) async {
+  Future<void> onWindowMoved([int? windowId]) async {
     final Box settingsBox = HiveSetup.settingsBox();
 
-    final HiveOffset pos =
+    final pos =
         HiveOffset.fromOffset(await WindowManagerPlus.current.getPosition());
     settingsBox['position'] = pos;
 
-    final HiveSize size =
-        HiveSize.fromSize(await WindowManagerPlus.current.getSize());
+    final size = HiveSize.fromSize(await WindowManagerPlus.current.getSize());
     settingsBox['size'] = size;
   }
 
   @override
-  Future<void> onWindowResized([final int? windowId]) async {
+  Future<void> onWindowResized([int? windowId]) async {
     final Box settingsBox = HiveSetup.settingsBox();
 
-    final HiveSize size =
-        HiveSize.fromSize(await WindowManagerPlus.current.getSize());
+    final size = HiveSize.fromSize(await WindowManagerPlus.current.getSize());
     settingsBox['size'] = size;
   }
 
   @override
-  void onWindowFocus([final int? windowId]) {
+  void onWindowFocus([int? windowId]) {
     // Make sure to call once.
     setState(() {});
   }
 
   @override
-  void onWindowMaximize([final int? windowId]) {
+  void onWindowMaximize([int? windowId]) {
     final Box settingsBox = HiveSetup.settingsBox();
     settingsBox['isMaximized'] = true;
   }
 
   @override
-  void onWindowUnmaximize([final int? windowId]) {
+  void onWindowUnmaximize([int? windowId]) {
     final Box settingsBox = HiveSetup.settingsBox();
     settingsBox['isMaximized'] = false;
   }
