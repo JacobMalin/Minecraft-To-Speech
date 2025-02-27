@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:minecraft_to_speech/top_bar/top_bar_items.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../settings/settings_model.dart';
+import 'top_bar_items.dart';
 
 class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
   const MainTopBar({
@@ -13,16 +13,16 @@ class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
   static const double height = 40;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return _TopBar(
       height: height,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      icon: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 6, 0),
-        child: ImageIcon(AssetImage("assets/mts_icon.ico")),
+      icon: const Padding(
+        padding: EdgeInsets.fromLTRB(10, 0, 6, 0),
+        child: ImageIcon(AssetImage('assets/mts_icon.ico')),
       ),
-      menuButtons: IntrinsicWidth(child: MenuButtons()),
-      nextToWindowButtons: IconSwapButton(),
+      menuButtons: const IntrinsicWidth(child: MenuButtons()),
+      nextToWindowButtons: const IconSwapButton(),
     );
   }
 
@@ -38,7 +38,7 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
   static const double height = 30;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return _TopBar(
       height: height,
       backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -49,11 +49,11 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
         child: ImageIcon(
           size: 20,
           color: Theme.of(context).colorScheme.onPrimaryContainer,
-          AssetImage("assets/mts_icon.ico"),
+          const AssetImage('assets/mts_icon.ico'),
         ),
       ),
       title: Text(
-        "Log Processing",
+        'Log Processing',
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
@@ -62,21 +62,22 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(height);
+  Size get preferredSize => const Size.fromHeight(height);
 }
 
 class _TopBar extends StatefulWidget {
   const _TopBar({
-    required this.height,
-    required this.backgroundColor,
+    required final double height,
+    required final Color backgroundColor,
     this.icon = const SizedBox(),
     this.title = const SizedBox(),
     this.menuButtons = const SizedBox(),
     this.nextToWindowButtons = const SizedBox(),
-  });
+  })  : _backgroundColor = backgroundColor,
+        _height = height;
 
-  final double height;
-  final Color backgroundColor;
+  final double _height;
+  final Color _backgroundColor;
 
   final Widget icon;
   final Widget title;
@@ -101,16 +102,17 @@ class _TopBarState extends State<_TopBar> with WindowListener {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(builder: (context, settings, child) {
+  Widget build(final BuildContext context) {
+    return Consumer<SettingsModel>(
+        builder: (final context, final settings, final child) {
       final Brightness brightness = settings.themeMode == ThemeMode.dark
           ? Brightness.dark
           : Brightness.light;
 
       return DecoratedBox(
-        decoration: BoxDecoration(color: widget.backgroundColor),
+        decoration: BoxDecoration(color: widget._backgroundColor),
         child: SizedBox(
-          height: widget.height,
+          height: widget._height,
           child: Row(
             children: [
               DragToMoveArea(
@@ -122,7 +124,7 @@ class _TopBarState extends State<_TopBar> with WindowListener {
                 ),
               ),
               widget.menuButtons,
-              Expanded(child: DragToMoveArea(child: SizedBox.expand())),
+              const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
               widget.nextToWindowButtons,
               WindowButtons(brightness: brightness),
             ],
@@ -133,17 +135,17 @@ class _TopBarState extends State<_TopBar> with WindowListener {
   }
 
   @override
-  void onWindowMaximize([int? windowId]) {
+  void onWindowMaximize([final int? windowId]) {
     setState(() {});
   }
 
   @override
-  void onWindowUnmaximize([int? windowId]) {
+  void onWindowUnmaximize([final int? windowId]) {
     setState(() {});
   }
 
   @override
-  void onWindowFocus([int? windowId]) {
+  void onWindowFocus([final int? windowId]) {
     // Make sure to call once.
     setState(() {});
   }

@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../setup/window_setup.dart';
+import '../toaster.dart';
 
 class ProcessController extends StatefulWidget {
   const ProcessController(
@@ -20,38 +20,31 @@ class ProcessController extends StatefulWidget {
   @override
   State<ProcessController> createState() => _ProcessControllerState();
 
-  static process() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      dialogTitle: "Select Minecraft Log File to Process",
+  static Future<void> process() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Select Minecraft Log File to Process',
       type: FileType.custom,
       allowedExtensions: ['log'],
       allowMultiple: true,
     );
 
-    WindowSetup.focusAndBringToFront();
+    await WindowSetup.focusAndBringToFront();
 
     if (result == null) return; // If the user cancels the prompt, exit
 
     await WindowManagerPlus.createWindow([
       'process',
-      jsonEncode({
-        'paths': result.paths,
-      })
+      jsonEncode({'paths': result.paths})
     ]);
   }
 }
 
 class _ProcessControllerState extends State<ProcessController>
     with WindowListener {
-  late FToast fToast;
-
   @override
   void initState() {
     super.initState();
     WindowManagerPlus.current.addListener(this);
-
-    fToast = FToast();
-    fToast.init(context);
   }
 
   @override
@@ -61,37 +54,22 @@ class _ProcessControllerState extends State<ProcessController>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return widget.child;
   }
 
   @override
   Future<dynamic> onEventFromWindow(
-      String eventName, int fromWindowId, dynamic arguments) async {
+    final String eventName,
+    final int fromWindowId,
+    final dynamic arguments,
+  ) async {
     if (eventName == ProcessController.quickSuccess) {
       final logCount = arguments as int;
 
-      final plural = logCount == 1 ? "" : "s";
-      Widget toast = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25.0),
-          color: Theme.of(context).colorScheme.secondaryContainer,
-        ),
-        child: Text('Log$plural processed successfully!'),
-      );
+      final plural = logCount == 1 ? '' : 's';
 
-      fToast.showToast(
-        child: toast,
-        positionedToastBuilder: (context, child, gravity) => Positioned(
-          left: 0,
-          right: 0,
-          bottom: 20.0,
-          child: child,
-        ),
-        toastDuration: Duration(seconds: 3),
-        isDismissible: true,
-      );
+      Toaster.showToast('Log$plural processed successfully!');
     }
   }
 }

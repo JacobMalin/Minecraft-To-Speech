@@ -9,7 +9,7 @@ class SettingsPage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16.0),
       child: Column(
@@ -17,11 +17,11 @@ class SettingsPage extends StatelessWidget {
         spacing: 10,
         children: [
           Text(
-            "Settings",
+            'Settings',
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          TokenField(),
-          BrightnessSwitch(),
+          const TokenField(),
+          const BrightnessSwitch(),
         ],
       ),
     );
@@ -43,29 +43,37 @@ class _TokenFieldState extends State<TokenField> {
   @override
   void initState() {
     super.initState();
-    final botKey = Provider.of<SettingsModel>(context, listen: false).botKey;
+    final String? botKey =
+        Provider.of<SettingsModel>(context, listen: false).botKey;
     _controller = TextEditingController(text: botKey);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
+    // TODO: Add discord settings / bot monitor
+    // TODO: Add tts options
+    // TODO: Add background process option
+    // TODO: Add open on startup option
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Discord Bot Token",
+          'Discord Bot Token',
           style: Theme.of(context).textTheme.labelLarge,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Consumer<SettingsModel>(
-          builder: (context, settings, child) => TextField(
+          builder: (final context, final settings, final child) => TextField(
             controller: _controller,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               hintText: 'Enter a token to enable the discord bot!',
             ),
-            maxLines: 1, // TODO make 2 lines
-            onChanged: (newKey) => settings.botKey = newKey,
+            // TODO: Make 2 lines
+            // ignore: avoid_redundant_argument_values
+            maxLines: 1,
+            onChanged: (final newKey) => settings.botKey = newKey,
           ),
         ),
       ],
@@ -79,25 +87,26 @@ class BrightnessSwitch extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Dark Mode",
+          'Dark Mode',
           style: Theme.of(context).textTheme.labelLarge,
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         SizedBox(
           height: 30,
           child: FittedBox(
             fit: BoxFit.fill,
-            child: Consumer<SettingsModel>(builder: (context, settings, child) {
+            child: Consumer<SettingsModel>(
+                builder: (final context, final settings, final child) {
               return Switch(
                 value: settings.themeMode == ThemeMode.system
                     ? Theme.of(context).brightness == Brightness.dark
                     : settings.themeMode == ThemeMode.dark,
-                onChanged: (mode) => settings.themeMode =
+                onChanged: (final mode) => settings.themeMode =
                     mode ? ThemeMode.dark : ThemeMode.light,
               );
             }),

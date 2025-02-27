@@ -1,65 +1,72 @@
+import 'dart:async';
+
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:minecraft_to_speech/setup/hive_setup.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-class WindowSetup {
-  static mainPreRunApp() {
-    var settingsBox = Hive.box(name: 'settings');
-    HiveOffset? startPosition = settingsBox['position'];
-    HiveSize? startSize = settingsBox['size'];
-    bool? startIsMaximized = settingsBox['isMaximized'];
+import 'hive_setup.dart';
 
-    WindowOptions windowOptions = WindowOptions(
-      title: "Minecraft To Speech",
+class WindowSetup {
+  static void mainPreRunApp() {
+    final Box settingsBox = HiveSetup.settingsBox();
+    final HiveOffset? startPosition = settingsBox['position'];
+    final HiveSize? startSize = settingsBox['size'];
+    final bool? startIsMaximized = settingsBox['isMaximized'];
+
+    final WindowOptions windowOptions = const WindowOptions(
+      title: 'Minecraft To Speech',
       backgroundColor: Colors.transparent,
       titleBarStyle: TitleBarStyle.hidden,
     );
-    WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
-      appWindow.minSize = Size(500, 260);
-      appWindow.size = startSize ?? Size(500, 260);
-      // Must be after size
-      if (startPosition != null) appWindow.position = startPosition as Offset;
+    unawaited(
+      WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+        appWindow.minSize = const Size(500, 260);
+        appWindow.size = startSize ?? const Size(500, 260);
+        // Must be after size
+        if (startPosition != null) appWindow.position = startPosition as Offset;
 
-      // Check if window has landed offscreen
-      if (!_isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
+        // Check if window has landed offscreen
+        if (!_isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
 
-      if (startIsMaximized != null && startIsMaximized) {
-        appWindow.alignment = Alignment.center;
-        appWindow.size = Size(500, 260); // Set starting size small
-        appWindow.maximize();
-      }
+        if (startIsMaximized != null && startIsMaximized) {
+          appWindow.alignment = Alignment.center;
+          appWindow.size = const Size(500, 260); // Set starting size small
+          appWindow.maximize();
+        }
 
-      await WindowManagerPlus.current.show();
-      await WindowManagerPlus.current.focus();
-    });
+        await WindowManagerPlus.current.show();
+        await WindowManagerPlus.current.focus();
+      }),
+    );
   }
 
-  static process() {
-    WindowOptions windowOptions = WindowOptions(
-      title: "Log Processing",
+  static void process() {
+    final WindowOptions windowOptions = const WindowOptions(
+      title: 'Log Processing',
       size: Size(350, 200),
       center: true,
       backgroundColor: Colors.transparent,
       titleBarStyle: TitleBarStyle.hidden,
     );
-    WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
-      await WindowManagerPlus.current.setResizable(false);
-    });
+    unawaited(
+      WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+        await WindowManagerPlus.current.setResizable(false);
+      }),
+    );
   }
 
   static bool _isWindowOnValidMonitor() {
-    final hwnd = GetForegroundWindow();
+    final int hwnd = GetForegroundWindow();
     if (hwnd == 0) return false;
 
-    final monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
+    final int monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
     return monitor != 0; // If 0, the window is offscreen
   }
 
-  static Future<void> focusAndBringToFront([int? windowId]) async {
-    final window = windowId != null
+  static Future<void> focusAndBringToFront([final int? windowId]) async {
+    final WindowManagerPlus window = windowId != null
         ? WindowManagerPlus.fromWindowId(windowId)
         : WindowManagerPlus.current;
 
@@ -96,49 +103,49 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return Container(
       child: widget.child,
     );
   }
 
   @override
-  void onWindowMoved([int? windowId]) async {
-    var settingsBox = Hive.box(name: 'settings');
+  Future<void> onWindowMoved([final int? windowId]) async {
+    final Box settingsBox = HiveSetup.settingsBox();
 
-    HiveOffset pos =
+    final HiveOffset pos =
         HiveOffset.fromOffset(await WindowManagerPlus.current.getPosition());
     settingsBox['position'] = pos;
 
-    HiveSize size =
+    final HiveSize size =
         HiveSize.fromSize(await WindowManagerPlus.current.getSize());
     settingsBox['size'] = size;
   }
 
   @override
-  void onWindowResized([int? windowId]) async {
-    var settingsBox = Hive.box(name: 'settings');
+  Future<void> onWindowResized([final int? windowId]) async {
+    final Box settingsBox = HiveSetup.settingsBox();
 
-    HiveSize size =
+    final HiveSize size =
         HiveSize.fromSize(await WindowManagerPlus.current.getSize());
     settingsBox['size'] = size;
   }
 
   @override
-  void onWindowFocus([int? windowId]) {
+  void onWindowFocus([final int? windowId]) {
     // Make sure to call once.
     setState(() {});
   }
 
   @override
-  void onWindowMaximize([int? windowId]) {
-    var settingsBox = Hive.box(name: 'settings');
+  void onWindowMaximize([final int? windowId]) {
+    final Box settingsBox = HiveSetup.settingsBox();
     settingsBox['isMaximized'] = true;
   }
 
   @override
-  void onWindowUnmaximize([int? windowId]) {
-    var settingsBox = Hive.box(name: 'settings');
+  void onWindowUnmaximize([final int? windowId]) {
+    final Box settingsBox = HiveSetup.settingsBox();
     settingsBox['isMaximized'] = false;
   }
 }

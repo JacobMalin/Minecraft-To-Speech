@@ -1,28 +1,42 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../file/file_manager.dart';
+import '../instance/instance_manager.dart';
 
 class HiveSetup {
-  static setup() async {
-    final dir = await getApplicationSupportDirectory();
+  static Future<void> setup() async {
+    final Directory dir = await getApplicationSupportDirectory();
     Hive.defaultDirectory = dir.path;
-    Hive.registerAdapter('HiveOffset',
-        (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>));
-    Hive.registerAdapter('HiveSize',
-        (dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>));
-    Hive.registerAdapter('FileInfo',
-        (dynamic json) => FileInfo.fromJson(json as Map<String, dynamic>));
+    Hive.registerAdapter(
+      'HiveOffset',
+      (final dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>),
+    );
+    Hive.registerAdapter(
+      'HiveSize',
+      (final dynamic json) => HiveSize.fromJson(json as Map<String, dynamic>),
+    );
+    Hive.registerAdapter(
+      'InstanceInfo',
+      (final dynamic json) =>
+          InstanceInfo.fromJson(json as Map<String, dynamic>),
+    );
   }
+
+  // TODO: Make all interactions with hive into a class
+  // TODO: In general, clean up random string literals
+
+  static Box settingsBox() => Hive.box(name: 'settings');
+  static Box instancesBox() => Hive.box(name: 'instances');
 }
 
 class HiveOffset extends Offset {
   HiveOffset(super.dx, super.dy);
-  HiveOffset.fromOffset(Offset offset) : super(offset.dx, offset.dy);
+  HiveOffset.fromOffset(final Offset offset) : super(offset.dx, offset.dy);
 
-  factory HiveOffset.fromJson(Map<String, dynamic> json) => HiveOffset(
+  factory HiveOffset.fromJson(final Map<String, dynamic> json) => HiveOffset(
         json['dx'] as double,
         json['dy'] as double,
       );
@@ -32,9 +46,9 @@ class HiveOffset extends Offset {
 
 class HiveSize extends Size {
   HiveSize(super.width, super.height);
-  HiveSize.fromSize(Size size) : super(size.width, size.height);
+  HiveSize.fromSize(final Size size) : super(size.width, size.height);
 
-  factory HiveSize.fromJson(Map<String, dynamic> json) => HiveSize(
+  factory HiveSize.fromJson(final Map<String, dynamic> json) => HiveSize(
         json['width'] as double,
         json['height'] as double,
       );

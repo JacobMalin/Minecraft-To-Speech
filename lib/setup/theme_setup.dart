@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 class ThemeSetup {
   static final _seedColor = const Color(0x00204969);
 
-  static final _buttonStyle = ButtonStyle(
-    splashFactory: NoSplash.splashFactory
-  );
+  static final _buttonStyle =
+      const ButtonStyle(splashFactory: NoSplash.splashFactory);
 
-  static ThemeData _baseTheme(Brightness brightness) {
+  static ThemeData _baseTheme(final Brightness brightness) {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(
         seedColor: _seedColor,
@@ -21,25 +20,25 @@ class ThemeSetup {
     );
   }
 
-  static final brightTheme = _baseTheme(Brightness.light).copyWith(
+  static final ThemeData brightTheme = _baseTheme(Brightness.light).copyWith(
     extensions: <ThemeExtension<dynamic>>[
-      FileTheme.light(),
+      const InstanceTheme.light(),
     ],
   );
 
-  static final darkTheme = _baseTheme(Brightness.dark).copyWith(
+  static final ThemeData darkTheme = _baseTheme(Brightness.dark).copyWith(
     extensions: <ThemeExtension<dynamic>>[
-      FileTheme.dark(),
+      const InstanceTheme.dark(),
     ],
   );
 }
 
-class FileTheme extends ThemeExtension<FileTheme> {
+class InstanceTheme extends ThemeExtension<InstanceTheme> {
   final Color green, red;
   final Color greenHover, redHover;
   final Color greenSelected, redSelected;
 
-  const FileTheme({
+  const InstanceTheme({
     required this.green,
     required this.red,
     required this.greenHover,
@@ -47,14 +46,14 @@ class FileTheme extends ThemeExtension<FileTheme> {
     required this.greenSelected,
     required this.redSelected,
   });
-  const FileTheme.light()
+  const InstanceTheme.light()
       : green = const Color.fromARGB(255, 111, 200, 114),
         red = const Color.fromARGB(255, 253, 96, 84),
         greenHover = const Color.fromARGB(21, 0, 0, 0),
         redHover = const Color.fromARGB(21, 0, 0, 0),
         greenSelected = const Color.fromARGB(255, 111, 200, 114),
         redSelected = const Color.fromARGB(255, 253, 96, 84);
-  const FileTheme.dark()
+  const InstanceTheme.dark()
       : green = const Color.fromARGB(255, 17, 159, 19),
         red = const Color.fromARGB(255, 156, 28, 19),
         greenHover = const Color.fromARGB(21, 0, 0, 0),
@@ -63,14 +62,14 @@ class FileTheme extends ThemeExtension<FileTheme> {
         redSelected = const Color.fromARGB(255, 72, 30, 27);
 
   @override
-  FileTheme copyWith(
-      {Color? green,
-      Color? red,
-      Color? greenHover,
-      Color? redHover,
-      Color? greenSelected,
-      Color? redSelected}) {
-    return FileTheme(
+  InstanceTheme copyWith(
+      {final Color? green,
+      final Color? red,
+      final Color? greenHover,
+      final Color? redHover,
+      final Color? greenSelected,
+      final Color? redSelected}) {
+    return InstanceTheme(
       green: green ?? this.green,
       red: red ?? this.red,
       greenHover: greenHover ?? this.greenHover,
@@ -81,9 +80,10 @@ class FileTheme extends ThemeExtension<FileTheme> {
   }
 
   @override
-  FileTheme lerp(ThemeExtension<FileTheme>? other, double t) {
-    if (other is! FileTheme) return this;
-    return FileTheme(
+  InstanceTheme lerp(
+      final ThemeExtension<InstanceTheme>? other, final double t) {
+    if (other is! InstanceTheme) return this;
+    return InstanceTheme(
       green: Color.lerp(green, other.green, t)!,
       red: Color.lerp(red, other.red, t)!,
       greenHover: Color.lerp(greenHover, other.greenHover, t)!,
