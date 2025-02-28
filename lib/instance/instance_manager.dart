@@ -136,7 +136,7 @@ class InstanceController {
 /// The persistent data of a minecraft instance.
 class InstanceInfo {
   /// Creates an instance info from a path to "latest.log".
-  InstanceInfo.fromPath(path, {name, enabled, tts, discord})
+  InstanceInfo.fromPath(String path, {name, enabled, tts, discord})
       : name = name ?? instanceDirectoryName(path) ?? path,
         isEnabled = enabled ?? true,
         isTts = tts ?? true,
@@ -179,7 +179,7 @@ class InstanceInfo {
       };
 
   /// Gets the name of the instance directory from the path to "latest.log".
-  static String? instanceDirectoryName(path) {
+  static String? instanceDirectoryName(String path) {
     final List<String> parts = p.split(path);
 
     return parts.length > 3 ? parts[parts.length - 3] : null;
@@ -191,7 +191,7 @@ class InstanceInfo {
 class LogStreamController {
   /// Creates a controller for a log stream.
   LogStreamController(
-    path, {
+    String path, {
     required VoidCallback notifyListeners,
     required String Function(String) map,
     required void Function(String)? onData,

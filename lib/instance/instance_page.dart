@@ -113,7 +113,7 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
                       // Makes spaces non-breaking and slashes breaking
                       selected.path
                           .replaceAll(' ', '\u202f')
-                          .replaceAll('\\', '\\\u200b'),
+                          .replaceAll(r'\', '\\\u200b'),
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -468,7 +468,7 @@ class InstanceTile extends StatelessWidget {
         position.dx,
         position.dy,
       ),
-      menuPadding: const EdgeInsets.all(0),
+      menuPadding: EdgeInsets.zero,
       popUpAnimationStyle: AnimationStyle.noAnimation,
       items: [
         const PopupMenuItem(

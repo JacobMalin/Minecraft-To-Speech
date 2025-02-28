@@ -59,7 +59,7 @@ class InstanceModel extends ChangeNotifier {
   final Box _settingsBox = HiveSetup.settingsBox();
 
   /// Get the instance at the provided index.
-  InstanceController operator [](index) => instances[index];
+  InstanceController operator [](int index) => instances[index];
 
   /// Select an instance. If the instance is already selected, deselect it.
   void choose(int? index) {

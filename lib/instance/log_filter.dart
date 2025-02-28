@@ -43,5 +43,5 @@ extension ChatTransform on String {
   String timeStamp() => RegExp(r'^\[.*?\]').stringMatch(this) ?? '';
 
   /// Removes all minecraft formatting tags from the string.
-  String removeFormatTags() => replaceAll(RegExp(r'§.'), '');
+  String removeFormatTags() => replaceAll(RegExp('§.'), '');
 }

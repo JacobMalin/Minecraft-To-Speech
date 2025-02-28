@@ -44,7 +44,7 @@ class WindowsButtons extends StatelessWidget {
           // ignore: discarded_futures
           future: WindowManagerPlus.current.isMaximized(),
           builder: (context, snapshot) {
-            if (snapshot.data == true) {
+            if (snapshot.data ?? false) {
               return WindowCaptionButton.unmaximize(
                 brightness: _brightness,
                 onPressed: () async {
@@ -89,7 +89,7 @@ class IconSwapButton extends StatelessWidget {
         height: 33,
         width: 33,
         child: IconButton(
-          padding: const EdgeInsets.all(0),
+          padding: EdgeInsets.zero,
           hoverColor: hoverColor,
           highlightColor: selectedColor,
           onPressed: onPressed,
