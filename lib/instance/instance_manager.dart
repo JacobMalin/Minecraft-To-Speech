@@ -229,19 +229,26 @@ class LogStreamController {
 
   Future<void> _initializeStream(String path) async {
     unawaited(_logWatch?.cancel());
-    _logWatch = Directory(p.dirname(path)).watch().listen((event) {
+    _logWatch = Directory(p.dirname(path)).watch().listen((event) async {
       if (event.path == path) {
-        if (event is FileSystemDeleteEvent) {
-          _stream = null;
-          _unsubscribe();
+        switch (event.runtimeType) {
+          case const (FileSystemDeleteEvent):
+          case const (FileSystemMoveEvent):
+            _stream = null;
+            await _unsubscribe();
 
-          _notifyListeners();
-        } else if (event is FileSystemCreateEvent) {
-          _makeStream(path);
-          if (_enabled) _subscribe();
+            _notifyListeners();
+          case const (FileSystemCreateEvent):
+            _makeStream(path);
+            if (_enabled) _subscribe();
 
-          _notifyListeners();
+            _notifyListeners();
         }
+      } else if (event is FileSystemMoveEvent && event.destination == path) {
+        _makeStream(path);
+        if (_enabled) _subscribe();
+
+        _notifyListeners();
       }
     });
 
@@ -263,7 +270,17 @@ class LogStreamController {
   }
 
   void _subscribe() {
-    _subscription = _stream?.listen(_onData);
+    _subscription = _stream?.listen(
+      _onData,
+      onError: (error) async {
+        if (error is PathNotFoundException) {
+          _stream = null;
+          await _unsubscribe();
+        } else if (kDebugMode) {
+          print('Error in log stream: $error');
+        }
+      },
+    );
   }
 
   Future<void> _unsubscribe() async {

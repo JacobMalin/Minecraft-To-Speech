@@ -2,20 +2,18 @@ import 'dart:async';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-import 'hive_setup.dart';
+import '../settings/settings_model.dart';
 
 /// Setup for the application window.
 class WindowSetup {
   /// Setup for the main window that is run before the application starts.
   static void main() {
-    final Box settingsBox = HiveSetup.settingsBox();
-    final HiveOffset? startPosition = settingsBox['position'];
-    final HiveSize? startSize = settingsBox['size'];
-    final bool? startIsMaximized = settingsBox['isMaximized'];
+    final Offset? startPosition = SettingsBox.position;
+    final Size? startSize = SettingsBox.size;
+    final bool? startIsMaximized = SettingsBox.isMaximized;
 
     const windowOptions = WindowOptions(
       title: 'Minecraft To Speech',
@@ -27,7 +25,7 @@ class WindowSetup {
         appWindow.minSize = const Size(500, 260);
         appWindow.size = startSize ?? const Size(500, 260);
         // Must be after size
-        if (startPosition != null) appWindow.position = startPosition as Offset;
+        if (startPosition != null) appWindow.position = startPosition;
 
         // Check if window has landed offscreen
         if (!_isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
@@ -102,7 +100,6 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
   @override
   void initState() {
     super.initState();
-
     WindowManagerPlus.current.addListener(this);
   }
 
@@ -117,22 +114,13 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
 
   @override
   Future<void> onWindowMoved([int? windowId]) async {
-    final Box settingsBox = HiveSetup.settingsBox();
-
-    final pos =
-        HiveOffset.fromOffset(await WindowManagerPlus.current.getPosition());
-    settingsBox['position'] = pos;
-
-    final size = HiveSize.fromSize(await WindowManagerPlus.current.getSize());
-    settingsBox['size'] = size;
+    SettingsBox.position = await WindowManagerPlus.current.getPosition();
+    SettingsBox.size = await WindowManagerPlus.current.getSize();
   }
 
   @override
   Future<void> onWindowResized([int? windowId]) async {
-    final Box settingsBox = HiveSetup.settingsBox();
-
-    final size = HiveSize.fromSize(await WindowManagerPlus.current.getSize());
-    settingsBox['size'] = size;
+    SettingsBox.size = await WindowManagerPlus.current.getSize();
   }
 
   @override
@@ -143,13 +131,18 @@ class _WindowWatcherState extends State<WindowWatcher> with WindowListener {
 
   @override
   void onWindowMaximize([int? windowId]) {
-    final Box settingsBox = HiveSetup.settingsBox();
-    settingsBox['isMaximized'] = true;
+    SettingsBox.isMaximized = true;
   }
 
   @override
   void onWindowUnmaximize([int? windowId]) {
-    final Box settingsBox = HiveSetup.settingsBox();
-    settingsBox['isMaximized'] = false;
+    SettingsBox.isMaximized = false;
   }
+}
+
+/// Types of windows that can be created.
+class WindowType {
+  /// A process window.
+  // Must start with a char between '0-9' and '['
+  static const process = 'Process';
 }

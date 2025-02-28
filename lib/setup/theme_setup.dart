@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 class ThemeSetup {
   static const _seedColor = Color(0x00204969);
 
-  static const _buttonStyle =
-      ButtonStyle(splashFactory: NoSplash.splashFactory);
+  static const _buttonStyle = ButtonStyle(
+    splashFactory: NoSplash.splashFactory,
+  );
 
   static ThemeData _baseTheme(Brightness brightness) {
     return ThemeData(
@@ -14,10 +15,17 @@ class ThemeSetup {
         brightness: brightness,
       ),
       splashFactory: NoSplash.splashFactory,
-      elevatedButtonTheme: const ElevatedButtonThemeData(style: _buttonStyle),
       textButtonTheme: const TextButtonThemeData(style: _buttonStyle),
-      outlinedButtonTheme: const OutlinedButtonThemeData(style: _buttonStyle),
       iconButtonTheme: const IconButtonThemeData(style: _buttonStyle),
+      menuButtonTheme: const MenuButtonThemeData(style: _buttonStyle),
+      filledButtonTheme: const FilledButtonThemeData(style: _buttonStyle),
+      elevatedButtonTheme: const ElevatedButtonThemeData(style: _buttonStyle),
+      outlinedButtonTheme: const OutlinedButtonThemeData(style: _buttonStyle),
+      segmentedButtonTheme: const SegmentedButtonThemeData(style: _buttonStyle),
+      buttonTheme: const ButtonThemeData(splashColor: Colors.transparent),
+      toggleButtonsTheme: const ToggleButtonsThemeData(
+        splashColor: Colors.transparent,
+      ),
     );
   }
 
@@ -42,54 +50,62 @@ class InstanceTheme extends ThemeExtension<InstanceTheme> {
   const InstanceTheme({
     required this.enabled,
     required this.enabledHover,
-    required this.enabledSelected,
+    required this.enabledWarning,
     required this.disabled,
     required this.disabledHover,
-    required this.disableSelected,
+    required this.disableWarning,
+    required this.warning,
   });
 
   /// The light theme of the instance colors.
   const InstanceTheme.light()
       : enabled = const Color.fromARGB(255, 111, 200, 114),
         enabledHover = const Color.fromARGB(21, 0, 0, 0),
-        enabledSelected = const Color.fromARGB(255, 111, 200, 114),
+        enabledWarning = const Color.fromARGB(255, 206, 193, 68),
         disabled = const Color.fromARGB(255, 253, 96, 84),
         disabledHover = const Color.fromARGB(21, 0, 0, 0),
-        disableSelected = const Color.fromARGB(255, 253, 96, 84);
+        disableWarning = const Color.fromARGB(255, 232, 168, 72),
+        warning = const Color.fromARGB(255, 255, 165, 0);
 
   /// The dark theme of the instance colors.
   const InstanceTheme.dark()
-      : enabled = const Color.fromARGB(255, 17, 159, 19),
+      : enabled = const Color.fromARGB(255, 52, 156, 26),
         enabledHover = const Color.fromARGB(21, 0, 0, 0),
-        enabledSelected = const Color.fromARGB(255, 27, 49, 27),
+        enabledWarning = const Color.fromARGB(255, 187, 170, 0),
         disabled = const Color.fromARGB(255, 156, 28, 19),
         disabledHover = const Color.fromARGB(21, 0, 0, 0),
-        disableSelected = const Color.fromARGB(255, 72, 30, 27);
+        disableWarning = const Color.fromARGB(255, 197, 123, 14),
+        warning = const Color.fromARGB(255, 197, 123, 14);
 
-  /// The color for enabled instances. Hover and selected colors are also
+  /// The color for enabled instances. Hover and warning colors are also
   /// defined.
-  final Color enabled, enabledHover, enabledSelected;
+  final Color enabled, enabledHover, enabledWarning;
 
-  /// The color for disabled instances. Hover and selected colors are also
+  /// The color for disabled instances. Hover and warning colors are also
   /// defined.
-  final Color disabled, disabledHover, disableSelected;
+  final Color disabled, disabledHover, disableWarning;
+
+  /// The color for broken instances.
+  final Color warning;
 
   @override
   InstanceTheme copyWith({
     Color? enabled,
     Color? enabledHover,
-    Color? enabledSelected,
+    Color? enabledWarning,
     Color? disabled,
     Color? disabledHover,
-    Color? disableSelected,
+    Color? disableWarning,
+    Color? warning,
   }) =>
       InstanceTheme(
         enabled: enabled ?? this.enabled,
         enabledHover: enabledHover ?? this.enabledHover,
-        enabledSelected: enabledSelected ?? this.enabledSelected,
+        enabledWarning: enabledWarning ?? this.enabledWarning,
         disabled: disabled ?? this.disabled,
         disabledHover: disabledHover ?? this.disabledHover,
-        disableSelected: disableSelected ?? this.disableSelected,
+        disableWarning: disableWarning ?? this.disableWarning,
+        warning: warning ?? this.warning,
       );
 
   @override
@@ -98,10 +114,11 @@ class InstanceTheme extends ThemeExtension<InstanceTheme> {
     return InstanceTheme(
       enabled: Color.lerp(enabled, other.enabled, t)!,
       enabledHover: Color.lerp(enabledHover, other.enabledHover, t)!,
-      enabledSelected: Color.lerp(enabledSelected, other.enabledSelected, t)!,
+      enabledWarning: Color.lerp(enabledWarning, other.enabledWarning, t)!,
       disabled: Color.lerp(disabled, other.disabled, t)!,
       disabledHover: Color.lerp(disabledHover, other.disabledHover, t)!,
-      disableSelected: Color.lerp(disableSelected, other.disableSelected, t)!,
+      disableWarning: Color.lerp(disableWarning, other.disableWarning, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
     );
   }
 }

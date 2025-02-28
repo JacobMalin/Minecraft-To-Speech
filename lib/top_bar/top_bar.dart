@@ -22,7 +22,7 @@ class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
         child: ImageIcon(AssetImage('assets/mts_icon.ico')),
       ),
       menuButtons: const IntrinsicWidth(child: MenuButtons()),
-      nextToWindowButtons: const IconSwapButton(),
+      nextToWindowsButtons: const IconSwapButton(),
     );
   }
 
@@ -72,7 +72,7 @@ class _TopBar extends StatefulWidget {
     this.icon = const SizedBox(),
     this.title = const SizedBox(),
     this.menuButtons = const SizedBox(),
-    this.nextToWindowButtons = const SizedBox(),
+    this.nextToWindowsButtons = const SizedBox(),
   })  : _backgroundColor = backgroundColor,
         _height = height;
 
@@ -82,7 +82,7 @@ class _TopBar extends StatefulWidget {
   final Widget icon;
   final Widget title;
   final Widget menuButtons;
-  final Widget nextToWindowButtons;
+  final Widget nextToWindowsButtons;
 
   @override
   State<_TopBar> createState() => _TopBarState();
@@ -105,9 +105,16 @@ class _TopBarState extends State<_TopBar> with WindowListener {
   Widget build(BuildContext context) {
     return Consumer<SettingsModel>(
       builder: (context, settings, child) {
-        final Brightness brightness = settings.themeMode == ThemeMode.dark
-            ? Brightness.dark
-            : Brightness.light;
+        final Brightness brightness;
+        if (settings.themeMode == ThemeMode.system) {
+          brightness = MediaQuery.of(context).platformBrightness;
+        } else {
+          brightness = settings.themeMode == ThemeMode.dark
+              ? Brightness.dark
+              : Brightness.light;
+        }
+
+        // TODO: Change color on lose focus.
 
         return DecoratedBox(
           decoration: BoxDecoration(color: widget._backgroundColor),
@@ -125,7 +132,7 @@ class _TopBarState extends State<_TopBar> with WindowListener {
                 ),
                 widget.menuButtons,
                 const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
-                widget.nextToWindowButtons,
+                widget.nextToWindowsButtons,
                 WindowsButtons(brightness: brightness),
               ],
             ),

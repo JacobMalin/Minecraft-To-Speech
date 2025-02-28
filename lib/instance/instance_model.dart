@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../settings/settings_model.dart';
 import '../setup/hive_setup.dart';
 import '../setup/window_setup.dart';
 import '../toaster.dart';
@@ -16,35 +17,35 @@ class InstanceModel extends ChangeNotifier {
   InstanceModel() {
     final Box instancesBox = HiveSetup.instancesBox();
 
-    if (_settingsBox.containsKey('paths')) {
-      for (final String path in _settingsBox['paths']) {
+    if (SettingsBox.paths.isNotEmpty) {
+      for (final String path in SettingsBox.paths) {
         instances.add(InstanceController(path, notifyListeners));
       }
 
       // Remove broken files
-      final List<dynamic> paths = _settingsBox['paths'];
       for (final String path in instancesBox.keys) {
-        if (!paths.contains(path)) instancesBox.delete(path);
+        if (!SettingsBox.paths.contains(path)) instancesBox.delete(path);
       }
     } else {
       instancesBox.clear();
-      selectedIndex = null;
+      _selectedIndex = null;
     }
 
     if (selectedIndex != null) {
-      selectedIndex = min(selectedIndex!, instances.length - 1);
+      _selectedIndex = min(selectedIndex!, instances.length - 1);
     }
-    if (selectedIndex == -1) selectedIndex = null;
+    if (selectedIndex == -1) _selectedIndex = null;
   }
 
   /// List of instances opened by the user. These are generated at runtime from
   /// the paths stored in the settings box.
   final List<InstanceController> instances = [];
 
+  // TODO: Move to instance box
   /// Index of the currently selected instance. If no instance is selected, this
   /// value is null.
-  int? get selectedIndex => _settingsBox['index'];
-  set selectedIndex(int? index) => _settingsBox['index'] = index;
+  int? get selectedIndex => SettingsBox.selectedIndex;
+  set _selectedIndex(int? index) => SettingsBox.selectedIndex = index;
 
   /// Number of instances.
   int get length => instances.length;
@@ -56,14 +57,12 @@ class InstanceModel extends ChangeNotifier {
           ? instances[selectedIndex!]
           : null;
 
-  final Box _settingsBox = HiveSetup.settingsBox();
-
   /// Get the instance at the provided index.
   InstanceController operator [](int index) => instances[index];
 
   /// Select an instance. If the instance is already selected, deselect it.
   void choose(int? index) {
-    selectedIndex = selectedIndex != index ? selectedIndex = index : null;
+    _selectedIndex = selectedIndex != index ? _selectedIndex = index : null;
     notifyListeners();
   }
 
@@ -96,7 +95,7 @@ class InstanceModel extends ChangeNotifier {
     // If instance already exists, select the instance and return
     for (var i = 0; i < instances.length; i++) {
       if (instances[i].path == path) {
-        selectedIndex = i;
+        _selectedIndex = i;
         notifyListeners();
 
         Toaster.showToast('Instance already added!');
@@ -107,9 +106,9 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     instances.add(InstanceController(path, notifyListeners));
-    _settingsBox['paths'] = instances.map((instance) => instance.path).toList();
+    SettingsBox.paths = instances.map((instance) => instance.path).toList();
 
-    selectedIndex = instances.length - 1; // Select newly added instance
+    _selectedIndex = instances.length - 1; // Select newly added instance
     notifyListeners();
   }
 
@@ -124,12 +123,45 @@ class InstanceModel extends ChangeNotifier {
     }
 
     instances.removeAt(index).cleanBox();
-    _settingsBox['paths'] = instances.map((instance) => instance.path).toList();
+    SettingsBox.paths = instances.map((instance) => instance.path).toList();
 
     if (selectedIndex != null) {
-      selectedIndex = min(selectedIndex!, instances.length - 1);
+      _selectedIndex = min(selectedIndex!, instances.length - 1);
     }
-    if (selectedIndex == -1) selectedIndex = null;
+    if (selectedIndex == -1) _selectedIndex = null;
+
+    notifyListeners();
+  }
+
+  /// Locate a missing instance. If the newly chosen instance already exists,
+  /// send a toast and return. Else, change the path of the instance.
+  Future<void> locate() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Select Minecraft Log File to Monitor',
+      type: FileType.custom,
+      allowedExtensions: ['log'],
+    );
+
+    unawaited(WindowSetup.focusAndBringToFront());
+
+    if (result == null) return; // If the user cancels the prompt, exit
+
+    final String path = result.files.single.path!;
+
+    // If instance already exists, select the instance and return
+    for (var i = 0; i < instances.length; i++) {
+      if (instances[i].path == path) {
+        Toaster.showToast(
+          'Instance already added. Choose a different instance.',
+        );
+
+        return;
+      }
+    }
+
+    // Else if new instance,
+    updateWith(path: path);
+    SettingsBox.paths = instances.map((instance) => instance.path).toList();
 
     notifyListeners();
   }
@@ -139,6 +171,7 @@ class InstanceModel extends ChangeNotifier {
   void updateWith({
     int? index,
     String? name,
+    String? path,
     bool? enabled,
     bool? tts,
     bool? discord,
@@ -148,6 +181,7 @@ class InstanceModel extends ChangeNotifier {
     if (indexOrSelected != null) {
       instances[indexOrSelected].updateWith(
         name: name,
+        path: path,
         enabled: enabled,
         tts: tts,
         discord: discord,

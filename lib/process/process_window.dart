@@ -25,9 +25,6 @@ class ProcessWindow extends StatefulWidget {
 
   final List<String> _paths;
 
-  /// The event name used when the process completes with no errors.
-  static const success = 'Success';
-
   @override
   State<ProcessWindow> createState() => _ProcessWindowState();
 }
@@ -89,7 +86,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
       final List<String> results = await _futures;
 
       final int sucessCount =
-          results.where((result) => result == ProcessWindow.success).length;
+          results.where((result) => result == ProcessEvent.success).length;
 
       if (sucessCount == results.length) {
         final WindowManagerPlus mainWindow = WindowManagerPlus.fromWindowId(0);
@@ -101,7 +98,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
 
         await WindowManagerPlus.current.invokeMethodToWindow(
           0,
-          ProcessController.quickSuccess,
+          ProcessEvent.quickSuccess,
           results.length,
         );
         await WindowManagerPlus.current.close();
@@ -152,7 +149,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
 
     await outFile.writeAsString(lines.join('\n'));
 
-    return ProcessWindow.success;
+    return ProcessEvent.success;
   }
 }
 
@@ -178,7 +175,7 @@ class ProcessBody extends StatelessWidget {
         }
 
         final int successCount = snapshot.data!
-            .where((result) => result == ProcessWindow.success)
+            .where((result) => result == ProcessEvent.success)
             .length;
         final plural = _pathCount == 1 ? '' : 's';
 
@@ -288,7 +285,7 @@ class _ErrorListState extends State<ErrorList> {
   @override
   Widget build(BuildContext context) {
     final List<String> badResults = widget._results
-        .where((result) => result != ProcessWindow.success)
+        .where((result) => result != ProcessEvent.success)
         .toList(growable: false);
 
     return Expanded(

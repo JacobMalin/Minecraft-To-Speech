@@ -52,7 +52,7 @@ class _TokenFieldState extends State<TokenField> {
   Widget build(BuildContext context) {
     // TODO: Add discord settings / bot monitor
     // TODO: Add tts options
-    // TODO: Add background process option
+    // TODO: Add run in background option
     // TODO: Add open on startup option
 
     return Column(

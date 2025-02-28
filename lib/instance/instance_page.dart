@@ -1,5 +1,7 @@
+import 'package:dynamic_background/dynamic_background.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
 import '../settings/settings_model.dart';
@@ -80,10 +82,6 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
         }
         if (_controller.text != selected.name) _controller.text = selected.name;
 
-        if (selected.isNotValid) {
-          return const FileNotFound();
-        }
-
         return Align(
           alignment: Alignment.topCenter,
           child: Column(
@@ -91,6 +89,7 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
+                  spacing: 10,
                   children: [
                     Row(
                       children: [
@@ -108,7 +107,6 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
                         const Spacer(),
                       ],
                     ),
-                    const SizedBox(height: 10),
                     Text(
                       // Makes spaces non-breaking and slashes breaking
                       selected.path
@@ -119,8 +117,10 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 25),
-                    InstanceInfoButtons(selected: selected),
+                    if (selected.isNotValid)
+                      const FileNotFoundButtons()
+                    else
+                      InstanceInfoButtons(selected: selected),
                   ],
                 ),
               ),
@@ -145,15 +145,60 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
 }
 
 /// Widget that is displayed when the instance log file is not found.
-class FileNotFound extends StatelessWidget {
+class FileNotFoundButtons extends StatelessWidget {
   /// Constructor for the file not found widget.
-  const FileNotFound({super.key});
-
-  // TODO: Implement
+  const FileNotFoundButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    final InstanceTheme instanceTheme =
+        Theme.of(context).extension<InstanceTheme>()!;
+
+    return Padding(
+      padding: const EdgeInsets.all(6.5),
+      child: Column(
+        spacing: 10,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: instanceTheme.warning,
+              ),
+              Text(
+                'Log file not found',
+                style: TextStyle(color: instanceTheme.warning),
+              ),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: instanceTheme.warning,
+              ),
+            ],
+          ),
+          Consumer<InstanceModel>(
+            builder: (context, instances, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 10,
+                children: [
+                  // TODO: Make buttons less ugly
+                  ElevatedButton(
+                    onPressed: () => instances.remove(),
+                    child: const Text('Remove'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async => instances.locate(),
+                    child: const Text('Locate'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -171,66 +216,67 @@ class InstanceInfoButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<InstanceModel>(
-      builder: (context, instances, child) {
-        final InstanceTheme instanceTheme =
-            Theme.of(context).extension<InstanceTheme>()!;
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Consumer<InstanceModel>(
+        builder: (context, instances, child) {
+          final InstanceTheme instanceTheme =
+              Theme.of(context).extension<InstanceTheme>()!;
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: [
-            Switch(
-              value: _selected.isEnabled,
-              onChanged: (enabled) => instances.updateWith(enabled: enabled),
-              activeColor: instanceTheme.enabled,
-              inactiveThumbColor: instanceTheme.disabled,
-              inactiveTrackColor: instanceTheme.disabled.withAlpha(180),
-              hoverColor: Colors.transparent,
-              trackOutlineColor:
-                  const WidgetStatePropertyAll(Colors.transparent),
-              thumbIcon: WidgetStatePropertyAll(
-                Icon(
-                  Icons.power_settings_new,
-                  color: Theme.of(context).colorScheme.surface,
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [
+              Switch(
+                value: _selected.isEnabled,
+                onChanged: (enabled) => instances.updateWith(enabled: enabled),
+                activeColor: instanceTheme.enabled,
+                inactiveThumbColor: instanceTheme.disabled,
+                inactiveTrackColor: instanceTheme.disabled.withAlpha(180),
+                hoverColor: Colors.transparent,
+                trackOutlineColor:
+                    const WidgetStatePropertyAll(Colors.transparent),
+                thumbIcon: WidgetStatePropertyAll(
+                  Icon(
+                    Icons.power_settings_new,
+                    color: Theme.of(context).colorScheme.surface,
+                  ),
                 ),
               ),
-            ),
-            ToggleButtons(
-              isSelected: [_selected.isTts, _selected.isDiscord],
-              onPressed: _selected.isEnabled
-                  ? (index) {
-                      switch (index) {
-                        case 0:
-                          instances.updateWith(tts: !_selected.isTts);
-                        case 1:
-                          instances.updateWith(discord: !_selected.isDiscord);
+              ToggleButtons(
+                isSelected: [_selected.isTts, _selected.isDiscord],
+                onPressed: _selected.isEnabled
+                    ? (index) {
+                        switch (index) {
+                          case 0:
+                            instances.updateWith(tts: !_selected.isTts);
+                          case 1:
+                            instances.updateWith(discord: !_selected.isDiscord);
+                        }
                       }
-                    }
-                  : null,
-              borderRadius: BorderRadius.circular(10),
-              fillColor: instanceTheme.enabled.withAlpha(150),
-              selectedColor: Theme.of(context).colorScheme.onSurface,
-              splashColor: Colors.transparent,
-              children: const [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  child: Text('TTS'),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  child: Text('Discord'),
-                ),
-              ],
-            ),
-            IconButton(
-              onPressed: () async => instances.openInstanceFolder(),
-              icon: const Icon(Icons.folder_open),
-              splashColor: Colors.transparent,
-            ),
-          ],
-        );
-      },
+                    : null,
+                borderRadius: BorderRadius.circular(10),
+                fillColor: instanceTheme.enabled.withAlpha(150),
+                selectedColor: Theme.of(context).colorScheme.onSurface,
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('TTS'),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('Discord'),
+                  ),
+                ],
+              ),
+              IconButton(
+                onPressed: () async => instances.openInstanceFolder(),
+                icon: const Icon(Icons.folder_open),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -400,8 +446,6 @@ class InstanceTile extends StatelessWidget {
   final InstanceController _instance;
   final double _maxHeight;
 
-  // TODO: Change color on instance log file missing
-
   @override
   Widget build(BuildContext context) {
     final InstanceTheme instanceTheme =
@@ -409,7 +453,26 @@ class InstanceTile extends StatelessWidget {
 
     return Consumer<InstanceModel>(
       builder: (context, instances, child) {
-        final selected = instances.selectedIndex == _index;
+        final isSelected = instances.selectedIndex == _index;
+
+        final Color selectedTileColor = Theme.of(context).colorScheme.secondary;
+
+        Color tileColor, hoverColor, selectedColor, warningColor;
+        if (_instance.isEnabled) {
+          tileColor = instanceTheme.enabled;
+          selectedColor = instanceTheme.enabled;
+          hoverColor = instanceTheme.enabledHover;
+          warningColor = instanceTheme.enabledWarning;
+        } else {
+          tileColor = instanceTheme.disabled;
+          selectedColor = instanceTheme.disabled;
+          hoverColor = instanceTheme.disabledHover;
+          warningColor = instanceTheme.disableWarning;
+        }
+
+        if (_instance.isNotValid) {
+          selectedColor = instanceTheme.warning;
+        }
 
         return GestureDetector(
           onSecondaryTapDown: (details) async => _showRemoveContextMenu(
@@ -417,36 +480,48 @@ class InstanceTile extends StatelessWidget {
             details.globalPosition,
             removeInstance: () => instances.remove(_index),
           ),
-          child: ListTile(
-            minTileHeight: 0,
-            contentPadding: const EdgeInsets.only(left: 10, right: 10),
-            tileColor: _instance.isEnabled
-                ? instanceTheme.enabled
-                : instanceTheme.disabled,
-            hoverColor: _instance.isEnabled
-                ? instanceTheme.enabledHover
-                : instanceTheme.disabledHover,
-            selectedTileColor: Theme.of(context).colorScheme.secondary,
-            splashColor: Colors.transparent,
-            textColor: Theme.of(context).colorScheme.secondary,
-            selectedColor: _instance.isEnabled
-                ? instanceTheme.enabled
-                : instanceTheme.disabled,
-            title: Text(
-              _instance.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          child: SingleChildBuilder(
+            builder: (context, child) {
+              if (_instance.isNotValid && !isSelected) {
+                return DynamicBg(
+                  height: 0,
+                  painterData: ScrollerPainterData(
+                    direction: ScrollDirection.left2Right,
+                    shape: ScrollerShape.stripesDiagonalForward,
+                    color: warningColor,
+                    backgroundColor: tileColor,
+                    fadeEdges: false,
+                  ),
+                  child: child,
+                );
+              } else {
+                return child!;
+              }
+            },
+            child: ListTile(
+              minTileHeight: 0,
+              contentPadding: const EdgeInsets.only(left: 10, right: 10),
+              tileColor: tileColor,
+              hoverColor: hoverColor,
+              selectedTileColor: selectedTileColor,
+              textColor: selectedTileColor,
+              selectedColor: selectedColor,
+              title: Text(
+                _instance.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                // Makes colon and space non-breaking
+                _instance.path
+                    .replaceFirst(':', ':\u2060')
+                    .replaceAll(' ', '\u202f'),
+                maxLines: _maxHeight > 350 ? 3 : (_maxHeight > 250 ? 2 : 1),
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => instances.choose(_index),
+              selected: isSelected,
             ),
-            subtitle: Text(
-              // Makes colon and space non-breaking
-              _instance.path
-                  .replaceFirst(':', ':\u2060')
-                  .replaceAll(' ', '\u202f'),
-              maxLines: _maxHeight > 350 ? 3 : (_maxHeight > 250 ? 2 : 1),
-              overflow: TextOverflow.ellipsis,
-            ),
-            onTap: () => instances.choose(_index),
-            selected: selected,
           ),
         );
       },

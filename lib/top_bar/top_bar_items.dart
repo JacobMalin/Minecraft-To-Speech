@@ -115,15 +115,14 @@ class IconSwapButton extends StatelessWidget {
     }
 
     final bool isSettings = Provider.of<SettingsModel>(context).isSettings;
-    final void Function({required bool isSettings}) changePage =
-        Provider.of<SettingsModel>(context, listen: false).changePage;
+    final SettingsModel settingsModel = Provider.of<SettingsModel>(context);
 
     final Widget settingsIcon = iconStyle(
-      () => changePage(isSettings: true),
+      () => settingsModel.isSettings = true,
       const Icon(Icons.settings),
     );
     final Widget homeIcon = iconStyle(
-      () => changePage(isSettings: false),
+      () => settingsModel.isSettings = false,
       const Icon(Icons.home),
     );
 
@@ -140,6 +139,8 @@ class MenuButtons extends StatelessWidget {
 
   static const double _height = 40;
 
+  // TODO: Close on lose focus
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -147,8 +148,8 @@ class MenuButtons extends StatelessWidget {
     final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
 
     final bool isSettings = Provider.of<SettingsModel>(context).isSettings;
-    final void Function({required bool isSettings}) changePage =
-        Provider.of<SettingsModel>(context, listen: false).changePage;
+    final SettingsModel settingsModel =
+        Provider.of<SettingsModel>(context, listen: false);
 
     final menuStyle = MenuStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
@@ -195,7 +196,7 @@ class MenuButtons extends StatelessWidget {
     final List<MenuEntry> alwaysMenuButtons = [
       MenuButton(
         text: const Text('Settings'),
-        onTap: () => changePage(isSettings: true),
+        onTap: () => settingsModel.isSettings = true,
         icon: const Icon(Icons.settings),
         shortcut: const SingleActivator(LogicalKeyboardKey.keyO, control: true),
         shortcutText: 'Ctrl+O',

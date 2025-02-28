@@ -17,8 +17,6 @@ import 'setup/window_setup.dart';
 import 'toaster.dart';
 import 'top_bar/top_bar.dart';
 
-// TODO: Finish going through linters
-
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line
@@ -29,14 +27,13 @@ void main(List<String> args) async {
   // Hive setup
   await HiveSetup.setup();
 
-  if (args.length >= 3 && args[1] == 'process') {
-    final Map<String, dynamic> argMap =
-        args.length > 2 && args[2].isNotEmpty ? jsonDecode(args[2]) : const {};
+  if (args.length >= 3 && args[1] == WindowType.process) {
+    final List<String> paths = [...jsonDecode(args[2])];
 
     WindowSetup.process();
 
     runApp(
-      ProcessWindow(paths: [...argMap['paths']]),
+      ProcessWindow(paths: paths),
     );
   } else {
     WindowSetup.main();

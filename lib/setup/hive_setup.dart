@@ -29,14 +29,8 @@ class HiveSetup {
     );
   }
 
-  // TODO: Make all interactions with hive into a class
-  // TODO: In general, clean up random string literals
-
-  /// The settings box. This box contains the user-settings for the application.
-  static Box settingsBox() => Hive.box(name: 'settings');
-
-  /// The instances box. This box contains the minecraft instances persistent
-  /// data.
+  // TODO: Move to instance box
+  // ignore: public_member_api_docs
   static Box instancesBox() => Hive.box<InstanceInfo>(name: 'instances');
 }
 

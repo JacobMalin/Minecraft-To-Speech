@@ -18,9 +18,6 @@ class ProcessController extends StatefulWidget {
   /// The child widget.
   final Widget child;
 
-  /// The event name for a quick success.
-  static const quickSuccess = 'quickProcessSuccess';
-
   @override
   State<ProcessController> createState() => _ProcessControllerState();
 
@@ -39,8 +36,8 @@ class ProcessController extends StatefulWidget {
     if (result == null) return; // If the user cancels the prompt, exit
 
     await WindowManagerPlus.createWindow([
-      'process',
-      jsonEncode({'paths': result.paths}),
+      WindowType.process,
+      jsonEncode(result.paths),
     ]);
   }
 }
@@ -68,7 +65,7 @@ class _ProcessControllerState extends State<ProcessController>
     int fromWindowId,
     dynamic arguments,
   ) async {
-    if (eventName == ProcessController.quickSuccess) {
+    if (eventName == ProcessEvent.quickSuccess) {
       final logCount = arguments as int;
 
       final plural = logCount == 1 ? '' : 's';
@@ -76,4 +73,13 @@ class _ProcessControllerState extends State<ProcessController>
       Toaster.showToast('Log$plural processed successfully!');
     }
   }
+}
+
+/// Events that can be sent from the process window.
+class ProcessEvent {
+  /// Event for when the process window finishes quickly.
+  static var quickSuccess = 'quickSucess';
+
+  /// The event name used when the process completes with no errors.
+  static const success = 'success';
 }
