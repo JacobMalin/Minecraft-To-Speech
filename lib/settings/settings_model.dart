@@ -36,7 +36,7 @@ class SettingsModel extends ChangeNotifier {
   }
 }
 
-/// A box for the application settings.
+/// A box for persistent application settings.
 class SettingsBox {
   static final Box _settingsBox = Hive.box(name: 'settings');
 

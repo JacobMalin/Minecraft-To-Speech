@@ -181,16 +181,16 @@ class FileNotFoundButtons extends StatelessWidget {
             builder: (context, instances, child) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 10,
+                spacing: 20,
                 children: [
                   // TODO: Make buttons less ugly
                   ElevatedButton(
-                    onPressed: () => instances.remove(),
-                    child: const Text('Remove'),
-                  ),
-                  ElevatedButton(
                     onPressed: () async => instances.locate(),
                     child: const Text('Locate'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => instances.remove(),
+                    child: const Text('Remove'),
                   ),
                 ],
               );

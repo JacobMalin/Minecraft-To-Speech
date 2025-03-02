@@ -11,6 +11,7 @@ import 'process/process_controller.dart';
 import 'process/process_window.dart';
 import 'settings/settings_model.dart';
 import 'settings/settings_page.dart';
+import 'setup/focus_model.dart';
 import 'setup/hive_setup.dart';
 import 'setup/theme_setup.dart';
 import 'setup/window_setup.dart';
@@ -63,6 +64,9 @@ class _MainAppState extends State<MainApp> {
         ChangeNotifierProvider<InstanceModel>(
           create: (_) => InstanceModel(),
         ),
+        ChangeNotifierProvider<FocusModel>(
+          create: (_) => FocusModel(),
+        ),
       ],
       child: Consumer<SettingsModel>(
         builder: (context, settings, child) {
@@ -73,7 +77,10 @@ class _MainAppState extends State<MainApp> {
             darkTheme: ThemeSetup.darkTheme,
             themeMode: settings.themeMode,
             builder: (context, child) {
-              child = WindowWatcher(child!);
+              child!;
+
+              child = WindowSetupWatcher(child);
+              child = FocusWatcher(child);
               child = ProcessController(child);
               child = FToastBuilder()(context, Toaster(child));
 

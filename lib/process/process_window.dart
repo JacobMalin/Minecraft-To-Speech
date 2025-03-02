@@ -12,6 +12,7 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 import '../instance/instance_model.dart';
 import '../instance/log_filter.dart';
 import '../settings/settings_model.dart';
+import '../setup/focus_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/window_setup.dart';
 import '../top_bar/top_bar.dart';
@@ -51,6 +52,9 @@ class _ProcessWindowState extends State<ProcessWindow> {
         ChangeNotifierProvider<InstanceModel>(
           create: (_) => InstanceModel(),
         ),
+        ChangeNotifierProvider<FocusModel>(
+          create: (_) => FocusModel(),
+        ),
       ],
       child: Consumer<SettingsModel>(
         builder: (context, settings, child) {
@@ -60,6 +64,7 @@ class _ProcessWindowState extends State<ProcessWindow> {
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
             themeMode: settings.themeMode,
+            builder: (context, child) => FocusWatcher(child!),
             home: Scaffold(
               appBar: const ProcessTopBar(),
               body: ProcessBody(_futures, _pathCount),

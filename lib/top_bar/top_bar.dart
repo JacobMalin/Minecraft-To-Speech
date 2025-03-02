@@ -45,9 +45,9 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
           ? Theme.of(context).colorScheme.onSecondary
           : Theme.of(context).colorScheme.secondaryFixed,
       icon: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.only(left: 8, right: 6),
         child: ImageIcon(
-          size: 20,
+          size: 17,
           color: Theme.of(context).colorScheme.onPrimaryContainer,
           const AssetImage('assets/mts_icon.ico'),
         ),
@@ -55,6 +55,7 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         'Log Processing',
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              fontSize: 12,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
       ),
@@ -133,6 +134,7 @@ class _TopBarState extends State<_TopBar> with WindowListener {
                 widget.menuButtons,
                 const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
                 widget.nextToWindowsButtons,
+                const SizedBox(width: 2),
                 WindowsButtons(brightness: brightness),
               ],
             ),
