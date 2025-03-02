@@ -11,7 +11,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,

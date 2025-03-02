@@ -155,9 +155,7 @@ class MenuButtons extends StatelessWidget {
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
       shadowColor: const WidgetStatePropertyAll(Colors.transparent),
       minimumSize: const WidgetStatePropertyAll(Size.fromHeight(_height)),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.only(top: 15, bottom: 15),
-      ),
+      padding: const WidgetStatePropertyAll(EdgeInsets.zero),
     );
     final barButtonStyle = ButtonStyle(
       textStyle: WidgetStatePropertyAll(theme.textTheme.labelLarge),
@@ -174,7 +172,6 @@ class MenuButtons extends StatelessWidget {
       minimumSize: const WidgetStatePropertyAll(Size(40, 20)),
       padding:
           const WidgetStatePropertyAll(EdgeInsets.fromLTRB(10, 10, 10, 12)),
-      alignment: Alignment.center,
       shape: const WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -211,35 +208,40 @@ class MenuButtons extends StatelessWidget {
       ),
     ];
 
-    return Consumer<InstanceModel>(
-      builder: (context, instances, child) {
-        return MenuBarWidget(
-          barStyle: menuStyle,
-          barButtonStyle: barButtonStyle,
-          barButtons: [
-            BarButton(
-              text: const Center(child: Text('File')),
-              submenu: SubMenu(
-                menuItems: isSettings
-                    ? alwaysMenuButtons
-                    : instanceMenuItems(instances) + alwaysMenuButtons,
-              ),
-            ),
-            BarButton(
-              text: const Center(child: Text('Process')),
-              submenu: SubMenu(
-                menuItems: [
-                  MenuButton(
-                    text: const Text('Process Log'),
-                    onTap: () async => ProcessController.process(),
+    return SizedBox(
+      height: 32,
+      child: IntrinsicWidth(
+        child: Consumer<InstanceModel>(
+          builder: (context, instances, child) {
+            return MenuBarWidget(
+              barStyle: menuStyle,
+              barButtonStyle: barButtonStyle,
+              barButtons: [
+                BarButton(
+                  text: const Text('File'),
+                  submenu: SubMenu(
+                    menuItems: isSettings
+                        ? alwaysMenuButtons
+                        : instanceMenuItems(instances) + alwaysMenuButtons,
                   ),
-                ],
-              ),
-            ),
-          ],
-          child: Container(),
-        );
-      },
+                ),
+                BarButton(
+                  text: const Text('Process'),
+                  submenu: SubMenu(
+                    menuItems: [
+                      MenuButton(
+                        text: const Text('Process Log'),
+                        onTap: () async => ProcessController.process(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              child: const SizedBox.shrink(),
+            );
+          },
+        ),
+      ),
     );
   }
 }

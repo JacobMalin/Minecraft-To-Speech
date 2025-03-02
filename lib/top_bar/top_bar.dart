@@ -5,29 +5,33 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 import '../settings/settings_model.dart';
 import 'top_bar_items.dart';
 
+/// The height of the Windows title bar.
+const windowsTitleBarHeight = 9;
+
 /// The top bar of the main window.
 class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
   /// The top bar of the main window.
   const MainTopBar({super.key});
 
-  static const double _height = 40;
+  /// The height of the top bar.
+  static const double height = 38;
 
   @override
   Widget build(BuildContext context) {
     return _TopBar(
-      height: _height,
+      height: height,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       icon: const Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 6, 0),
         child: ImageIcon(AssetImage('assets/mts_icon.ico')),
       ),
-      menuButtons: const IntrinsicWidth(child: MenuButtons()),
+      menuButtons: const MenuButtons(),
       nextToWindowsButtons: const IconSwapButton(),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(_height);
+  Size get preferredSize => const Size.fromHeight(height);
 }
 
 /// The top bar of the process window.
@@ -134,7 +138,7 @@ class _TopBarState extends State<_TopBar> with WindowListener {
                 widget.menuButtons,
                 const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
                 widget.nextToWindowsButtons,
-                const SizedBox(width: 2),
+                const DragToMoveArea(child: SizedBox(width: 2)),
                 WindowsButtons(brightness: brightness),
               ],
             ),

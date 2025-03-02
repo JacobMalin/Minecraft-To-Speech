@@ -206,6 +206,12 @@ class LogStreamController {
 
   set path(String value) {
     unawaited(_initializeStream(value));
+
+    unawaited(
+      _unsubscribe().then((_) {
+        if (_enabled) _subscribe();
+      }),
+    );
   }
 
   var _enabled = false;
@@ -240,12 +246,14 @@ class LogStreamController {
             _notifyListeners();
           case const (FileSystemCreateEvent):
             _makeStream(path);
+            await _unsubscribe();
             if (_enabled) _subscribe();
 
             _notifyListeners();
         }
       } else if (event is FileSystemMoveEvent && event.destination == path) {
         _makeStream(path);
+        await _unsubscribe();
         if (_enabled) _subscribe();
 
         _notifyListeners();
@@ -256,9 +264,6 @@ class LogStreamController {
     if (File(path).existsSync()) {
       _makeStream(path);
     }
-
-    await _unsubscribe();
-    if (_enabled) _subscribe();
   }
 
   void _makeStream(String path) {

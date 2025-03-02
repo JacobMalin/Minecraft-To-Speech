@@ -18,13 +18,13 @@ class InstanceModel extends ChangeNotifier {
     final Box instancesBox = HiveSetup.instancesBox();
 
     if (SettingsBox.paths.isNotEmpty) {
-      for (final String path in SettingsBox.paths) {
-        instances.add(InstanceController(path, notifyListeners));
-      }
-
       // Remove broken files
       for (final String path in instancesBox.keys) {
         if (!SettingsBox.paths.contains(path)) instancesBox.delete(path);
+      }
+
+      for (final String path in SettingsBox.paths) {
+        instances.add(InstanceController(path, notifyListeners));
       }
     } else {
       instancesBox.clear();

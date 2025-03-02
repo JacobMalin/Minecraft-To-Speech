@@ -9,6 +9,9 @@ import '../settings/settings_model.dart';
 
 /// Setup for the application window.
 class WindowSetup {
+  /// The minimum size of the window.
+  static const minSize = Size(450, 250);
+
   /// Setup for the main window that is run before the application starts.
   static void main() {
     final Offset? startPosition = SettingsBox.position;
@@ -22,8 +25,8 @@ class WindowSetup {
     );
     unawaited(
       WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
-        appWindow.minSize = const Size(500, 260);
-        appWindow.size = startSize ?? const Size(500, 260);
+        appWindow.minSize = minSize;
+        appWindow.size = startSize ?? minSize;
         // Must be after size
         if (startPosition != null) appWindow.position = startPosition;
 
@@ -32,7 +35,7 @@ class WindowSetup {
 
         if (startIsMaximized != null && startIsMaximized) {
           appWindow.alignment = Alignment.center;
-          appWindow.size = const Size(500, 260); // Set starting size small
+          appWindow.size = minSize; // Set starting size small
           appWindow.maximize();
         }
 
