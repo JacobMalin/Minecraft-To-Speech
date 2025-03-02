@@ -15,19 +15,17 @@ import 'instance_manager.dart';
 class InstanceModel extends ChangeNotifier {
   /// Constructor for the instance model.
   InstanceModel() {
-    final Box instancesBox = HiveSetup.instancesBox();
-
-    if (SettingsBox.paths.isNotEmpty) {
+    if (InstanceBox.paths.isNotEmpty) {
       // Remove broken files
-      for (final String path in instancesBox.keys) {
-        if (!SettingsBox.paths.contains(path)) instancesBox.delete(path);
+      for (final String path in InstanceBox.infos.keys) {
+        if (!InstanceBox.paths.contains(path)) InstanceBox.infos.delete(path);
       }
 
-      for (final String path in SettingsBox.paths) {
+      for (final String path in InstanceBox.paths) {
         instances.add(InstanceController(path, notifyListeners));
       }
     } else {
-      instancesBox.clear();
+      InstanceBox.infos.clear();
       _selectedIndex = null;
     }
 
@@ -44,14 +42,14 @@ class InstanceModel extends ChangeNotifier {
   // TODO: Move to instance box
   /// Index of the currently selected instance. If no instance is selected, this
   /// value is null.
-  int? get selectedIndex => SettingsBox.selectedIndex;
-  set _selectedIndex(int? index) => SettingsBox.selectedIndex = index;
+  int? get selectedIndex => InstanceBox.selectedIndex;
+  set _selectedIndex(int? index) => InstanceBox.selectedIndex = index;
 
   /// Number of instances.
   int get length => instances.length;
 
-  /// Get the currently selected index. If no instance is selected, this value
-  /// is null.
+  /// Get the currently selected instance. If no instance is selected, this
+  /// value is null.
   InstanceController? get selected =>
       selectedIndex != null && selectedIndex! < instances.length
           ? instances[selectedIndex!]
@@ -106,7 +104,7 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     instances.add(InstanceController(path, notifyListeners));
-    SettingsBox.paths = instances.map((instance) => instance.path).toList();
+    InstanceBox.paths = instances.map((instance) => instance.path).toList();
 
     _selectedIndex = instances.length - 1; // Select newly added instance
     notifyListeners();
@@ -123,7 +121,7 @@ class InstanceModel extends ChangeNotifier {
     }
 
     instances.removeAt(index).cleanBox();
-    SettingsBox.paths = instances.map((instance) => instance.path).toList();
+    InstanceBox.paths = instances.map((instance) => instance.path).toList();
 
     if (selectedIndex != null) {
       _selectedIndex = min(selectedIndex!, instances.length - 1);
@@ -161,7 +159,7 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     updateWith(path: path);
-    SettingsBox.paths = instances.map((instance) => instance.path).toList();
+    InstanceBox.paths = instances.map((instance) => instance.path).toList();
 
     notifyListeners();
   }
@@ -195,4 +193,25 @@ class InstanceModel extends ChangeNotifier {
   Future<void> openInstanceFolder() async {
     await selected?.openInstanceFolder();
   }
+}
+
+/// A box for persistent instance data.
+class InstanceBox {
+  static final Box _pathsBox = Hive.box(name: 'paths');
+
+  //// The selected instance index.
+  static int? get selectedIndex => _pathsBox['selectedIndex'];
+  static set selectedIndex(int? value) {
+    _pathsBox['selectedIndex'] = value;
+  }
+
+  //// The list of instance paths.
+  static List<String> get paths => [..._pathsBox['paths'] ?? []];
+  static set paths(List<String> value) {
+    _pathsBox['paths'] = value;
+  }
+
+  /// The list of instance infos.
+  static Box<InstanceInfo> get infos =>
+      Hive.box<InstanceInfo>(name: 'instances');
 }

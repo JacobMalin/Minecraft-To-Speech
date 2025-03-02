@@ -23,44 +23,48 @@ class InstanceList extends StatelessWidget {
         builder: (context, instances, child) {
           return LayoutBuilder(
             builder: (context, constraints) {
-              // TODO: Add break between tiles
-
-              return SmoothListView.builder(
+              return SmoothListView.separated(
                 key: const PageStorageKey('InstanceListSmoothListView'),
                 duration: const Duration(milliseconds: 500),
+                separatorBuilder: (context, index) {
+                  if (index >= instances.length - 1) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final enabledDifferent = instances[index].isEnabled !=
+                      instances[index + 1].isEnabled;
+                  final validDifferent = instances[index].isNotValid !=
+                      instances[index + 1].isNotValid;
+                  final bool thisOrNextSelected =
+                      instances.selectedIndex == index ||
+                          instances.selectedIndex == index + 1;
+                  if (enabledDifferent ||
+                      validDifferent ||
+                      thisOrNextSelected) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Divider(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondaryContainer
+                        .withAlpha(80),
+                    height: 0,
+                    indent: 20,
+                    endIndent: 20,
+                  );
+                },
                 itemCount: instances.length + 1,
                 itemBuilder: (context, index) {
                   if (index < instances.length) {
-                    return InstanceTile(
+                    return _InstanceTile(
                       index,
                       instances[index],
                       constraints.maxHeight,
                     );
                   }
 
-                  return Consumer<SettingsModel>(
-                    builder: (context, settings, child) {
-                      return ListTile(
-                        minTileHeight: 50,
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 10),
-                        tileColor: settings.themeMode == ThemeMode.dark
-                            ? Theme.of(context).colorScheme.surfaceContainerHigh
-                            : Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
-                        leading: const Icon(
-                          Icons.add,
-                          size: 24,
-                        ),
-                        title: Text(
-                          'Add Instance',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        onTap: () async => instances.add(),
-                      );
-                    },
-                  );
+                  return const _AddFileButton();
                 },
               );
             },
@@ -71,16 +75,48 @@ class InstanceList extends StatelessWidget {
   }
 }
 
+class _AddFileButton extends StatelessWidget {
+  const _AddFileButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<InstanceModel>(
+      builder: (context, instances, child) {
+        return Consumer<SettingsModel>(
+          builder: (context, settings, child) {
+            return ListTile(
+              horizontalTitleGap: 8,
+              minTileHeight: 50,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 7),
+              tileColor: settings.themeMode == ThemeMode.dark
+                  ? Theme.of(context).colorScheme.surfaceContainerHigh
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              leading: const Icon(
+                Icons.add,
+                size: 24,
+              ),
+              title: Text(
+                'Add Instance',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              onTap: () async => instances.add(),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
 /// Tile for an instance. This tile shows the instance name and path. The tile
 /// changes color based on the instance's status.
-class InstanceTile extends StatelessWidget {
+class _InstanceTile extends StatelessWidget {
   /// Constructor for the instance tile.
-  const InstanceTile(
+  const _InstanceTile(
     int index,
     InstanceController instance,
-    double maxHeight, {
-    super.key,
-  })  : _index = index,
+    double maxHeight,
+  )   : _index = index,
         _instance = instance,
         _maxHeight = maxHeight;
 

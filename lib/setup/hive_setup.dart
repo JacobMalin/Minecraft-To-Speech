@@ -28,10 +28,6 @@ class HiveSetup {
       (dynamic json) => InstanceInfo.fromJson(json as Map<String, dynamic>),
     );
   }
-
-  // TODO: Move to instance box
-  // ignore: public_member_api_docs
-  static Box instancesBox() => Hive.box<InstanceInfo>(name: 'instances');
 }
 
 /// A class to store an offset in hive.

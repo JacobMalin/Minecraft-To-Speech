@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../settings/settings_model.dart';
+import '../setup/focus_model.dart';
 import 'top_bar_items.dart';
 
 /// The height of the Windows title bar.
@@ -23,7 +24,9 @@ class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       icon: const Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 6, 0),
-        child: ImageIcon(AssetImage('assets/mts_icon.ico')),
+        child: ImageIcon(
+          AssetImage('assets/mts_icon.ico'),
+        ),
       ),
       menuButtons: const MenuButtons(),
       nextToWindowsButtons: const IconSwapButton(),
@@ -71,18 +74,21 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _TopBar extends StatefulWidget {
-  const _TopBar({
+  _TopBar({
     required double height,
     required Color backgroundColor,
+    Color? blurColor,
     this.icon = const SizedBox(),
     this.title = const SizedBox(),
     this.menuButtons = const SizedBox(),
     this.nextToWindowsButtons = const SizedBox(),
   })  : _backgroundColor = backgroundColor,
+        _blurColor = blurColor ?? backgroundColor.withAlpha(210),
         _height = height;
 
   final double _height;
   final Color _backgroundColor;
+  final Color _blurColor;
 
   final Widget icon;
   final Widget title;
@@ -119,10 +125,16 @@ class _TopBarState extends State<_TopBar> with WindowListener {
               : Brightness.light;
         }
 
-        // TODO: Change color on lose focus.
+        return Consumer<FocusModel>(
+          builder: (context, focus, child) {
+            final Color backgroundColor =
+                focus.isFocused ? widget._backgroundColor : widget._blurColor;
 
-        return DecoratedBox(
-          decoration: BoxDecoration(color: widget._backgroundColor),
+            return DecoratedBox(
+              decoration: BoxDecoration(color: backgroundColor),
+              child: child,
+            );
+          },
           child: SizedBox(
             height: widget._height,
             child: Row(

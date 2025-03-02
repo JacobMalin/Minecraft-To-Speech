@@ -106,7 +106,7 @@ class IconSwapButton extends StatelessWidget {
               } else if (states.contains(WidgetState.hovered)) {
                 return theme.colorScheme.onPrimary;
               }
-              return theme.colorScheme.primaryContainer;
+              return Colors.transparent;
             }),
           ),
           icon: icon,
@@ -139,23 +139,20 @@ class MenuButtons extends StatelessWidget {
 
   static const double _height = 40;
 
-  // TODO: Close on lose focus
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color backgroundColor = theme.colorScheme.primaryContainer;
     final Color foregroundColor = theme.colorScheme.onPrimaryContainer;
 
     final bool isSettings = Provider.of<SettingsModel>(context).isSettings;
     final SettingsModel settingsModel =
         Provider.of<SettingsModel>(context, listen: false);
 
-    final menuStyle = MenuStyle(
-      backgroundColor: WidgetStatePropertyAll(backgroundColor),
-      shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-      minimumSize: const WidgetStatePropertyAll(Size.fromHeight(_height)),
-      padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+    const menuStyle = MenuStyle(
+      backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+      shadowColor: WidgetStatePropertyAll(Colors.transparent),
+      minimumSize: WidgetStatePropertyAll(Size.fromHeight(_height)),
+      padding: WidgetStatePropertyAll(EdgeInsets.zero),
     );
     final barButtonStyle = ButtonStyle(
       textStyle: WidgetStatePropertyAll(theme.textTheme.labelLarge),
@@ -166,7 +163,7 @@ class MenuButtons extends StatelessWidget {
         } else if (states.contains(WidgetState.hovered)) {
           return theme.colorScheme.onPrimary;
         }
-        return theme.colorScheme.primaryContainer;
+        return Colors.transparent;
       }),
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       minimumSize: const WidgetStatePropertyAll(Size(40, 20)),

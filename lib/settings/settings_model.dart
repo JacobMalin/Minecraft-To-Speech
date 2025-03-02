@@ -75,20 +75,6 @@ class SettingsBox {
         value != null ? HiveOffset.fromOffset(value) : null;
   }
 
-  // TODO: Move to instance box
-  //// The selected instance index.
-  static int? get selectedIndex => _settingsBox['selectedIndex'];
-  static set selectedIndex(int? value) {
-    _settingsBox['selectedIndex'] = value;
-  }
-
-  // TODO: Move to instance box
-  //// The list of instance paths.
-  static List<String> get paths => [..._settingsBox['paths'] ?? []];
-  static set paths(List<String> value) {
-    _settingsBox['paths'] = value;
-  }
-
   /// Expose the box watchKey method.
   static Stream watchKey(String key) {
     return _settingsBox.watchKey(key);

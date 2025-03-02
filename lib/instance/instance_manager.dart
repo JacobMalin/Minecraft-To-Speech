@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
-import '../setup/hive_setup.dart';
+import 'instance_model.dart';
 import 'log_filter.dart';
 
 /// Manages a minecraft instance. This includes the log streams and instance
@@ -45,8 +44,8 @@ class InstanceController {
       },
     );
 
-    if (!_instancesBox.containsKey(path)) {
-      _instancesBox[path] = InstanceInfo.fromPath(path);
+    if (!InstanceBox.infos.containsKey(path)) {
+      InstanceBox.infos[path] = InstanceInfo.fromPath(path);
     }
 
     _uiStream.enabled = isEnabled;
@@ -61,12 +60,11 @@ class InstanceController {
   /// empty on boot.
   final List<String> messages = [];
 
-  final Box _instancesBox = HiveSetup.instancesBox();
   late LogStreamController _uiStream, _ttsStream, _discordStream;
   final VoidCallback _notifyListeners;
 
   /// The persitent data of the instance.
-  InstanceInfo get info => _instancesBox[path];
+  InstanceInfo get info => InstanceBox.infos[path]!;
 
   /// The user-defined name of the instance.
   String get name => info.name;
@@ -90,7 +88,7 @@ class InstanceController {
   bool get isNotValid => !isValid;
 
   /// Delete all stored persistent data.
-  void cleanBox() => _instancesBox.delete(path);
+  void cleanBox() => InstanceBox.infos.delete(path);
 
   /// Update the instance with new data. This will update the persistent data
   /// and the streams.
@@ -101,10 +99,10 @@ class InstanceController {
     bool? tts,
     bool? discord,
   }) {
-    final InstanceInfo instance = _instancesBox[this.path];
+    final InstanceInfo info = this.info;
 
     if (path != null) {
-      _instancesBox.delete(this.path);
+      cleanBox();
       this.path = path;
 
       _uiStream.path = path;
@@ -112,12 +110,12 @@ class InstanceController {
       _discordStream.path = path;
     }
 
-    if (name != null) instance.name = name;
-    if (enabled != null) instance.isEnabled = enabled;
-    if (tts != null) instance.isTts = tts;
-    if (discord != null) instance.isDiscord = discord;
+    if (name != null) info.name = name;
+    if (enabled != null) info.isEnabled = enabled;
+    if (tts != null) info.isTts = tts;
+    if (discord != null) info.isDiscord = discord;
 
-    _instancesBox[this.path] = instance;
+    InstanceBox.infos[this.path] = info;
 
     _uiStream.enabled = isEnabled;
     _ttsStream.enabled = isEnabled && isTts;
