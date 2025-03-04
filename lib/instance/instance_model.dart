@@ -5,8 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import '../settings/settings_model.dart';
-import '../setup/hive_setup.dart';
 import '../setup/window_setup.dart';
 import '../toaster.dart';
 import 'instance_manager.dart';
@@ -39,7 +37,6 @@ class InstanceModel extends ChangeNotifier {
   /// the paths stored in the settings box.
   final List<InstanceController> instances = [];
 
-  // TODO: Move to instance box
   /// Index of the currently selected instance. If no instance is selected, this
   /// value is null.
   int? get selectedIndex => InstanceBox.selectedIndex;

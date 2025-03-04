@@ -91,13 +91,16 @@ class _AddFileButton extends StatelessWidget {
               tileColor: settings.themeMode == ThemeMode.dark
                   ? Theme.of(context).colorScheme.surfaceContainerHigh
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
-              leading: const Icon(
+              leading: Icon(
                 Icons.add,
                 size: 24,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               title: Text(
                 'Add Instance',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               onTap: () async => instances.add(),
             );

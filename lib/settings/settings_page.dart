@@ -4,40 +4,137 @@ import 'package:provider/provider.dart';
 import 'settings_model.dart';
 
 /// The settings page. This page allows the user to change settings.
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   /// The settings page. This page allows the user to change settings.
   const SettingsPage({super.key});
 
   @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage>
+    with TickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      animationDuration: Duration.zero,
+      length: 3,
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
+      padding: const EdgeInsets.symmetric(
+        vertical: 11,
+        horizontal: 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
         children: [
-          Text(
-            'Settings',
-            style: Theme.of(context).textTheme.titleLarge,
+          Row(
+            children: [
+              Text(
+                'Settings',
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                      fontSize: 26,
+                    ),
+              ),
+              const Spacer(),
+              SizedBox(
+                height: 30,
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  tabs: const [
+                    Tab(text: 'General'),
+                    Tab(text: 'Text-to-Speech'),
+                    Tab(text: 'Discord'),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const TokenField(),
-          const BrightnessSwitch(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: const <Widget>[
+                _GeneralSettings(),
+                _TtsSettings(),
+                _DiscordSettings(),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// A field to enter the discord bot token.
-class TokenField extends StatefulWidget {
-  /// A field to enter the discord bot token.
-  const TokenField({super.key});
+class _GeneralSettings extends StatelessWidget {
+  const _GeneralSettings();
 
   @override
-  State<TokenField> createState() => _TokenFieldState();
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 20,
+      children: [
+        _BrightnessSwitch(),
+      ],
+    );
+  }
 }
 
-class _TokenFieldState extends State<TokenField> {
+class _TtsSettings extends StatelessWidget {
+  const _TtsSettings();
+
+  // TODO: Add tts options
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('2'));
+  }
+}
+
+class _DiscordSettings extends StatelessWidget {
+  const _DiscordSettings();
+
+  // TODO: Add discord settings / bot monitor
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 20,
+      children: [
+        _TokenField(),
+      ],
+    );
+  }
+}
+
+class _TokenField extends StatefulWidget {
+  const _TokenField();
+
+  @override
+  State<_TokenField> createState() => _TokenFieldState();
+}
+
+class _TokenFieldState extends State<_TokenField> {
   late TextEditingController _controller;
 
   @override
@@ -50,8 +147,6 @@ class _TokenFieldState extends State<TokenField> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Add discord settings / bot monitor
-    // TODO: Add tts options
     // TODO: Add run in background option
     // TODO: Add open on startup option
 
@@ -64,16 +159,15 @@ class _TokenFieldState extends State<TokenField> {
         ),
         const SizedBox(height: 10),
         Consumer<SettingsModel>(
-          builder: (context, settings, child) => TextField(
-            controller: _controller,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter a token to enable the discord bot!',
+          builder: (context, settings, child) => IntrinsicWidth(
+            child: TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Enter a token to enable the discord bot!',
+              ),
+              onChanged: (newKey) => settings.botKey = newKey,
             ),
-            // TODO: Make 2 lines
-            // ignore: avoid_redundant_argument_values
-            maxLines: 1,
-            onChanged: (newKey) => settings.botKey = newKey,
           ),
         ),
       ],
@@ -81,12 +175,8 @@ class _TokenFieldState extends State<TokenField> {
   }
 }
 
-/// A switch to change the brightness mode. Before the user uses the switch, the
-/// switch will display the operating system's brightness mode.
-class BrightnessSwitch extends StatelessWidget {
-  /// A switch to change the brightness mode. Before the user uses the switch,
-  /// the switch will display the operating system's brightness mode.
-  const BrightnessSwitch({super.key});
+class _BrightnessSwitch extends StatelessWidget {
+  const _BrightnessSwitch();
 
   @override
   Widget build(BuildContext context) {

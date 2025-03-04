@@ -231,7 +231,6 @@ class InstanceInfoButtons extends StatelessWidget {
               activeColor: instanceTheme.enabled,
               inactiveThumbColor: instanceTheme.disabled,
               inactiveTrackColor: instanceTheme.disabled.withAlpha(180),
-              hoverColor: Colors.transparent,
               trackOutlineColor:
                   const WidgetStatePropertyAll(Colors.transparent),
               thumbIcon: WidgetStatePropertyAll(
