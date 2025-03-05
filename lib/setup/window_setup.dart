@@ -5,11 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../settings/settings_model.dart';
+import '../main/settings/settings_model.dart';
+
+/// A mixin for widgets that serve as the root application.
+abstract class Application {
+  /// Calls the [runApp] method on the widget. Must check if the first argument
+  /// matches the window type.
+  void run(List<String> args);
+}
 
 /// Setup for the application window.
 class WindowSetup {
-  /// The minimum size of the window.
+  /// The minimum size of the mainWindow.
   static const minSize = Size(450, 250);
 
   /// Setup for the main window that is run before the application starts.
@@ -146,7 +153,11 @@ class _WindowSetupWatcherState extends State<WindowSetupWatcher>
 
 /// Types of windows that can be created.
 class WindowType {
+  // All types must start with a char between '0-9' and '[' as a limitation of
+  // the WindowManagerPlus plugin. This is because the plugin uses a set to pass
+  // arguments to the window, and sorts those arguments by their first
+  // character.
+
   /// A process window.
-  // Must start with a char between '0-9' and '['
   static const process = 'Process';
 }

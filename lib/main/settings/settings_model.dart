@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import '../setup/hive_setup.dart';
+import '../../setup/hive_setup.dart';
 
 /// A model for the application settings.
 class SettingsModel extends ChangeNotifier {

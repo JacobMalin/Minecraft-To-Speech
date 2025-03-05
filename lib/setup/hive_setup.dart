@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../instance/instance_manager.dart';
+import '../main/instance/instance_manager.dart';
 
 /// A class to set up hive.
 class HiveSetup {

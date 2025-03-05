@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../setup/theme_setup.dart';
-import '../setup/window_setup.dart';
-import '../top_bar/top_bar.dart';
+import '../../setup/theme_setup.dart';
+import '../../setup/window_setup.dart';
+import '../../top_bar/top_bar.dart';
 import 'chat_view.dart';
 import 'instance_list.dart';
 import 'instance_manager.dart';

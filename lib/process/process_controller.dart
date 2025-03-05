@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../setup/window_setup.dart';
-import '../toaster.dart';
+import '../setup/toaster.dart';
 
 /// A controller for processing Minecraft logs.
 class ProcessController extends StatefulWidget {

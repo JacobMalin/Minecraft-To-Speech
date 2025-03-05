@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../settings/settings_model.dart';
+import '../main/settings/settings_model.dart';
 import '../setup/focus_model.dart';
 import 'top_bar_items.dart';
 

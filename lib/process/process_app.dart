@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../instance/instance_model.dart';
-import '../instance/log_filter.dart';
-import '../settings/settings_model.dart';
+import '../main/instance/instance_model.dart';
+import '../main/instance/log_filter.dart';
+import '../main/settings/settings_model.dart';
 import '../setup/focus_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/window_setup.dart';
@@ -19,18 +19,17 @@ import '../top_bar/top_bar.dart';
 import 'process_controller.dart';
 
 /// A window for processing Minecraft logs.
-class ProcessWindow extends StatefulWidget {
+class ProcessApp extends StatefulWidget {
   /// A window for processing Minecraft logs.
-  const ProcessWindow({required List<String> paths, super.key})
-      : _paths = paths;
+  const ProcessApp(List<String> paths, {super.key}) : _paths = paths;
 
   final List<String> _paths;
 
   @override
-  State<ProcessWindow> createState() => _ProcessWindowState();
+  State<ProcessApp> createState() => _ProcessAppState();
 }
 
-class _ProcessWindowState extends State<ProcessWindow> {
+class _ProcessAppState extends State<ProcessApp> {
   late final Future<List<String>> _futures;
   late final int _pathCount;
 
