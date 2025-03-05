@@ -5,8 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import '../../setup/window_setup.dart';
 import '../../setup/toaster.dart';
+import '../../setup/window_setup.dart';
 import 'instance_manager.dart';
 
 /// Model for the minecraft instances.

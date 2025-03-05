@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../main/instance/instance_model.dart';
-import '../process/process_controller.dart';
 import '../main/settings/settings_model.dart';
+import '../process/process_controller.dart';
 
 /// The Windows buttons in the top bar of the window. This includes the
 /// minimize, maximize, and close buttons.

@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
-import '../settings/settings_model.dart';
 import '../../setup/theme_setup.dart';
+import '../settings/settings_model.dart';
 import 'instance_manager.dart';
 import 'instance_model.dart';
 

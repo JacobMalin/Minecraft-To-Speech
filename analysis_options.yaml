@@ -53,7 +53,6 @@ linter:
     - noop_primitive_operations
     - omit_obvious_local_variable_types
     - omit_obvious_property_types
-    - one_member_abstracts
     - only_throw_errors
     - overridden_fields
     - package_prefixed_library_names

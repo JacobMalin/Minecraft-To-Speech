@@ -1,23 +1,34 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+import '../main/main_app.dart';
 import '../main/settings/settings_model.dart';
-
-/// A mixin for widgets that serve as the root application.
-abstract class Application {
-  /// Calls the [runApp] method on the widget. Must check if the first argument
-  /// matches the window type.
-  void run(List<String> args);
-}
+import '../process/process_app.dart';
 
 /// Setup for the application window.
 class WindowSetup {
   /// The minimum size of the mainWindow.
   static const minSize = Size(450, 250);
+
+  /// Starts the app based on the given arguments.
+  static void run(List<String> args) {
+    if (args.isEmpty) {
+      WindowSetup.main();
+
+      runApp(const MainApp());
+    } else if (args.length >= 3 && args[1] == WindowType.process) {
+      final List<String> paths = [...jsonDecode(args[2])];
+
+      WindowSetup.process();
+
+      runApp(ProcessApp(paths));
+    }
+  }
 
   /// Setup for the main window that is run before the application starts.
   static void main() {

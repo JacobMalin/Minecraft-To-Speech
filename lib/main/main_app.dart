@@ -13,25 +13,16 @@ import 'instance/instance_page.dart';
 import 'settings/settings_model.dart';
 import 'settings/settings_page.dart';
 
-class MainApp implements Application {
-  // TODO: check if args is correct
-  run(List<String> args) {
-    WindowSetup.main();
-
-    runApp(const MainWindow());
-  }
-}
-
 /// The main window.
-class MainWindow extends StatefulWidget {
+class MainApp extends StatefulWidget {
   /// The main window.
-  const MainWindow({super.key});
+  const MainApp({super.key});
 
   @override
-  State<MainWindow> createState() => _MainWindowState();
+  State<MainApp> createState() => _MainAppState();
 }
 
-class _MainWindowState extends State<MainWindow> {
+class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
