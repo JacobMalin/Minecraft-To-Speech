@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
+import '../../setup/path_formatting.dart';
 import '../../setup/theme_setup.dart';
 import '../settings/settings_model.dart';
 import 'instance_manager.dart';
@@ -193,10 +194,7 @@ class _InstanceTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
-                // Makes colon and space non-breaking
-                _instance.path
-                    .replaceFirst(':', ':\u2060')
-                    .replaceAll(' ', '\u202f'),
+                PathFormatting.breakLess(_instance.instanceDirectory),
                 maxLines: _maxHeight > 350 ? 3 : (_maxHeight > 250 ? 2 : 1),
                 overflow: TextOverflow.ellipsis,
               ),

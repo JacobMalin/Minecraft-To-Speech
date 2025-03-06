@@ -87,6 +87,9 @@ class InstanceController {
   /// Whether the log file for the instance does not exist.
   bool get isNotValid => !isValid;
 
+  /// The directory of the instance. This is two levels above the log file.
+  String get instanceDirectory => p.dirname(p.dirname(path));
+
   /// Delete all stored persistent data.
   void cleanBox() => InstanceBox.infos.delete(path);
 
@@ -123,11 +126,10 @@ class InstanceController {
   }
 
   /// Open the instance folder, which is one level above the log folder.
-  Future<void> openInstanceFolder() async {
+  Future<void> openInstanceDirectory() async {
     if (isNotValid) return;
 
-    final String secondDirectory = p.dirname(p.dirname(path));
-    await OpenFile.open(secondDirectory);
+    await OpenFile.open(instanceDirectory);
   }
 }
 
@@ -178,9 +180,12 @@ class InstanceInfo {
 
   /// Gets the name of the instance directory from the path to "latest.log".
   static String? instanceDirectoryName(String path) {
-    final List<String> parts = p.split(path);
+    final String instanceDirectory = p.dirname(p.dirname(path));
+    final String dirname = p.basename(instanceDirectory);
 
-    return parts.length > 3 ? parts[parts.length - 3] : null;
+    if (dirname == '.minecraft') return 'Default';
+
+    return dirname;
   }
 }
 

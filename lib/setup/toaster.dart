@@ -29,12 +29,11 @@ class Toaster extends StatefulWidget {
   /// );
   /// ```
   const Toaster(
-    this.child, {
+    Widget child, {
     super.key,
-  });
+  }) : _child = child;
 
-  /// The child widget.
-  final Widget child;
+  final Widget _child;
 
   static late final FToast _fToast;
   static late Color _color;
@@ -86,5 +85,5 @@ class _ToasterState extends State<Toaster> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => widget._child;
 }

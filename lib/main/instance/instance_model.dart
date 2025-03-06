@@ -5,8 +5,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../../setup/dialog_service.dart';
 import '../../setup/toaster.dart';
 import '../../setup/window_setup.dart';
+import 'add_instance_dialog.dart';
 import 'instance_manager.dart';
 
 /// Model for the minecraft instances.
@@ -61,32 +63,19 @@ class InstanceModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Add a new instance to the list of instances. If the instance already
-  /// exists, select the instance.
+  /// Pull up the add instance dialog.
   Future<void> add() async {
-    // TODO: Add easier onboarding process for adding instances
-    /* In doing so, 
-     * - Rephrase all user-facing instances of log to instance
-     * - Remove references to log files such as changing user-facing file path
-     *   to a directory path for the instance
-     * - Rename "Add log" to "Add instance from log" (mention latest.log)
-     * - Maybe move add instance from log to submenu that will be opened in the 
-     *   onboarding process
-     * - Check so that users can only add "latest.log" files.
-    */
-
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Select Minecraft Log File to Monitor',
-      type: FileType.custom,
-      allowedExtensions: ['log'],
+    await DialogService.showDialogElsewhere(
+      builder: (context) {
+        return const AddInstanceDialog();
+      },
     );
+  }
 
-    unawaited(WindowSetup.focusAndBringToFront());
-
-    if (result == null) return; // If the user cancels the prompt, exit
-
-    final String path = result.files.single.path!;
-
+  /// Add an instance from a log file path. If the instance already exists,
+  /// select the instance and return. Else, add the instance to the list of
+  /// instances.
+  void addFromLog(String path) {
     // If instance already exists, select the instance and return
     for (var i = 0; i < instances.length; i++) {
       if (instances[i].path == path) {
@@ -188,7 +177,7 @@ class InstanceModel extends ChangeNotifier {
 
   /// Open the instance folder of the selected instance.
   Future<void> openInstanceFolder() async {
-    await selected?.openInstanceFolder();
+    await selected?.openInstanceDirectory();
   }
 }
 

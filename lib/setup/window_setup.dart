@@ -106,12 +106,11 @@ class WindowSetupWatcher extends StatefulWidget {
   /// A widget that watches the window for changes and saves them to the
   /// settings.
   const WindowSetupWatcher(
-    this.child, {
+    Widget child, {
     super.key,
-  });
+  }) : _child = child;
 
-  /// The child widget.
-  final Widget child;
+  final Widget _child;
 
   @override
   State<WindowSetupWatcher> createState() => _WindowSetupWatcherState();
@@ -132,7 +131,7 @@ class _WindowSetupWatcherState extends State<WindowSetupWatcher>
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => widget._child;
 
   @override
   Future<void> onWindowMoved([int? windowId]) async {

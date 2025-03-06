@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../setup/path_formatting.dart';
 import '../../setup/theme_setup.dart';
 import '../../setup/window_setup.dart';
 import '../../top_bar/top_bar.dart';
@@ -87,33 +88,27 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
             windowsTitleBarHeight;
         return Column(
           children: [
-            SizedBox(
+            Container(
               height: height,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Column(
                 children: [
                   const SizedBox(height: 10, width: double.infinity),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      Flexible(
-                        flex: 4,
-                        child: TextField(
-                          controller: _controller,
-                          style: Theme.of(context).textTheme.headlineMedium,
-                          textAlign: TextAlign.center,
-                          onChanged: (newName) =>
-                              instances.updateWith(name: newName),
-                        ),
+                  IntrinsicWidth(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 180),
+                      child: TextField(
+                        controller: _controller,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                        onChanged: (newName) =>
+                            instances.updateWith(name: newName),
                       ),
-                      const Spacer(),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 10, width: double.infinity),
                   Text(
-                    // Makes spaces non-breaking and slashes breaking
-                    selected.path
-                        .replaceAll(' ', '\u202f')
-                        .replaceAll(r'\', '\\\u200b'),
+                    PathFormatting.breakBetter(selected.instanceDirectory),
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -134,6 +129,8 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
       child: Consumer<InstanceModel>(
         builder: (context, instances, child) {
           // TODO: Maybe a home page
+          // TODO: New user onboarding process / detection by checking if
+          // instances hive file exists or if no instances
 
           return Center(
             child: instances.length == 0

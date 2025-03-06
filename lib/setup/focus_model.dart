@@ -17,10 +17,12 @@ class FocusModel extends ChangeNotifier {
 /// A widget that watches the focus of the window.
 class FocusWatcher extends StatefulWidget {
   /// A widget that watches the focus of the window.
-  const FocusWatcher(this.child, {super.key});
+  const FocusWatcher(
+    Widget child, {
+    super.key,
+  }) : _child = child;
 
-  /// The child widget.
-  final Widget child;
+  final Widget _child;
 
   @override
   State<FocusWatcher> createState() => _FocusWatcherState();
@@ -45,7 +47,7 @@ class _FocusWatcherState extends State<FocusWatcher> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return widget._child;
   }
 
   @override

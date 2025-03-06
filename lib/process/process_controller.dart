@@ -11,12 +11,11 @@ import '../setup/window_setup.dart';
 class ProcessController extends StatefulWidget {
   /// A controller for processing Minecraft logs.
   const ProcessController(
-    this.child, {
+    Widget child, {
     super.key,
-  });
+  }) : _child = child;
 
-  /// The child widget.
-  final Widget child;
+  final Widget _child;
 
   @override
   State<ProcessController> createState() => _ProcessControllerState();
@@ -57,7 +56,7 @@ class _ProcessControllerState extends State<ProcessController>
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => widget._child;
 
   @override
   Future<dynamic> onEventFromWindow(

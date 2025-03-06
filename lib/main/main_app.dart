@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import '../process/process_controller.dart';
+import '../setup/dialog_service.dart';
 import '../setup/focus_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/toaster.dart';
@@ -57,10 +58,12 @@ class _MainAppState extends State<MainApp> {
             },
             home: Scaffold(
               appBar: const MainTopBar(),
-              body: Consumer<SettingsModel>(
-                builder: (context, settings, child) => settings.isSettings
-                    ? const SettingsPage()
-                    : const InstancePage(),
+              body: DialogProvider(
+                child: Consumer<SettingsModel>(
+                  builder: (context, settings, child) => settings.isSettings
+                      ? const SettingsPage()
+                      : const InstancePage(),
+                ),
               ),
             ),
           );
