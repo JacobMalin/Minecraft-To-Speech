@@ -157,10 +157,10 @@ class _InstanceTile extends StatelessWidget {
         }
 
         return GestureDetector(
-          onSecondaryTapDown: (details) async => _showRemoveContextMenu(
+          onSecondaryTapDown: (details) async => _showInstanceContextMenu(
             context,
             details.globalPosition,
-            removeInstance: () => instances.remove(_index),
+            _index,
           ),
           child: SingleChildBuilder(
             builder: (context, child) {
@@ -207,14 +207,15 @@ class _InstanceTile extends StatelessWidget {
     );
   }
 
-  Future<void> _showRemoveContextMenu(
+  Future<void> _showInstanceContextMenu(
     BuildContext context,
-    Offset position, {
-    required VoidCallback removeInstance,
-  }) async {
-    const remove = 'remove';
+    Offset position,
+    int index,
+  ) async {
+    final InstanceModel instances =
+        Provider.of<InstanceModel>(context, listen: false);
 
-    final String? result = await showMenu(
+    await showMenu(
       context: context,
       position: RelativeRect.fromLTRB(
         position.dx,
@@ -224,15 +225,26 @@ class _InstanceTile extends StatelessWidget {
       ),
       menuPadding: EdgeInsets.zero,
       popUpAnimationStyle: AnimationStyle.noAnimation,
-      items: [
-        const PopupMenuItem(
-          value: remove,
+      items: <PopupMenuEntry<void>>[
+        if (index > 0)
+          PopupMenuItem(
+            height: 40,
+            onTap: () => instances.moveUp(index),
+            child: const Text('Move Up'),
+          ),
+        if (index < instances.length - 1)
+          PopupMenuItem(
+            height: 40,
+            onTap: () => instances.moveDown(index),
+            child: const Text('Move Down'),
+          ),
+        if (index > 0 || index < instances.length - 1) const PopupMenuDivider(),
+        PopupMenuItem(
           height: 40,
-          child: Text('Remove'),
+          onTap: () => instances.remove(index),
+          child: const Text('Remove'),
         ),
       ],
     );
-
-    if (result == remove) removeInstance();
   }
 }

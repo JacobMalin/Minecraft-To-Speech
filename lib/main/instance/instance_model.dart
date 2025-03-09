@@ -26,13 +26,13 @@ class InstanceModel extends ChangeNotifier {
       }
     } else {
       InstanceBox.infos.clear();
-      _selectedIndex = null;
+      selectedIndex = null;
     }
 
     if (selectedIndex != null) {
-      _selectedIndex = min(selectedIndex!, instances.length - 1);
+      selectedIndex = min(selectedIndex!, instances.length - 1);
     }
-    if (selectedIndex == -1) _selectedIndex = null;
+    if (selectedIndex == -1) selectedIndex = null;
   }
 
   /// List of instances opened by the user. These are generated at runtime from
@@ -42,7 +42,7 @@ class InstanceModel extends ChangeNotifier {
   /// Index of the currently selected instance. If no instance is selected, this
   /// value is null.
   int? get selectedIndex => InstanceBox.selectedIndex;
-  set _selectedIndex(int? index) => InstanceBox.selectedIndex = index;
+  set selectedIndex(int? index) => InstanceBox.selectedIndex = index;
 
   /// Number of instances.
   int get length => instances.length;
@@ -59,7 +59,7 @@ class InstanceModel extends ChangeNotifier {
 
   /// Select an instance. If the instance is already selected, deselect it.
   void choose(int? index) {
-    _selectedIndex = selectedIndex != index ? _selectedIndex = index : null;
+    selectedIndex = selectedIndex != index ? selectedIndex = index : null;
     notifyListeners();
   }
 
@@ -79,7 +79,7 @@ class InstanceModel extends ChangeNotifier {
     // If instance already exists, select the instance and return
     for (var i = 0; i < instances.length; i++) {
       if (instances[i].path == path) {
-        _selectedIndex = i;
+        selectedIndex = i;
         notifyListeners();
 
         Toaster.showToast('Instance already added!');
@@ -90,9 +90,9 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     instances.add(InstanceController(path, notifyListeners));
-    InstanceBox.paths = instances.map((instance) => instance.path).toList();
+    _updatePaths();
 
-    _selectedIndex = instances.length - 1; // Select newly added instance
+    selectedIndex = instances.length - 1; // Select newly added instance
     notifyListeners();
   }
 
@@ -107,12 +107,12 @@ class InstanceModel extends ChangeNotifier {
     }
 
     instances.removeAt(index).cleanBox();
-    InstanceBox.paths = instances.map((instance) => instance.path).toList();
+    _updatePaths();
 
     if (selectedIndex != null) {
-      _selectedIndex = min(selectedIndex!, instances.length - 1);
+      selectedIndex = min(selectedIndex!, instances.length - 1);
     }
-    if (selectedIndex == -1) _selectedIndex = null;
+    if (selectedIndex == -1) selectedIndex = null;
 
     notifyListeners();
   }
@@ -145,9 +145,55 @@ class InstanceModel extends ChangeNotifier {
 
     // Else if new instance,
     updateWith(path: path);
-    InstanceBox.paths = instances.map((instance) => instance.path).toList();
+    _updatePaths();
 
     notifyListeners();
+  }
+
+  /// Move the given instance up in the list of instances. If no index is
+  /// provided, the selected instance is moved up.
+  void moveUp([int? index]) {
+    index ??= selectedIndex;
+
+    if (index == null || index == 0) return;
+
+    instances.swap(index, index - 1);
+    _updatePaths();
+
+    if (selectedIndex != null) {
+      if (selectedIndex == index) {
+        selectedIndex = selectedIndex! - 1;
+      } else if (selectedIndex == index - 1) {
+        selectedIndex = selectedIndex! + 1;
+      }
+    }
+
+    notifyListeners();
+  }
+
+  /// Move the given instance down in the list of instances. If no index is
+  /// provided, the selected instance is moved down.
+  void moveDown([int? index]) {
+    index ??= selectedIndex;
+
+    if (index == null || index == instances.length - 1) return;
+
+    instances.swap(index, index + 1);
+    _updatePaths();
+
+    if (selectedIndex != null) {
+      if (selectedIndex == index) {
+        selectedIndex = selectedIndex! + 1;
+      } else if (selectedIndex == index + 1) {
+        selectedIndex = selectedIndex! - 1;
+      }
+    }
+
+    notifyListeners();
+  }
+
+  void _updatePaths() {
+    InstanceBox.paths = instances.map((instance) => instance.path).toList();
   }
 
   /// Update an instance with the provided values. If no index is provided, the
@@ -200,4 +246,14 @@ class InstanceBox {
   /// The list of instance infos.
   static Box<InstanceInfo> get infos =>
       Hive.box<InstanceInfo>(name: 'instances');
+}
+
+/// Adds the swap function to lists.
+extension SwappableList<E> on List<E> {
+  /// Swap the elements at the provided indices.
+  void swap(int first, int second) {
+    final E temp = this[first];
+    this[first] = this[second];
+    this[second] = temp;
+  }
 }

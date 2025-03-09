@@ -28,15 +28,9 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SettingsModel>(
-          create: (_) => SettingsModel(),
-        ),
-        ChangeNotifierProvider<InstanceModel>(
-          create: (_) => InstanceModel(),
-        ),
-        ChangeNotifierProvider<FocusModel>(
-          create: (_) => FocusModel(),
-        ),
+        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+        ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
+        ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
       child: Consumer<SettingsModel>(
         builder: (context, settings, child) {

@@ -10,6 +10,7 @@ import 'package:smooth_list_view/smooth_list_view.dart';
 import '../../setup/path_formatting.dart';
 import '../../setup/toaster.dart';
 import '../../setup/window_setup.dart';
+import '../../top_bar/top_bar.dart';
 import 'instance_model.dart';
 
 /// A dialog for adding a new instance.
@@ -43,12 +44,11 @@ class _AddInstanceDialogState extends State<AddInstanceDialog> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(8),
         ),
-        height: 180,
         child: Stack(
           children: [
             if (_isChooseLauncher)
@@ -118,35 +118,39 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 26),
-      child: Column(
-        children: [
-          const SizedBox(height: 14),
-          Text(
-            'Add Instance',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          const Spacer(),
-          SizedBox(
-            height: 114,
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: SmoothListView.separated(
-                duration: const Duration(milliseconds: 300),
+    return SizedBox(
+      height: 180,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 26),
+        child: Column(
+          children: [
+            const SizedBox(height: 14),
+            Text(
+              'Add Instance',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            const Spacer(),
+            SizedBox(
+              height: 114,
+              child: Scrollbar(
                 controller: _scrollController,
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                itemCount: sources.length,
-                itemBuilder: (context, index) => sources[index],
-                separatorBuilder: (context, index) => const SizedBox(width: 20),
+                thumbVisibility: true,
+                child: SmoothListView.separated(
+                  duration: const Duration(milliseconds: 300),
+                  controller: _scrollController,
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: sources.length,
+                  itemBuilder: (context, index) => sources[index],
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 20),
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-        ],
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
@@ -168,53 +172,61 @@ class _ChoosePathState extends State<_ChoosePath> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 14),
-        Text(
-          'Choose Instance',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Scrollbar(
-            controller: _scrollController,
-            thumbVisibility: true,
-            child: SmoothListView.builder(
-              duration: const Duration(milliseconds: 300),
-              controller: _scrollController,
-              itemCount: widget._paths.length,
-              itemBuilder: (context, index) {
-                final String instanceDirectory =
-                    p.dirname(p.dirname(widget._paths[index]));
-                final String dirname = p.basename(instanceDirectory);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          height: constraints.maxHeight - MainTopBar.height - 20,
+          child: Column(
+            children: [
+              const SizedBox(height: 14),
+              Text(
+                'Choose Instance',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  child: SmoothListView.builder(
+                    shrinkWrap: true,
+                    duration: const Duration(milliseconds: 300),
+                    controller: _scrollController,
+                    itemCount: widget._paths.length,
+                    itemBuilder: (context, index) {
+                      final String instanceDirectory =
+                          p.dirname(p.dirname(widget._paths[index]));
+                      final String dirname = p.basename(instanceDirectory);
 
-                return Material(
-                  child: ListTile(
-                    dense: true,
-                    minVerticalPadding: 6,
-                    minTileHeight: 0,
-                    leading: const Icon(Icons.folder),
-                    title: Text(
-                      PathFormatting.breakBetter(dirname),
-                    ),
-                    subtitle: Text(
-                      PathFormatting.breakBetter(instanceDirectory),
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                    onTap: () {
-                      Provider.of<InstanceModel>(context, listen: false)
-                          .addFromLog(widget._paths[index]);
+                      return Material(
+                        child: ListTile(
+                          dense: true,
+                          minVerticalPadding: 6,
+                          minTileHeight: 0,
+                          leading: const Icon(Icons.folder),
+                          title: Text(
+                            PathFormatting.breakBetter(dirname),
+                          ),
+                          subtitle: Text(
+                            PathFormatting.breakBetter(instanceDirectory),
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                          onTap: () {
+                            Provider.of<InstanceModel>(context, listen: false)
+                                .addFromLog(widget._paths[index]);
 
-                      Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
