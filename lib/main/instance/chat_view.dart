@@ -21,6 +21,7 @@ class _ChatViewState extends State<ChatView> {
     return Consumer<InstanceModel>(
       builder: (context, instances, child) {
         final InstanceController? selected = instances.selected;
+
         if (selected == null || selected.messages.isEmpty) return child!;
 
         return SmoothListView.builder(

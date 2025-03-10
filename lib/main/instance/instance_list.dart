@@ -81,15 +81,17 @@ class _AddFileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<InstanceModel>(
-      builder: (context, instances, child) {
-        return Consumer<SettingsModel>(
-          builder: (context, settings, child) {
+    return Selector<InstanceModel, Future<void> Function()>(
+      selector: (context, instances) => instances.add,
+      builder: (context, addInstance, child) {
+        return Selector<SettingsModel, ThemeMode>(
+          selector: (context, settings) => settings.themeMode,
+          builder: (context, themeMode, child) {
             return ListTile(
               horizontalTitleGap: 8,
               minTileHeight: 50,
               contentPadding: const EdgeInsets.symmetric(horizontal: 7),
-              tileColor: settings.themeMode == ThemeMode.dark
+              tileColor: themeMode == ThemeMode.dark
                   ? Theme.of(context).colorScheme.surfaceContainerHigh
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
               leading: Icon(
@@ -103,7 +105,7 @@ class _AddFileButton extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
-              onTap: () async => instances.add(),
+              onTap: () async => addInstance(),
             );
           },
         );

@@ -158,15 +158,16 @@ class _TokenFieldState extends State<_TokenField> {
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: 10),
-        Consumer<SettingsModel>(
-          builder: (context, settings, child) => IntrinsicWidth(
+        Selector<SettingsModel, String?>(
+          selector: (context, settings) => settings.botKey,
+          builder: (context, botKey, child) => IntrinsicWidth(
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter a token to enable the discord bot!',
               ),
-              onChanged: (newKey) => settings.botKey = newKey,
+              onChanged: (newKey) => botKey = newKey,
             ),
           ),
         ),
@@ -192,14 +193,15 @@ class _BrightnessSwitch extends StatelessWidget {
           height: 30,
           child: FittedBox(
             fit: BoxFit.fill,
-            child: Consumer<SettingsModel>(
-              builder: (context, settings, child) {
+            child: Selector<SettingsModel, ThemeMode>(
+              selector: (context, settings) => settings.themeMode,
+              builder: (context, themeMode, child) {
                 return Switch(
-                  value: settings.themeMode == ThemeMode.system
+                  value: themeMode == ThemeMode.system
                       ? Theme.of(context).brightness == Brightness.dark
-                      : settings.themeMode == ThemeMode.dark,
-                  onChanged: (mode) => settings.themeMode =
-                      mode ? ThemeMode.dark : ThemeMode.light,
+                      : themeMode == ThemeMode.dark,
+                  onChanged: (mode) =>
+                      themeMode = mode ? ThemeMode.dark : ThemeMode.light,
                 );
               },
             ),

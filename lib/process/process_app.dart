@@ -55,14 +55,15 @@ class _ProcessAppState extends State<ProcessApp> {
           create: (_) => FocusModel(),
         ),
       ],
-      child: Consumer<SettingsModel>(
-        builder: (context, settings, child) {
+      child: Selector<SettingsModel, ThemeMode>(
+        selector: (context, settings) => settings.themeMode,
+        builder: (context, themeMode, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Log Processing',
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
-            themeMode: settings.themeMode,
+            themeMode: themeMode,
             builder: (context, child) => FocusWatcher(child!),
             home: Scaffold(
               appBar: const ProcessTopBar(),

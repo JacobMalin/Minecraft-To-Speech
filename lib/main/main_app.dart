@@ -32,14 +32,15 @@ class _MainAppState extends State<MainApp> {
         ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
         ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
-      child: Consumer<SettingsModel>(
-        builder: (context, settings, child) {
+      child: Selector<SettingsModel, ThemeMode>(
+        selector: (context, settings) => settings.themeMode,
+        builder: (context, themeMode, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Minecraft To Speech',
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
-            themeMode: settings.themeMode,
+            themeMode: themeMode,
             builder: (context, child) {
               child!;
 
@@ -53,10 +54,10 @@ class _MainAppState extends State<MainApp> {
             home: Scaffold(
               appBar: const MainTopBar(),
               body: DialogProvider(
-                child: Consumer<SettingsModel>(
-                  builder: (context, settings, child) => settings.isSettings
-                      ? const SettingsPage()
-                      : const InstancePage(),
+                child: Selector<SettingsModel, bool>(
+                  selector: (context, settings) => settings.isSettings,
+                  builder: (context, isSettings, child) =>
+                      isSettings ? const SettingsPage() : const InstancePage(),
                 ),
               ),
             ),

@@ -70,6 +70,8 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Maybe add open launcher button
+
     return Consumer<InstanceModel>(
       builder: (context, instances, child) {
         if (instances.selectedIndex == null) {
@@ -126,14 +128,15 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
           ],
         );
       },
-      child: Consumer<InstanceModel>(
-        builder: (context, instances, child) {
+      child: Selector<InstanceModel, int>(
+        selector: (context, instances) => instances.length,
+        builder: (context, instancesLength, child) {
           // TODO: Maybe a home page
           // TODO: New user onboarding process / detection by checking if
           // instances hive file exists or if no instances
 
           return Center(
-            child: instances.length == 0
+            child: instancesLength == 0
                 ? const Text('Add an instance to get started!')
                 : const Text('No instance selected.'),
           );

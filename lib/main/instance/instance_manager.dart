@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
@@ -14,6 +15,28 @@ import 'log_filter.dart';
 class InstanceController {
   /// Creates a controller for a minecraft instance.
   InstanceController(this.path, this._notifyListeners) {
+    // Add path info to box if it doesn't exist
+    if (!InstanceBox.infos.containsKey(path)) {
+      InstanceBox.infos[path] = InstanceInfo.fromPath(path);
+    }
+
+    // TODO: Add log river
+    // TODO: Intercept the river at the source and move chat commands there
+    _commandStream = LogStreamController(
+      path,
+      notifyListeners: _notifyListeners,
+      where: LogFilter.onlyFailedCommands,
+      map: LogFilter.commandMap,
+      onData: (line) {
+        final List<String> args = line.split(' ');
+
+        if (args[0] != 'mts') return;
+
+        if (kDebugMode) print('Command!');
+      },
+    );
+    _commandStream.enable(isEnabled);
+
     _uiStream = LogStreamController(
       path,
       notifyListeners: _notifyListeners,
@@ -23,15 +46,24 @@ class InstanceController {
         _notifyListeners();
       },
     );
+    _uiStream.enable(isEnabled);
 
-    _ttsStream = LogStreamController(
-      path,
-      notifyListeners: _notifyListeners,
-      map: LogFilter.ttsMap,
-      onData: (line) {
-        // TODO: Finish tts implementation
-        if (kDebugMode) print('tts: $line');
-      },
+    // TODO: Queue tts messages
+    unawaited(
+      _configureTts().then((_) {
+        _ttsStream = LogStreamController(
+          path,
+          notifyListeners: _notifyListeners,
+          map: LogFilter.ttsMap,
+          onData: (line) async {
+            await _flutterTts.speak(line);
+          },
+          onCancel: () async {
+            await _flutterTts.stop();
+          },
+        );
+        _ttsStream.enable(isEnabled && isTts);
+      }),
     );
 
     _discordStream = LogStreamController(
@@ -43,14 +75,7 @@ class InstanceController {
         if (kDebugMode) print('discord: $line');
       },
     );
-
-    if (!InstanceBox.infos.containsKey(path)) {
-      InstanceBox.infos[path] = InstanceInfo.fromPath(path);
-    }
-
-    _uiStream.enabled = isEnabled;
-    _ttsStream.enabled = isEnabled && isTts;
-    _discordStream.enabled = isEnabled && isDiscord;
+    _discordStream.enable(isEnabled && isDiscord);
   }
 
   /// The path to the "latest.log" file of the instance.
@@ -60,7 +85,10 @@ class InstanceController {
   /// empty on boot.
   final List<String> messages = [];
 
-  late LogStreamController _uiStream, _ttsStream, _discordStream;
+  late LogStreamController _commandStream,
+      _uiStream,
+      _ttsStream,
+      _discordStream;
   final VoidCallback _notifyListeners;
 
   /// The persitent data of the instance.
@@ -90,6 +118,14 @@ class InstanceController {
   /// The directory of the instance. This is two levels above the log file.
   String get instanceDirectory => p.dirname(p.dirname(path));
 
+  final _flutterTts = FlutterTts();
+
+  Future<void> _configureTts() async {
+    await _flutterTts.setLanguage('en-US');
+    await _flutterTts.setSpeechRate(1);
+    await _flutterTts.setVolume(1);
+  }
+
   /// Delete all stored persistent data.
   void cleanBox() => InstanceBox.infos.delete(path);
 
@@ -108,6 +144,7 @@ class InstanceController {
       cleanBox();
       this.path = path;
 
+      _commandStream.path = path;
       _uiStream.path = path;
       _ttsStream.path = path;
       _discordStream.path = path;
@@ -120,9 +157,10 @@ class InstanceController {
 
     InstanceBox.infos[this.path] = info;
 
-    _uiStream.enabled = isEnabled;
-    _ttsStream.enabled = isEnabled && isTts;
-    _discordStream.enabled = isEnabled && isDiscord;
+    _commandStream.enable(isEnabled);
+    _uiStream.enable(isEnabled);
+    _ttsStream.enable(isEnabled && isTts);
+    _discordStream.enable(isEnabled && isDiscord);
   }
 
   /// Open the instance folder, which is one level above the log folder.
@@ -196,16 +234,23 @@ class LogStreamController {
   LogStreamController(
     String path, {
     required VoidCallback notifyListeners,
-    required String Function(String) map,
-    required void Function(String)? onData,
+    required void Function(String) onData,
+    bool Function(String)? where,
+    String Function(String)? map,
+    void Function()? onCancel,
   })  : _notifyListeners = notifyListeners,
-        _streamMap = map,
-        _onData = onData {
+        _streamWhere = where ?? ((_) => true),
+        _streamMap = map ?? ((line) => line),
+        _onData = onData,
+        _onCancel = onCancel {
     unawaited(_initializeStream(path));
   }
 
+  final VoidCallback _notifyListeners;
+  final bool Function(String) _streamWhere;
   final String Function(String) _streamMap;
-  final Function(String)? _onData;
+  final Function(String) _onData;
+  final Function()? _onCancel;
 
   set path(String value) {
     unawaited(_initializeStream(value));
@@ -218,7 +263,10 @@ class LogStreamController {
   }
 
   var _enabled = false;
-  set enabled(bool value) {
+
+  /// Starts or stops the stream.
+  // ignore: avoid_positional_boolean_parameters
+  void enable(bool value) {
     if (value == _enabled) return;
 
     _enabled = value;
@@ -233,8 +281,6 @@ class LogStreamController {
   Stream<String>? _stream;
   StreamSubscription<String>? _subscription;
   StreamSubscription<FileSystemEvent>? _logWatch;
-
-  final VoidCallback _notifyListeners;
 
   Future<void> _initializeStream(String path) async {
     unawaited(_logWatch?.cancel());
@@ -273,6 +319,7 @@ class LogStreamController {
     _stream = _logStream(path)
         .where(LogFilter.onlyChat)
         .map(LogFilter.commonMap)
+        .where(_streamWhere)
         .map(_streamMap)
         .asBroadcastStream();
   }
@@ -294,6 +341,8 @@ class LogStreamController {
   Future<void> _unsubscribe() async {
     unawaited(_subscription?.cancel());
     _subscription = null;
+
+    _onCancel?.call();
   }
 
   static Stream<String> _logStream(String path) async* {

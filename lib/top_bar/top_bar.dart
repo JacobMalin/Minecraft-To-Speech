@@ -114,21 +114,22 @@ class _TopBarState extends State<_TopBar> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(
-      builder: (context, settings, child) {
+    return Selector<SettingsModel, ThemeMode>(
+      selector: (context, settings) => settings.themeMode,
+      builder: (context, themeMode, child) {
         final Brightness brightness;
-        if (settings.themeMode == ThemeMode.system) {
+        if (themeMode == ThemeMode.system) {
           brightness = MediaQuery.of(context).platformBrightness;
         } else {
-          brightness = settings.themeMode == ThemeMode.dark
-              ? Brightness.dark
-              : Brightness.light;
+          brightness =
+              themeMode == ThemeMode.dark ? Brightness.dark : Brightness.light;
         }
 
-        return Consumer<FocusModel>(
-          builder: (context, focus, child) {
+        return Selector<FocusModel, bool>(
+          selector: (context, focus) => focus.isFocused,
+          builder: (context, isFocused, child) {
             final Color backgroundColor =
-                focus.isFocused ? widget._backgroundColor : widget._blurColor;
+                isFocused ? widget._backgroundColor : widget._blurColor;
 
             return DecoratedBox(
               decoration: BoxDecoration(color: backgroundColor),
