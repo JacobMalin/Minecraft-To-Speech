@@ -103,7 +103,7 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
                         controller: _controller,
                         style: Theme.of(context).textTheme.headlineMedium,
                         textAlign: TextAlign.center,
-                        onChanged: (newName) =>
+                        onChanged: (newName) async =>
                             instances.updateWith(name: newName),
                       ),
                     ),
@@ -227,7 +227,9 @@ class InstanceInfoButtons extends StatelessWidget {
           children: [
             Switch(
               value: _selected.isEnabled,
-              onChanged: (enabled) => instances.updateWith(enabled: enabled),
+              onChanged: (enabled) async => instances.updateWith(
+                enabled: enabled,
+              ),
               activeColor: instanceTheme.enabled,
               inactiveThumbColor: instanceTheme.disabled,
               inactiveTrackColor: instanceTheme.disabled.withAlpha(180),
@@ -243,12 +245,14 @@ class InstanceInfoButtons extends StatelessWidget {
             ToggleButtons(
               isSelected: [_selected.isTts, _selected.isDiscord],
               onPressed: _selected.isEnabled
-                  ? (index) {
+                  ? (index) async {
                       switch (index) {
                         case 0:
-                          instances.updateWith(tts: !_selected.isTts);
+                          await instances.updateWith(tts: !_selected.isTts);
                         case 1:
-                          instances.updateWith(discord: !_selected.isDiscord);
+                          await instances.updateWith(
+                            discord: !_selected.isDiscord,
+                          );
                       }
                     }
                   : null,

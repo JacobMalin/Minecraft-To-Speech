@@ -144,7 +144,7 @@ class InstanceModel extends ChangeNotifier {
     }
 
     // Else if new instance,
-    updateWith(path: path);
+    await updateWith(path: path);
     _updatePaths();
 
     notifyListeners();
@@ -198,18 +198,18 @@ class InstanceModel extends ChangeNotifier {
 
   /// Update an instance with the provided values. If no index is provided, the
   /// selected instance is updated.
-  void updateWith({
+  Future<void> updateWith({
     int? index,
     String? name,
     String? path,
     bool? enabled,
     bool? tts,
     bool? discord,
-  }) {
+  }) async {
     final int? indexOrSelected = index ?? selectedIndex;
 
     if (indexOrSelected != null) {
-      instances[indexOrSelected].updateWith(
+      await instances[indexOrSelected].updateWith(
         name: name,
         path: path,
         enabled: enabled,
