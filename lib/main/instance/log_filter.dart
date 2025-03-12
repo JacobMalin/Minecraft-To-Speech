@@ -3,16 +3,9 @@ class LogFilter {
   /// Filters out all lines that do not contain "[CHAT]".
   static bool onlyChat(String line) => line.contains('[CHAT]');
 
-  /// Filters out all lines other than failed minecraft commands
-  static bool onlyFailedCommands(String line) => line.endsWith('<--[HERE]');
-
   /// Performes mapping that is common to all streams. This includes removing
   /// all minecraft formatting tags.
   static String commonMap(String line) => line.removeFormatTags().afterChat();
-
-  /// Maps the line to a format that is suitable for the UI. The format is
-  /// "timeStamp chatMessage".
-  static String commandMap(String line) => line.removeHereTag();
 
   /// Maps the line to a format that is suitable for the UI. The format is
   /// "timeStamp chatMessage".

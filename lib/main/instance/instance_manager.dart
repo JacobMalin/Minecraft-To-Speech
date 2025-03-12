@@ -2,50 +2,32 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
 import 'instance_model.dart';
 import 'log_filter.dart';
 import 'log_river.dart';
+import 'tts_queue.dart';
 
 /// Manages a minecraft instance. This includes the log streams and instance
 /// info.
 class InstanceController {
   /// Creates a controller for a minecraft instance.
-  InstanceController(this.path, this._notifyListeners)
-      : _logRiver = LogRiver(path, notifyListeners: _notifyListeners) {
+  InstanceController(this.path, this._notifyListeners) {
+    _logRiver = LogRiver(
+      path,
+      notifyListeners: _notifyListeners,
+      instance: this,
+    );
+
     // Add path info to box if it doesn't exist
     if (!InstanceBox.infos.containsKey(path)) {
       InstanceBox.infos[path] = InstanceInfo.fromPath(path);
     }
 
-    Future<void> configureTts() async {
-      await _flutterTts.setLanguage('en-US');
-      await _flutterTts.setSpeechRate(1);
-      await _flutterTts.setVolume(1);
-    }
-
     Future<void> initLogSubscriptions() async {
-      await configureTts();
-
       _logRiver
-        // Command stream
-        // TODO: Move chat commands to source of river
-        ..addSubscription(
-          where: LogFilter.onlyFailedCommands,
-          map: LogFilter.commandMap,
-          isEnabled: () => isEnabled,
-          onData: (line) {
-            final List<String> args = line.split(' ');
-
-            if (args[0] != 'mts') return;
-
-            if (kDebugMode) print('Command!');
-          },
-        )
-
         // UI stream
         ..addSubscription(
           map: LogFilter.uiMap,
@@ -61,12 +43,8 @@ class InstanceController {
         ..addSubscription(
           map: LogFilter.ttsMap,
           isEnabled: () => isEnabled && isTts,
-          onData: (line) async {
-            await _flutterTts.speak(line);
-          },
-          onCancel: () async {
-            await _flutterTts.stop();
-          },
+          onData: _tts.speak,
+          onCancel: _tts.clear,
         )
 
         // Discord stream
@@ -90,8 +68,9 @@ class InstanceController {
   /// empty on boot.
   final List<String> messages = [];
 
-  final LogRiver _logRiver;
+  late final LogRiver _logRiver;
   final VoidCallback _notifyListeners;
+  final _tts = TtsQueue();
 
   /// The persitent data of the instance.
   InstanceInfo get info => InstanceBox.infos[path]!;
@@ -119,8 +98,6 @@ class InstanceController {
 
   /// The directory of the instance. This is two levels above the log file.
   String get instanceDirectory => p.dirname(p.dirname(path));
-
-  final _flutterTts = FlutterTts();
 
   /// Delete all stored persistent data.
   void cleanBox() => InstanceBox.infos.delete(path);

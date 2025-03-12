@@ -5,18 +5,25 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import 'instance_manager.dart';
+import 'log_commands.dart';
 import 'log_filter.dart';
 
 /// Manages multiple streams of log messages from "latest.log".
 class LogRiver {
   /// Manages multiple streams of log messages from "latest.log".
-  LogRiver(String path, {required VoidCallback notifyListeners})
-      : _notifyListeners = notifyListeners {
+  LogRiver(
+    String path, {
+    required VoidCallback notifyListeners,
+    required InstanceController instance,
+  })  : _notifyListeners = notifyListeners,
+        _instance = instance {
     unawaited(divertRiver(path));
   }
 
   final List<_LogStreamSubscription> _subscriptions = [];
   final VoidCallback _notifyListeners;
+  final InstanceController _instance;
 
   Stream<String>? _stream;
   StreamSubscription<FileSystemEvent>? _logWatch;
@@ -68,6 +75,7 @@ class LogRiver {
     Stream<String> makeStream(String path) => logStream(path)
         .where(LogFilter.onlyChat)
         .map(LogFilter.commonMap)
+        .transform(LogCommands(_instance).transformer)
         .asBroadcastStream();
 
     Future<void> unsubscribe() async {
@@ -140,7 +148,7 @@ class _LogStreamSubscription {
     unawaited(checkEnabled());
   }
 
-  final Stream<String>? _stream;
+  Stream<String>? _stream;
 
   final bool Function() _isEnabled;
   final Function(String) _onData;
@@ -164,12 +172,14 @@ class _LogStreamSubscription {
   StreamSubscription<String>? _subscription;
 
   Future<void> _resubscribe(Stream<String>? stream) async {
+    _stream = stream;
+
     await _unsubscribe();
 
-    if (stream == null || !_enabled) return;
+    if (_stream == null || !_enabled) return;
 
     final Stream<String> filteredStream =
-        stream.where(_streamWhere).map(_streamMap);
+        _stream!.where(_streamWhere).map(_streamMap);
 
     _subscription = filteredStream.listen(
       _onData,
