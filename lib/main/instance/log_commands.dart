@@ -25,6 +25,11 @@ class LogCommands {
       );
 
   Future<void> _handleData(String data, EventSink<String> sink) async {
+    if (!_instance.isEnabled) {
+      sink.add(data);
+      return;
+    }
+
     if (!_lastDataIsCommand) {
       if (data == _unknownCommand) {
         _lastDataIsCommand = true;
@@ -54,6 +59,7 @@ class LogCommands {
           '$_mts tts - Toggle text-to-speech',
           '$_mts tts clear - Clear the text-to-speech queue',
           '$_mts discord - Toggle discord output',
+          '$_mts folder - Open the instance folder',
         ]);
       case 'tts':
         switch (args.elementAtOrNull(2)) {
@@ -81,6 +87,9 @@ class LogCommands {
           sink.add('Enabled discord output');
           await _instance.updateWith(discord: true);
         }
+      case 'folder':
+        await _instance.openInstanceDirectory();
+        sink.add('Opened instance folder');
       default:
         sink.multiple([
           'MTS chat commands!',
