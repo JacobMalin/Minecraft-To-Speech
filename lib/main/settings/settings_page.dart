@@ -106,7 +106,7 @@ class _TtsSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('2'));
+    return const Center(child: Placeholder());
   }
 }
 

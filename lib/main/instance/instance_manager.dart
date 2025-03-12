@@ -39,7 +39,6 @@ class InstanceController {
         )
 
         // TTS stream
-        // TODO: Queue TTS messages
         ..addSubscription(
           map: LogFilter.ttsMap,
           isEnabled: () => isEnabled && isTts,
