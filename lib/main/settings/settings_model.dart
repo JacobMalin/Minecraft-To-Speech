@@ -75,6 +75,32 @@ class SettingsBox {
         value != null ? HiveOffset.fromOffset(value) : null;
   }
 
+  /// The github rate limit reset time. Stored as miliseconds since epoch.
+  static DateTime? get limitUntil {
+    if (!_settingsBox.containsKey('limitUntil')) return null;
+    return DateTime.fromMillisecondsSinceEpoch(_settingsBox['limitUntil']);
+  }
+
+  static set limitUntil(DateTime? value) {
+    _settingsBox['limitUntil'] = value?.millisecondsSinceEpoch;
+  }
+
+  /// The last time the version was checked
+  static DateTime? get lastChecked {
+    if (!_settingsBox.containsKey('lastChecked')) return null;
+    return DateTime.fromMillisecondsSinceEpoch(_settingsBox['lastChecked']);
+  }
+
+  static set lastChecked(DateTime? value) {
+    _settingsBox['lastChecked'] = value?.millisecondsSinceEpoch;
+  }
+
+  /// The latest version of the software
+  static String? get latestVersion => _settingsBox['latestVersion'];
+  static set latestVersion(String? value) {
+    _settingsBox['latestVersion'] = value;
+  }
+
   /// Expose the box watchKey method.
   static Stream watchKey(String key) {
     return _settingsBox.watchKey(key);
