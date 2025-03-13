@@ -19,10 +19,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.0.x
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Build Application
+        run: flutter build windows --release
       - name: Create Velopack Release
         run: |
           dotnet tool install -g vpk
-          flutter build windows --release
           cd build/windows/x64/runner
           vpk download github --repoUrl https://github.com/${{ github.repository }}
           vpk pack --packId MinecraftToSpeech --packVersion ${{ steps.get-version.outputs.version }} --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
