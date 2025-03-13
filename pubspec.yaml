@@ -25,6 +25,7 @@ dependencies:
   path_provider: ^2.1.5
   provider: ^6.1.2
   smooth_list_view: ^2.0.2
+  velopack_flutter: ^0.1.0
   win32: ^5.10.1
   window_manager_plus: ^1.0.5
 
