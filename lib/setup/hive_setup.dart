@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 import '../main/instance/instance_manager.dart';
 
@@ -13,8 +13,11 @@ class HiveSetup {
   ///
   /// This should be called before any other hive interactions.
   static Future<void> setup() async {
-    final Directory dir = await getApplicationSupportDirectory();
-    Hive.defaultDirectory = dir.path;
+    final String dir =
+        p.join(Platform.environment['LOCALAPPDATA']!, 'MinecraftToSpeech');
+    Directory(dir).createSync();
+    Hive.defaultDirectory = dir;
+
     Hive.registerAdapter(
       'HiveOffset',
       (dynamic json) => HiveOffset.fromJson(json as Map<String, dynamic>),

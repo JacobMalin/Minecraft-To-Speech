@@ -22,7 +22,6 @@ dependencies:
   menu_bar: ^0.5.3
   open_file: ^3.5.10
   path: ^1.9.0
-  path_provider: ^2.1.5
   provider: ^6.1.2
   smooth_list_view: ^2.0.2
   velopack_flutter: ^0.1.0
