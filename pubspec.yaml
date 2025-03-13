@@ -1,6 +1,6 @@
 name: minecraft_to_speech
-description: "A minecraft chat reader."
-publish_to: 'none'
+description: A minecraft chat reader.
+publish_to: none
 version: 2.0.0
 
 environment:
