@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 import 'instance_manager.dart';
-import 'log_commands.dart';
-import 'log_filter.dart';
+import 'log_stream.dart';
 
 /// Manages multiple streams of log messages from "latest.log".
 class LogRiver {
@@ -25,8 +23,16 @@ class LogRiver {
   final VoidCallback _notifyListeners;
   final InstanceController _instance;
 
-  Stream<String>? _stream;
+  LogStream? _logStream;
   StreamSubscription<FileSystemEvent>? _logWatch;
+
+  Future<void> _unsubscribe() async {
+    await _subscriptions.map((sub) => sub._unsubscribe()).wait;
+  }
+
+  Future<void> _resubscribe() async {
+    await _subscriptions.map((sub) => sub._resubscribe(_logStream)).wait;
+  }
 
   /// Adds a subscription to the river.
   void addSubscription({
@@ -37,7 +43,7 @@ class LogRiver {
     String Function(String)? map,
   }) {
     final subscription = _LogStreamSubscription(
-      stream: _stream,
+      logStream: _logStream,
       isEnabled: isEnabled,
       onData: onData,
       onCancel: onCancel,
@@ -50,56 +56,24 @@ class LogRiver {
 
   /// Starts up the river with a source log file.
   Future<void> divertRiver(String path) async {
-    Stream<String> logStream(String path) async* {
-      final log = File(path);
-
-      int position = log.lengthSync();
-
-      await for (final void _ in Stream.periodic(
-        const Duration(milliseconds: 100),
-      )) {
-        final int fileLength = await log.length();
-        if (fileLength < position) position = 0;
-
-        final Stream<List<int>> stream = log.openRead(position);
-        final Stream<String> lines =
-            utf8.decoder.bind(stream).transform(const LineSplitter());
-        await for (final line in lines) {
-          if (line.isNotEmpty) yield line;
-        }
-
-        position = fileLength;
-      }
-    }
-
-    Stream<String> makeStream(String path) => logStream(path)
-        .where(LogFilter.onlyChat)
-        .map(LogFilter.commonMap)
-        .transform(LogCommands(_instance).transformer)
-        .asBroadcastStream();
-
-    Future<void> unsubscribe() async {
-      await _subscriptions.map((sub) => sub._unsubscribe()).wait;
-    }
-
-    Future<void> resubscribe() async {
-      await _subscriptions.map((sub) => sub._resubscribe(_stream)).wait;
-    }
-
     Future<void> killStreamAndListeners() async {
-      _stream = null;
-      await unsubscribe();
+      _logStream?.destroy();
+      _logStream = null;
+
+      await _unsubscribe();
 
       _notifyListeners();
     }
 
     Future<void> restartStreamAndListeners(String path) async {
-      _stream = null;
-      await unsubscribe();
+      _logStream?.destroy();
+      _logStream = null;
+
+      await _unsubscribe();
 
       if (File(path).existsSync()) {
-        _stream = makeStream(path);
-        await resubscribe();
+        _logStream = LogStream(path, _instance);
+        await _resubscribe();
       }
 
       _notifyListeners();
@@ -129,17 +103,28 @@ class LogRiver {
   Future<void> checkEnabled() async {
     await _subscriptions.map((sub) => sub.checkEnabled()).wait;
   }
+
+  /// Destroys the river and all streams.
+  Future<void> destroy() async {
+    await _logWatch?.cancel();
+    _logWatch = null;
+
+    _logStream?.destroy();
+    _logStream = null;
+
+    await _unsubscribe();
+  }
 }
 
 class _LogStreamSubscription {
   _LogStreamSubscription({
-    required Stream<String>? stream,
+    required LogStream? logStream,
     required bool Function() isEnabled,
     required void Function(String) onData,
     void Function()? onCancel,
     bool Function(String)? where,
     String Function(String)? map,
-  })  : _stream = stream,
+  })  : _logStream = logStream,
         _isEnabled = isEnabled,
         _onData = onData,
         _onCancel = onCancel,
@@ -148,7 +133,7 @@ class _LogStreamSubscription {
     unawaited(checkEnabled());
   }
 
-  Stream<String>? _stream;
+  LogStream? _logStream;
 
   final bool Function() _isEnabled;
   final Function(String) _onData;
@@ -166,20 +151,20 @@ class _LogStreamSubscription {
 
     _enabled = value;
 
-    await _resubscribe(_stream);
+    await _resubscribe(_logStream);
   }
 
   StreamSubscription<String>? _subscription;
 
-  Future<void> _resubscribe(Stream<String>? stream) async {
-    _stream = stream;
+  Future<void> _resubscribe(LogStream? logStream) async {
+    _logStream = logStream;
 
     await _unsubscribe();
 
-    if (_stream == null || !_enabled) return;
+    if (logStream == null || !_enabled) return;
 
     final Stream<String> filteredStream =
-        _stream!.where(_streamWhere).map(_streamMap);
+        _logStream!.stream.where(_streamWhere).map(_streamMap);
 
     _subscription = filteredStream.listen(
       _onData,
@@ -187,7 +172,7 @@ class _LogStreamSubscription {
         if (error is PathNotFoundException) {
           await _unsubscribe();
         } else if (kDebugMode) {
-          print('Error in log stream: $error');
+          throw error;
         }
       },
     );

@@ -190,7 +190,7 @@ class FileNotFoundButtons extends StatelessWidget {
                   child: const Text('Locate'),
                 ),
                 ElevatedButton(
-                  onPressed: () => instances.remove(),
+                  onPressed: () async => instances.remove(),
                   child: const Text('Remove'),
                 ),
               ],

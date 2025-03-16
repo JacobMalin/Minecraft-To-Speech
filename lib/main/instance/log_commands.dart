@@ -20,9 +20,7 @@ class LogCommands {
 
   /// Adds chat commands to the log stream.
   StreamTransformer<String, String> get transformer =>
-      StreamTransformer<String, String>.fromHandlers(
-        handleData: _handleData,
-      );
+      StreamTransformer<String, String>.fromHandlers(handleData: _handleData);
 
   Future<void> _handleData(String data, EventSink<String> sink) async {
     if (!_instance.isEnabled) {
@@ -54,31 +52,26 @@ class LogCommands {
     switch (args.elementAtOrNull(1)) {
       case 'help':
         sink.multiple([
-          'MTS chat commands:',
+          'Available chat commands:',
           '$_mts help - Show this help message',
           '$_mts tts - Toggle text-to-speech',
-          '$_mts tts clear - Clear the text-to-speech queue',
+          '$_mts clear - Clear the text-to-speech queue',
           '$_mts discord - Toggle discord output',
           '$_mts folder - Open the instance folder',
         ]);
       case 'tts':
-        switch (args.elementAtOrNull(2)) {
-          case null:
-            if (_instance.isTts) {
-              sink.add('Disabled text-to-speech');
-              await _instance.updateWith(tts: false);
-              _tts.speak('Disabled text-to-speech');
-            } else {
-              sink.add('Enabled text-to-speech');
-              await _instance.updateWith(tts: true);
-              _tts.speak('Enabled text-to-speech');
-            }
-          case 'clear':
-            await _tts.clear();
-            sink.add('Cleared text-to-speech queue');
-          default:
-            sink.multiple(['Did you mean:', '$_mts tts', '$_mts tts clear']);
+        if (_instance.isTts) {
+          sink.add('Disabled text-to-speech');
+          await _instance.updateWith(tts: false);
+          _tts.speak('Disabled text-to-speech');
+        } else {
+          sink.add('Enabled text-to-speech');
+          await _instance.updateWith(tts: true);
+          _tts.speak('Enabled text-to-speech');
         }
+      case 'clear':
+        await _tts.clear();
+        sink.add('Cleared text-to-speech queue');
       case 'discord':
         if (_instance.isDiscord) {
           await _instance.updateWith(discord: false);
@@ -92,7 +85,7 @@ class LogCommands {
         sink.add('Opened instance folder');
       default:
         sink.multiple([
-          'MTS chat commands!',
+          'Minecraft To Speech chat commands!',
           'Run $_mts help for more info.',
         ]);
     }

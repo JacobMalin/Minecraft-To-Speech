@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 
+import '../../setup/launcher.dart';
 import '../../setup/path_formatting.dart';
 import '../../setup/toaster.dart';
 import '../../setup/window_setup.dart';
@@ -96,7 +96,7 @@ class _ChooseLauncher extends StatefulWidget {
 class _ChooseLauncherState extends State<_ChooseLauncher> {
   final List<Widget> sources = [];
 
-  final List<_Launcher> _launchers = const [
+  final List<Launcher> _launchers = const [
     Minecraft(),
     CurseForge(),
   ];
@@ -107,7 +107,7 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
   void initState() {
     super.initState();
 
-    for (final _Launcher launcher in _launchers) {
+    for (final Launcher launcher in _launchers) {
       if (launcher.isValid) {
         sources.add(_AddFromLauncher(launcher, widget._showOptions));
       }
@@ -233,12 +233,12 @@ class _ChoosePathState extends State<_ChoosePath> {
 
 class _AddFromLauncher extends StatelessWidget {
   const _AddFromLauncher(
-    _Launcher launcher,
+    Launcher launcher,
     Function(List<String>) showOptions,
   )   : _launcher = launcher,
         _showOptions = showOptions;
 
-  final _Launcher _launcher;
+  final Launcher _launcher;
   final Function(List<String>) _showOptions;
 
   @override
@@ -270,90 +270,6 @@ class _AddFromLauncher extends StatelessWidget {
         _showOptions(paths);
       },
     );
-  }
-}
-
-/// A minecraft launcher that minecraft instances can be added from.
-abstract class _Launcher {
-  const _Launcher();
-
-  /// The name of the launcher.
-  String get name;
-
-  /// The icon of the launcher.
-  AssetImage get icon;
-
-  /// Whether the launcher exists on the system.
-  bool get isValid => Directory(_defaultPath).existsSync();
-
-  /// The default path to find launcher instances.
-  String get _defaultPath;
-
-  /// Get instance paths from the default path.
-  List<String> getPaths() {
-    final paths = <String>[];
-
-    final List<String> directories = Directory(_defaultPath)
-        .listSync()
-        .whereType<Directory>()
-        .map((directory) => directory.path)
-        .toList();
-
-    for (final directory in directories) {
-      final String path = p.join(directory, 'logs', 'latest.log');
-
-      if (File(path).existsSync()) paths.add(path);
-    }
-
-    return paths;
-  }
-}
-
-/// The CurseForge launcher.
-class CurseForge extends _Launcher {
-  /// The CurseForge launcher.
-  const CurseForge();
-
-  @override
-  String get name => 'CurseForge';
-
-  @override
-  AssetImage get icon => const AssetImage('assets/launchers/curseforge.ico');
-
-  @override
-  String get _defaultPath => p.join(
-        Platform.environment['USERPROFILE']!,
-        'curseforge',
-        'minecraft',
-        'Instances',
-      );
-}
-
-/// The default minecraft launcher.
-class Minecraft extends _Launcher {
-  /// The default minecraft launcher.
-  const Minecraft();
-
-  @override
-  String get name => 'Minecraft Launcher';
-
-  @override
-  AssetImage get icon => const AssetImage('assets/launchers/minecraft.ico');
-
-  @override
-  String get _defaultPath => p.join(
-        Platform.environment['APPDATA']!,
-        '.minecraft',
-      );
-
-  @override
-  List<String> getPaths() {
-    final paths = <String>[];
-
-    final String path = p.join(_defaultPath, 'logs', 'latest.log');
-    if (File(path).existsSync()) paths.add(path);
-
-    return paths;
   }
 }
 

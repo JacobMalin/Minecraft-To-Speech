@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:menu_bar/menu_bar.dart';
@@ -11,7 +10,6 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 import '../main/instance/instance_model.dart';
 import '../main/settings/settings_model.dart';
 import '../process/process_controller.dart';
-import '../setup/velopack_setup.dart';
 
 /// The Windows buttons in the top bar of the window. This includes the
 /// minimize, maximize, and close buttons.
@@ -185,7 +183,7 @@ class MenuButtons extends StatelessWidget {
           ),
           MenuButton(
             text: const Text('Remove Instance'),
-            onTap: () => instances.remove(),
+            onTap: () async => instances.remove(),
           ),
           const MenuDivider(),
         ];

@@ -98,7 +98,7 @@ class InstanceModel extends ChangeNotifier {
 
   /// Remove an instance from the list of instances. If no index is provided,
   /// the currently selected instance is removed.
-  void remove([int? index]) {
+  Future<void> remove([int? index]) async {
     index ??= selectedIndex;
 
     if (index == null || index >= instances.length || instances.isEmpty) {
@@ -106,7 +106,7 @@ class InstanceModel extends ChangeNotifier {
       return;
     }
 
-    instances.removeAt(index).cleanBox();
+    await instances.removeAt(index).destroy();
     _updatePaths();
 
     if (selectedIndex != null) {

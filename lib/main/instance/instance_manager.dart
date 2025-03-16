@@ -101,6 +101,12 @@ class InstanceController {
   /// Delete all stored persistent data.
   void cleanBox() => InstanceBox.infos.delete(path);
 
+  /// Destroy the instance controller. This will close all streams.
+  Future<void> destroy() async {
+    cleanBox();
+    await _logRiver.destroy();
+  }
+
   /// Update the instance with new data. This will update the persistent data
   /// and the streams.
   Future<void> updateWith({
