@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
+import '../../setup/discord_model.dart';
 import 'instance_model.dart';
 import 'log_filter.dart';
 import 'log_river.dart';
@@ -14,7 +15,8 @@ import 'tts_queue.dart';
 /// info.
 class InstanceController {
   /// Creates a controller for a minecraft instance.
-  InstanceController(this.path, this._notifyListeners) {
+  InstanceController(this.path, notifyListeners)
+      : _notifyListeners = notifyListeners {
     _logRiver = LogRiver(
       path,
       notifyListeners: _notifyListeners,
@@ -50,10 +52,8 @@ class InstanceController {
         ..addSubscription(
           map: LogFilter.discordMap,
           isEnabled: () => isEnabled && isDiscord,
-          onData: (line) {
-            // TODO: Finish discord implementation
-            if (kDebugMode) print('discord: $line');
-          },
+          onData: _discord.send,
+          onCancel: _discord.clear,
         );
     }
 
@@ -70,6 +70,7 @@ class InstanceController {
   late final LogRiver _logRiver;
   final VoidCallback _notifyListeners;
   final _tts = TtsQueue();
+  final _discord = DiscordModel();
 
   /// The persitent data of the instance.
   InstanceInfo get info => InstanceBox.infos[path]!;

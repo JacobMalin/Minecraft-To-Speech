@@ -21,13 +21,6 @@ class SettingsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// The discord bot key.
-  String? get botKey => SettingsBox._botKey;
-  set botKey(String? key) {
-    SettingsBox._botKey = key;
-    notifyListeners();
-  }
-
   /// The theme brightness mode.
   ThemeMode get themeMode => SettingsBox._themeMode;
   set themeMode(ThemeMode mode) {
@@ -41,9 +34,15 @@ class SettingsBox {
   static final Box _settingsBox = Hive.box(name: 'settings');
 
   /// The discord bot key.
-  static String? get _botKey => _settingsBox['botKey'];
-  static set _botKey(String? value) {
+  static String? get botKey => _settingsBox['botKey'];
+  static set botKey(String? value) {
     _settingsBox['botKey'] = value;
+  }
+
+  /// The discord bot channel id.
+  static int? get botChannel => _settingsBox['botChannel'];
+  static set botChannel(int? value) {
+    _settingsBox['botChannel'] = value;
   }
 
   /// The theme brightness mode.

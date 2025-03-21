@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../process/process_controller.dart';
 import '../setup/dialog_service.dart';
+import '../setup/discord_model.dart';
 import '../setup/focus_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/toaster.dart';
@@ -30,6 +31,7 @@ class _MainAppState extends State<MainApp> {
       providers: [
         ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
         ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
+        ChangeNotifierProvider<DiscordModel>(create: (_) => DiscordModel()),
         ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
       child: Selector<SettingsModel, ThemeMode>(
@@ -42,6 +44,9 @@ class _MainAppState extends State<MainApp> {
             darkTheme: ThemeSetup.darkTheme,
             themeMode: themeMode,
             builder: (context, child) {
+              // Load discord model immediately.
+              Provider.of<DiscordModel>(context);
+
               child!;
 
               child = WindowSetupWatcher(child);

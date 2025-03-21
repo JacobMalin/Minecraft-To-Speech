@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../setup/discord_model.dart';
 import 'settings_model.dart';
 
 /// The settings page. This page allows the user to change settings.
@@ -137,11 +138,20 @@ class _TokenField extends StatefulWidget {
 class _TokenFieldState extends State<_TokenField> {
   late TextEditingController _controller;
 
+  String? get _errorText {
+    final String text = _controller.text;
+    if (text.isEmpty) return null;
+    if (!RegExp(DiscordModel.tokenFormat).hasMatch(text)) {
+      return 'Invalid token format!';
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
     final String? botKey =
-        Provider.of<SettingsModel>(context, listen: false).botKey;
+        Provider.of<DiscordModel>(context, listen: false).botKey;
     _controller = TextEditingController(text: botKey);
   }
 
@@ -158,15 +168,16 @@ class _TokenFieldState extends State<_TokenField> {
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: 10),
-        Consumer<SettingsModel>(
-          builder: (context, settings, child) => IntrinsicWidth(
+        Consumer<DiscordModel>(
+          builder: (context, discord, child) => IntrinsicWidth(
             child: TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
                 hintText: 'Enter a token to enable the discord bot!',
+                errorText: _errorText,
               ),
-              onChanged: (newKey) => settings.botKey = newKey,
+              onChanged: (newKey) => discord.botKey = newKey,
             ),
           ),
         ),
