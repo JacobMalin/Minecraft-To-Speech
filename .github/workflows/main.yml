@@ -18,6 +18,7 @@ jobs:
         run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
       - name: Get Current Version
         run: echo "release=$(git tag -l --sort=-creatordate | head -n 1)" >> $GITHUB_OUTPUT
+      - run: git tag -l --sort=-creatordate
       - run: echo "${{ steps.get-version.outputs.release }}"
       - name: Check if version is released
         if: ${{ !endsWith(steps.get-version.outputs.release, steps.get-version.outputs.version) }}
