@@ -11,11 +11,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Install yq
+        run: choco install yq
       - name: Get Version from Project File
         id: get-version
-        uses: mikefarah/yq@master
-        with:
-          cmd: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
+        run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
