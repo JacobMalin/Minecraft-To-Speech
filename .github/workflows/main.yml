@@ -24,6 +24,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" \
           | jq -r .tag_name)" >> $GITHUB_OUTPUT
+      - run: echo "${{ steps.get-version.outputs.version }}"
       - run: echo "${{ steps.get-version.outputs.release }}"
       - name: Check if version is released
         if: ${{ !endsWith(steps.get-version.outputs.release, steps.get-version.outputs.version) }}
