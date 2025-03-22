@@ -31,6 +31,6 @@ jobs:
         run: |
           dotnet tool install -g vpk
           cd build/windows/x64/runner
-          vpk download github --repoUrl https://github.com/${{ github.repository }}
+          vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
           vpk pack --packId MinecraftToSpeech --packVersion ${{ steps.get-version.outputs.version }} --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
           vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "Minecraft To Speech ${{ steps.get-version.outputs.version }}" --tag v${{ steps.get-version.outputs.version }} --token ${{ secrets.GITHUB_TOKEN }}

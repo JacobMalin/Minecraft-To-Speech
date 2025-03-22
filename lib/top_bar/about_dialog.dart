@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:velopack_flutter/velopack_flutter.dart';
 
 import '../main/settings/settings_box.dart';
+import '../setup/toaster.dart';
 
 /// This is a dialog that shows information about the application.
 class AboutDialog extends StatefulWidget {
@@ -123,9 +122,17 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
           builder: (context, velopack, child) {
             if (velopack.updateAvailable == UpdateResult.available) {
               return OutlinedButton(
-                onPressed: () async => velopack.updateAndRestart(),
+                onPressed: () async {
+                  final UpdateResult result = await velopack.updateAndRestart();
+                  if (result != UpdateResult.success) {
+                    Toaster.showToast('Failed to update.');
+                  }
+                },
                 style: buttonStyle,
-                child: const Text('Update', style: TextStyle(fontSize: 12)),
+                child: Text(
+                  'Update to ${velopack.latestVersion}',
+                  style: const TextStyle(fontSize: 12),
+                ),
               );
             }
 

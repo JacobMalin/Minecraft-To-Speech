@@ -163,12 +163,7 @@ class VelopackModel extends ChangeNotifier {
 
   /// Update and restart the app
   Future<UpdateResult> updateAndRestart() async {
-    await _requestVersion();
-
     if (latestVersion == null) return UpdateResult.failed;
-    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
-      return UpdateResult.outOfDate;
-    }
     if (kDebugMode) return UpdateResult.debug;
 
     await velopack.updateAndRestart(url: _urlFromVersion(latestVersion!));
@@ -177,12 +172,7 @@ class VelopackModel extends ChangeNotifier {
 
   /// Update and exit the app
   Future<UpdateResult> updateAndExit() async {
-    await _requestVersion();
-
     if (latestVersion == null) return UpdateResult.failed;
-    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
-      return UpdateResult.outOfDate;
-    }
     if (kDebugMode) return UpdateResult.debug;
 
     await velopack.updateAndExit(url: _urlFromVersion(latestVersion!));
@@ -194,12 +184,7 @@ class VelopackModel extends ChangeNotifier {
     required bool silent,
     required bool restart,
   }) async {
-    await _requestVersion();
-
     if (latestVersion == null) return UpdateResult.failed;
-    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
-      return UpdateResult.outOfDate;
-    }
     if (kDebugMode) return UpdateResult.debug;
 
     await velopack.waitExitThenUpdate(

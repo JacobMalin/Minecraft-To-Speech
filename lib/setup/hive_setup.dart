@@ -13,8 +13,11 @@ class HiveSetup {
   ///
   /// This should be called before any other hive interactions.
   static Future<void> setup() async {
-    final String dir =
-        p.join(Platform.environment['LOCALAPPDATA']!, 'MinecraftToSpeech');
+    final String dir = p.join(
+      Platform.environment['LOCALAPPDATA']!,
+      'MinecraftToSpeech',
+      'save',
+    );
     Directory(dir).createSync();
     Hive.defaultDirectory = dir;
 
