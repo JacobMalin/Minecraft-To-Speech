@@ -6,40 +6,11 @@ on:
       - main
 
 jobs:
-  checkout-repository:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-  setup-flutter:
-    runs-on: windows-latest
-    steps:
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-  build-app:
-    runs-on: windows-latest
-    needs: [checkout-repository, setup-flutter]
-    steps:
-      - name: Build Application
-        run: flutter build windows --release
-  install-vpk:
-    runs-on: windows-latest
-    steps:
-      - name: Install .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 6.0.x
-      - name: Install Velopack
-        run: dotnet tool install -g vpk
   get-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
-      - name: Install yq
-        run: choco install yq --no-progress
       - name: Get Version from Project File
         id: get-version
         run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
@@ -53,8 +24,22 @@ jobs:
           echo "Tag name from github.ref_name: ${{  github.ref_name }}"
   deploy-to-github-releases:
     runs-on: windows-latest
-    needs: [build-app, install-vpk, get-version]
+    needs: get-version
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build Application
+        run: flutter build windows --release
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
       - name: Create Velopack Release
         env:
           REPOSITORY: ${{ github.repository }}
