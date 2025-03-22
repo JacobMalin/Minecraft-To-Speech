@@ -43,6 +43,11 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
+
+  # Add compile option for github actions to fix flutter_tts bug
+  if(MSVC)
+    target_compile_options(flutter_tts_plugin PRIVATE "/await")
+  endif()
 endfunction()
 
 # Flutter library and tool build rules.
