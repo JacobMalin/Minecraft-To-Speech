@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Install yq
-        run: choco install yq
+        run: choco install yq --no-progress
       - name: Get Version from Project File
         id: get-version
         run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT

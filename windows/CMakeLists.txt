@@ -46,7 +46,7 @@ function(APPLY_STANDARD_SETTINGS TARGET)
 
   # Add compile option for github actions to fix flutter_tts bug
   if(MSVC)
-    target_compile_options(flutter_tts_plugin PRIVATE "/await")
+    target_compile_options(${TARGET} PRIVATE "/await")
   endif()
 endfunction()
 
