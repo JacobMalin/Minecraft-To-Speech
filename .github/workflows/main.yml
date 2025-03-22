@@ -16,6 +16,13 @@ jobs:
       - name: Get Version from Project File
         id: get-version
         run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
+      - run: |
+            curl -qsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" \
+            | jq -r .tag_name
       - name: Get Current Version
         run: |
           echo "release=$(curl -qsSL \
