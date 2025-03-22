@@ -6,31 +6,62 @@ on:
       - main
 
 jobs:
-  deploy-to-github-releases:
+  checkout-repository:
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Install yq
-        run: choco install yq --no-progress
-      - name: Get Version from Project File
-        id: get-version
-        shell: bash
-        run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
+  setup-flutter:
+    runs-on: windows-latest
+    steps:
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+  build-app:
+    runs-on: windows-latest
+    needs: [checkout-repository, setup-flutter]
+    steps:
+      - name: Build Application
+        run: flutter build windows --release
+  install-vpk:
+    runs-on: windows-latest
+    steps:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.0.x
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-      - name: Build Application
-        run: flutter build windows --release
-      - name: Create Velopack Release
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Install yq
+        run: choco install yq --no-progress
+      - name: Get Version from Project File
+        id: get-version
+        run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
+  check-version:
+    runs-on: ubuntu-latest
+    needs: get-version
+    steps:
+      - name: Get Current Version
         run: |
-          dotnet tool install -g vpk
+          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+  deploy-to-github-releases:
+    runs-on: windows-latest
+    needs: [build-app, install-vpk, get-version]
+    steps:
+      - name: Create Velopack Release
+        env:
+          REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.get-version.outputs.version }}
+        run: |
           cd build/windows/x64/runner
-          vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
-          vpk pack --packId MinecraftToSpeech --packVersion ${{ steps.get-version.outputs.version }} --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
-          vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "Minecraft To Speech ${{ steps.get-version.outputs.version }}" --tag v${{ steps.get-version.outputs.version }} --token ${{ secrets.GITHUB_TOKEN }}
+          vpk download github --repoUrl https://github.com/$REPOSITORY --token $GITHUB_TOKEN
+          vpk pack --packId MinecraftToSpeech --packVersion $VERSION --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
+          vpk upload github --repoUrl https://github.com/$REPOSITORY --publish --releaseName "Minecraft To Speech $VERSION" --tag v$VERSION --token $GITHUB_TOKEN
