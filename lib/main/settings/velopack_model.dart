@@ -1,14 +1,22 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:velopack_flutter/velopack_flutter.dart' as velopack;
-
-import '../main/settings/settings_model.dart';
+part of 'settings_box.dart';
 
 /// Setup velopack installation support
-class VelopackSetup {
+class VelopackModel extends ChangeNotifier {
+  /// A model for the velopack installation support.
+  VelopackModel() {
+    Future<void> init() async {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      currentVersion = packageInfo.version;
+
+      // Request the current version
+      await checkForUpdates();
+
+      // TODO: Implement auto-update
+    }
+
+    unawaited(init());
+  }
+
   /// Initialize velopack
   static Future<void> setup(List<String> args) async {
     await velopack.RustLib.init();
@@ -22,42 +30,47 @@ class VelopackSetup {
     if (veloCommands.any((cmd) => args.contains(cmd))) {
       exit(0);
     }
-
-    // Request the current version
-    await _requestVersion();
-
-    // TODO: Implement auto-update
   }
 
-  static var _mutex = false;
+  var _mutex = false;
+
+  /// The current version of the software.
+  late final String currentVersion;
+
+  /// The status of the last update check.
+  UpdateResult? updateAvailable;
 
   static const _orgOrUser = 'JacobMalin';
   static const _repoName = 'Minecraft-To-Speech';
 
-  static DateTime? get _limitUntil => SettingsBox.limitUntil;
-  static set _limitUntil(DateTime? value) {
+  DateTime? get _limitUntil => SettingsBox.limitUntil;
+  set _limitUntil(DateTime? value) {
     SettingsBox.limitUntil = value;
   }
 
-  static DateTime? get _lastChecked => SettingsBox.lastChecked;
-  static set _lastChecked(DateTime? value) {
-    SettingsBox.lastChecked = value;
+  /// The last time the version was checked.
+  DateTime? get lastChecked => SettingsBox._lastChecked;
+  set lastChecked(DateTime? value) {
+    SettingsBox._lastChecked = value;
+    notifyListeners();
   }
 
-  static String? get _latestVersion => SettingsBox.latestVersion;
-  static set _latestVersion(String? value) {
-    SettingsBox.latestVersion = value;
+  /// The latest version of the software.
+  String? get latestVersion => SettingsBox._latestVersion;
+  set latestVersion(String? value) {
+    SettingsBox._latestVersion = value;
+    notifyListeners();
   }
 
-  static void _limitFor(Duration duration) {
+  void _limitFor(Duration duration) {
     _limitUntil = DateTime.now().add(duration);
   }
 
-  static Future<void> _requestVersion() async {
+  Future<void> _requestVersion() async {
     final bool isLimited =
         _limitUntil != null && DateTime.now().isBefore(_limitUntil!);
     final bool isTooSoon =
-        _lastChecked != null && _lastChecked!.isWithinAMinute();
+        lastChecked != null && lastChecked!.isWithinAMinute();
     if (_mutex || isLimited || isTooSoon) {
       return;
     }
@@ -83,8 +96,8 @@ class VelopackSetup {
 
         _limitFor(const Duration(minutes: 1));
 
-        _latestVersion = tagName.split('v').last;
-        _lastChecked = DateTime.now();
+        latestVersion = tagName.split('v').last;
+        lastChecked = DateTime.now();
         _mutex = false;
         return;
       case 403:
@@ -119,17 +132,28 @@ class VelopackSetup {
       '$_orgOrUser/$_repoName/releases/download/v$version/';
 
   /// Check if an update is available
-  static Future<UpdateResult> isUpdateAvailable() async {
+  Future<UpdateResult> checkForUpdates() async {
+    updateAvailable = await _isUpdateAvailable();
+
+    notifyListeners();
+
+    return updateAvailable!;
+  }
+
+  Future<UpdateResult> _isUpdateAvailable() async {
     await _requestVersion();
 
-    if (_latestVersion == null) return UpdateResult.failed;
-    if (_lastChecked != null && _lastChecked!.isOverAMinuteAgo()) {
+    if (latestVersion == null) return UpdateResult.failed;
+    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
       return UpdateResult.outOfDate;
     }
+
+    if (latestVersion == currentVersion) return UpdateResult.notAvailable;
+
     if (kDebugMode) return UpdateResult.debug;
 
     if (await velopack.isUpdateAvailable(
-      url: _urlFromVersion(_latestVersion!),
+      url: _urlFromVersion(latestVersion!),
     )) {
       return UpdateResult.available;
     } else {
@@ -138,48 +162,48 @@ class VelopackSetup {
   }
 
   /// Update and restart the app
-  static Future<UpdateResult> updateAndRestart() async {
+  Future<UpdateResult> updateAndRestart() async {
     await _requestVersion();
 
-    if (_latestVersion == null) return UpdateResult.failed;
-    if (_lastChecked != null && _lastChecked!.isOverAMinuteAgo()) {
+    if (latestVersion == null) return UpdateResult.failed;
+    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
       return UpdateResult.outOfDate;
     }
     if (kDebugMode) return UpdateResult.debug;
 
-    await velopack.updateAndRestart(url: _urlFromVersion(_latestVersion!));
+    await velopack.updateAndRestart(url: _urlFromVersion(latestVersion!));
     return UpdateResult.success;
   }
 
   /// Update and exit the app
-  static Future<UpdateResult> updateAndExit() async {
+  Future<UpdateResult> updateAndExit() async {
     await _requestVersion();
 
-    if (_latestVersion == null) return UpdateResult.failed;
-    if (_lastChecked != null && _lastChecked!.isOverAMinuteAgo()) {
+    if (latestVersion == null) return UpdateResult.failed;
+    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
       return UpdateResult.outOfDate;
     }
     if (kDebugMode) return UpdateResult.debug;
 
-    await velopack.updateAndExit(url: _urlFromVersion(_latestVersion!));
+    await velopack.updateAndExit(url: _urlFromVersion(latestVersion!));
     return UpdateResult.success;
   }
 
   /// Wait for the app to exit, then update
-  static Future<UpdateResult> waitExitThenUpdate({
+  Future<UpdateResult> waitExitThenUpdate({
     required bool silent,
     required bool restart,
   }) async {
     await _requestVersion();
 
-    if (_latestVersion == null) return UpdateResult.failed;
-    if (_lastChecked != null && _lastChecked!.isOverAMinuteAgo()) {
+    if (latestVersion == null) return UpdateResult.failed;
+    if (lastChecked != null && lastChecked!.isOverAMinuteAgo()) {
       return UpdateResult.outOfDate;
     }
     if (kDebugMode) return UpdateResult.debug;
 
     await velopack.waitExitThenUpdate(
-      url: _urlFromVersion(_latestVersion!),
+      url: _urlFromVersion(latestVersion!),
       silent: silent,
       restart: restart,
     );

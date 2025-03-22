@@ -11,7 +11,7 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../main/instance/instance_model.dart';
 import '../main/instance/log_filter.dart';
-import '../main/settings/settings_model.dart';
+import '../main/settings/settings_box.dart';
 import '../setup/focus_model.dart';
 import '../setup/theme_setup.dart';
 import '../setup/window_setup.dart';

@@ -4,7 +4,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:nyxx/nyxx.dart';
 
-import '../main/settings/settings_model.dart';
+import '../main/settings/settings_box.dart';
 import 'path_formatting.dart';
 
 /// A model for the discord bot.

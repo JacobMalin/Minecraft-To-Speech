@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter/services.dart';
 import 'package:menu_bar/menu_bar.dart';
 // I cannot find a better way to import this
@@ -8,8 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../main/instance/instance_model.dart';
-import '../main/settings/settings_model.dart';
+import '../main/settings/settings_box.dart';
 import '../process/process_controller.dart';
+import '../setup/dialog_service.dart';
+import 'about_dialog.dart';
 
 /// The Windows buttons in the top bar of the window. This includes the
 /// minimize, maximize, and close buttons.
@@ -239,11 +241,9 @@ class MenuButtons extends StatelessWidget {
                     menuItems: [
                       MenuButton(
                         text: const Text('About'),
-                        icon: const Icon(Icons.info_outline),
-                        onTap: () async {
-                          // TODO: Implement about dialog
-                          // TODO: Implement manual update / version check
-                        },
+                        onTap: () async => DialogService.showDialogElsewhere(
+                          builder: (_) => const AboutDialog(),
+                        ),
                       ),
                     ],
                   ),

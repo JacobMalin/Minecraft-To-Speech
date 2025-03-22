@@ -7,7 +7,7 @@ import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../main/main_app.dart';
-import '../main/settings/settings_model.dart';
+import '../main/settings/settings_box.dart';
 import '../process/process_app.dart';
 
 /// Setup for the application window.

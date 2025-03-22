@@ -1,7 +1,7 @@
 name: minecraft_to_speech
 description: A minecraft chat reader.
 publish_to: none
-version: 2.0.0
+version: 1.2.0
 
 environment:
   sdk: ^3.6.2
@@ -23,6 +23,7 @@ dependencies:
   menu_bar: ^0.5.3
   nyxx: ^6.6.0
   open_file: ^3.5.10
+  package_info_plus: ^8.3.0
   path: ^1.9.0
   provider: ^6.1.2
   smooth_list_view: ^2.0.2

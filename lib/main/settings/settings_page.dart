@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../setup/discord_model.dart';
-import 'settings_model.dart';
+import 'settings_box.dart';
 
 /// The settings page. This page allows the user to change settings.
 class SettingsPage extends StatefulWidget {

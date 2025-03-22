@@ -6,7 +6,7 @@ import 'package:smooth_list_view/smooth_list_view.dart';
 
 import '../../setup/path_formatting.dart';
 import '../../setup/theme_setup.dart';
-import '../settings/settings_model.dart';
+import '../settings/settings_box.dart';
 import 'instance_manager.dart';
 import 'instance_model.dart';
 

@@ -12,7 +12,7 @@ import '../setup/window_setup.dart';
 import '../top_bar/top_bar.dart';
 import 'instance/instance_model.dart';
 import 'instance/instance_page.dart';
-import 'settings/settings_model.dart';
+import 'settings/settings_box.dart';
 import 'settings/settings_page.dart';
 
 /// The main window.
@@ -31,6 +31,7 @@ class _MainAppState extends State<MainApp> {
       providers: [
         ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
         ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
+        ChangeNotifierProvider<VelopackModel>(create: (_) => VelopackModel()),
         ChangeNotifierProvider<DiscordModel>(create: (_) => DiscordModel()),
         ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
@@ -44,7 +45,8 @@ class _MainAppState extends State<MainApp> {
             darkTheme: ThemeSetup.darkTheme,
             themeMode: themeMode,
             builder: (context, child) {
-              // Load discord model immediately.
+              // Load models immediately.
+              Provider.of<VelopackModel>(context);
               Provider.of<DiscordModel>(context);
 
               child!;
