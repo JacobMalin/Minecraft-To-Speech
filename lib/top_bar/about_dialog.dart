@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../main/settings/settings_box.dart';
@@ -124,7 +125,10 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
               return OutlinedButton(
                 onPressed: () async {
                   final UpdateResult result = await velopack.updateAndRestart();
-                  if (result != UpdateResult.success) {
+                  if (result == UpdateResult.success) {
+                    // May be unreachable; Needs testing
+                    Toaster.showToast('Updating! Application will restart.');
+                  } else {
                     Toaster.showToast('Failed to update.');
                   }
                 },
@@ -261,11 +265,43 @@ class _VersionInfoState extends State<_VersionInfo> {
                         throw Exception('Unexpected update check result');
                     }
 
-                    return Text(
-                      '$result\n'
-                      '(last checked ${ago.agoFormat})',
-                      textAlign: TextAlign.center,
-                      style: _style,
+                    return Column(
+                      children: [
+                        Text(
+                          result,
+                          style: _style,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '(last checked ',
+                              style: _style,
+                            ),
+                            Tooltip(
+                              message: DateFormat("EEEE, MMMM d, y 'at' h:m a")
+                                  .format(velopack.lastChecked!),
+                              verticalOffset: 10,
+                              preferBelow: false,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              textStyle: _style,
+                              child: Text(
+                                ago.agoFormat,
+                                style: _style,
+                              ),
+                            ),
+                            const Text(
+                              ')',
+                              style: _style,
+                            )
+                          ],
+                        ),
+                      ],
                     );
                   },
                 );
