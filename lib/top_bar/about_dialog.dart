@@ -298,7 +298,7 @@ class _VersionInfoState extends State<_VersionInfo> {
                             const Text(
                               ')',
                               style: _style,
-                            )
+                            ),
                           ],
                         ),
                       ],

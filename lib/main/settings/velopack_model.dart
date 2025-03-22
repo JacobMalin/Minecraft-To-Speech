@@ -133,7 +133,6 @@ class VelopackModel extends ChangeNotifier {
 
   /// Check if an update is available
   Future<UpdateResult> checkForUpdates() async {
-    print('checking for updates');
     updateAvailable = await _isUpdateAvailable();
 
     notifyListeners();
@@ -149,7 +148,6 @@ class VelopackModel extends ChangeNotifier {
       return UpdateResult.outOfDate;
     }
 
-    print(_urlFromVersion(latestVersion!));
     if (latestVersion == currentVersion) return UpdateResult.notAvailable;
 
     if (kDebugMode) return UpdateResult.debug;
