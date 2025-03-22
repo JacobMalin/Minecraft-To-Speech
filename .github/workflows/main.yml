@@ -17,8 +17,13 @@ jobs:
         id: get-version
         run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
       - name: Get Current Version
-        run: echo "release=$(git tag -l --sort=-creatordate | head -n 1)" >> $GITHUB_OUTPUT
-      - run: git tag -l --sort=-creatordate
+        run: |
+          echo "release=$(curl -qsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" \
+          | jq -r .tag_name)" >> $GITHUB_ENV
       - run: echo "${{ steps.get-version.outputs.release }}"
       - name: Check if version is released
         if: ${{ !endsWith(steps.get-version.outputs.release, steps.get-version.outputs.version) }}
