@@ -21,9 +21,7 @@ jobs:
     needs: get-version
     steps:
       - name: Get Current Version
-        run: |
-          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+        run: git tag | sort --version-sort | tail -n1
   deploy-to-github-releases:
     runs-on: windows-latest
     needs: get-version
@@ -34,6 +32,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
       - name: Build Application
         run: flutter build windows --release
       - name: Install .NET
@@ -49,6 +48,6 @@ jobs:
           VERSION: ${{ needs.get-version.outputs.version }}
         run: |
           cd build/windows/x64/runner
-          vpk download github --repoUrl https://github.com/$REPOSITORY --token $GITHUB_TOKEN
-          vpk pack --packId MinecraftToSpeech --packVersion $VERSION --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
-          vpk upload github --repoUrl https://github.com/$REPOSITORY --publish --releaseName "Minecraft To Speech $VERSION" --tag v$VERSION --token $GITHUB_TOKEN
+          vpk download github --repoUrl https://github.com/$env:REPOSITORY --token $env:GITHUB_TOKEN
+          vpk pack --packId MinecraftToSpeech --packVersion $env:VERSION --packDir Release --mainExe minecraft_to_speech.exe --packTitle "Minecraft To Speech" --icon ../../../../assets/mts_icon.ico
+          vpk upload github --repoUrl https://github.com/$env:REPOSITORY --publish --releaseName "Minecraft To Speech $env:VERSION" --tag v$env:VERSION --token $env:GITHUB_TOKEN
