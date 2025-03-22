@@ -15,7 +15,9 @@ jobs:
         run: choco install yq --no-progress
       - name: Get Version from Project File
         id: get-version
-        run: echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
+        run: |
+          yq '.version' pubspec.yaml
+          echo "version=$(yq '.version' pubspec.yaml)" >> $GITHUB_OUTPUT
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
