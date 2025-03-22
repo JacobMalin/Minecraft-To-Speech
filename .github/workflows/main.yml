@@ -23,7 +23,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Get Current Version
-        run: git tag | sort --version-sort | tail -n1
+        run: echo $(git tag | sort --version-sort | tail -n1)
   deploy-to-github-releases:
     runs-on: windows-latest
     needs: get-version
