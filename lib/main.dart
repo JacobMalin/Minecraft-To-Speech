@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:python_ffi/python_ffi.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import 'main/settings/settings_box.dart';
@@ -7,6 +8,8 @@ import 'setup/window_setup.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await PythonFfi.instance.initialize();
 
   // Hive setup
   await HiveSetup.setup();
