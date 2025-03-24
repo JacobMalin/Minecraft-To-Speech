@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:path/path.dart' as p;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Queue for TTS (Text to Speech) messages.
@@ -87,8 +89,35 @@ class _FlutterTtsStrategy implements _TtsStrategy {
 class _Sapi5Strategy implements _TtsStrategy {
   _Sapi5Strategy() {
     Future<void> init() async {
+      final String workingDir = kDebugMode
+          ? Directory.current.path
+          : p.join(
+              Platform.environment['LOCALAPPDATA']!,
+              'MinecraftToSpeech',
+              'current',
+              'data',
+              'flutter_assets',
+            );
+      final String serverPath =
+          p.join(workingDir, 'python-modules', 'dist', 'tts_server.exe');
+
+      await Process.run(
+        'PowerShell.exe',
+        [
+          'Get-Process',
+          '|',
+          'Where-Object',
+          '{',
+          '\$_.Path -eq "$serverPath"',
+          '}',
+          '|',
+          'Stop-Process',
+          '-Force',
+        ],
+      );
+
       _process = await Process.start(
-        'python-modules/dist/tts_server.exe',
+        serverPath,
         ['--port', _port.toString()],
       );
 
@@ -96,7 +125,7 @@ class _Sapi5Strategy implements _TtsStrategy {
         Uri.parse('ws://localhost:$_port'),
       );
 
-      await _channel!.ready;
+      await clear();
     }
 
     unawaited(init());
@@ -122,11 +151,9 @@ class _Sapi5Strategy implements _TtsStrategy {
 
   @override
   Future<void> destroy() async {
-    await _channel?.ready;
-    _channel?.sink.add(_TtsServerCodes.exit.toString());
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _process?.kill();
-    });
+    await _channel!.ready;
+    _channel!.sink.add(_TtsServerCodes.exit.toString());
+    _process?.kill();
   }
 }
 

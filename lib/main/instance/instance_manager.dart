@@ -15,7 +15,7 @@ import 'tts_model.dart';
 /// info.
 class InstanceController {
   /// Creates a controller for a minecraft instance.
-  InstanceController(this.path, notifyListeners)
+  InstanceController(this.path, notifyListeners, {name})
       : _notifyListeners = notifyListeners {
     _logRiver = LogRiver(
       path,
@@ -25,7 +25,7 @@ class InstanceController {
 
     // Add path info to box if it doesn't exist
     if (!InstanceBox.infos.containsKey(path)) {
-      InstanceBox.infos[path] = InstanceInfo.fromPath(path);
+      InstanceBox.infos[path] = InstanceInfo.fromPath(path, name: name);
     }
 
     Future<void> initLogSubscriptions() async {

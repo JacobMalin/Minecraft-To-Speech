@@ -75,7 +75,7 @@ class InstanceModel extends ChangeNotifier {
   /// Add an instance from a log file path. If the instance already exists,
   /// select the instance and return. Else, add the instance to the list of
   /// instances.
-  void addFromLog(String path) {
+  void addFromLog(String path, {String? name}) {
     // If instance already exists, select the instance and return
     for (var i = 0; i < instances.length; i++) {
       if (instances[i].path == path) {
@@ -89,7 +89,7 @@ class InstanceModel extends ChangeNotifier {
     }
 
     // Else if new instance,
-    instances.add(InstanceController(path, notifyListeners));
+    instances.add(InstanceController(path, notifyListeners, name: name));
     _updatePaths();
 
     selectedIndex = instances.length - 1; // Select newly added instance
