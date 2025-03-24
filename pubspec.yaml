@@ -10,11 +10,9 @@ dependencies:
   aligned_dialog: ^0.0.7
   bitsdojo_window: ^0.1.6
   dynamic_background: ^0.5.0
-  extended_text: ^14.2.0
   file_picker: ^8.3.3
   flutter:
     sdk: flutter
-  flutter_resizable_container: ^4.0.0
   flutter_tts: ^4.2.2
   fluttertoast: ^8.2.12
   hive: ^4.0.0-dev.2

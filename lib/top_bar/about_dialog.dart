@@ -79,7 +79,7 @@ class _CheckForUpdates extends StatefulWidget {
 
 class _CheckForUpdatesState extends State<_CheckForUpdates> {
   final _controller = WidgetStatesController();
-  var _isThinking = false;
+  _VersionInfoIs _isThinking = _VersionInfoIs.showingInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -124,12 +124,28 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
             if (velopack.updateAvailable == UpdateResult.available) {
               return OutlinedButton(
                 onPressed: () async {
-                  final UpdateResult result = await velopack.updateAndRestart();
+                  if (mounted) {
+                    setState(() {
+                      _isThinking = _VersionInfoIs.isUpdating;
+                    });
+                  }
+
+                  final (UpdateResult result, _) = await (
+                    velopack.updateAndRestart(),
+                    Future.delayed(const Duration(milliseconds: 500))
+                  ).wait;
+
                   if (result == UpdateResult.success) {
                     // May be unreachable; Needs testing
                     Toaster.showToast('Updating! Application will restart.');
                   } else {
                     Toaster.showToast('Failed to update.');
+                  }
+
+                  if (mounted) {
+                    setState(() {
+                      _isThinking = _VersionInfoIs.showingInfo;
+                    });
                   }
                 },
                 style: buttonStyle,
@@ -141,12 +157,13 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
             }
 
             return OutlinedButton(
-              onPressed: _isThinking
-                  ? null
-                  : () async {
-                      setState(() {
-                        _isThinking = true;
-                      });
+              onPressed: _isThinking == _VersionInfoIs.showingInfo
+                  ? () async {
+                      if (mounted) {
+                        setState(() {
+                          _isThinking = _VersionInfoIs.checkingForUpdates;
+                        });
+                      }
                       _controller.value.remove(WidgetState.hovered);
 
                       await [
@@ -157,10 +174,11 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
 
                       if (mounted) {
                         setState(() {
-                          _isThinking = false;
+                          _isThinking = _VersionInfoIs.showingInfo;
                         });
                       }
-                    },
+                    }
+                  : null,
               style: buttonStyle,
               statesController: _controller,
               child: const Text(
@@ -177,10 +195,10 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
 
 class _VersionInfo extends StatefulWidget {
   const _VersionInfo({
-    required bool isThinking,
+    required _VersionInfoIs isThinking,
   }) : _isThinking = isThinking;
 
-  final bool _isThinking;
+  final _VersionInfoIs _isThinking;
 
   @override
   State<_VersionInfo> createState() => _VersionInfoState();
@@ -217,94 +235,112 @@ class _VersionInfoState extends State<_VersionInfo> {
         child: Center(
           child: Builder(
             builder: (context) {
-              if (widget._isThinking) {
-                return const Row(
-                  children: [
-                    SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Checking for updates...',
-                      style: _style,
-                    ),
-                  ],
-                );
-              } else {
-                return Consumer<VelopackModel>(
-                  builder: (context, velopack, child) {
-                    if (velopack.lastChecked == null) {
-                      return const Text(
-                        'Current version is unknown',
-                        textAlign: TextAlign.center,
-                        style: _style,
-                      );
-                    }
-
-                    final Duration ago =
-                        DateTime.now().difference(velopack.lastChecked!);
-
-                    String result;
-                    switch (velopack.updateAvailable) {
-                      case UpdateResult.available:
-                        result = 'An update is available';
-                      case UpdateResult.outOfDate:
-                        result = 'Was not able to check for updates';
-                      case UpdateResult.debug:
-                        result = 'Debug mode';
-                      case null:
-                      case UpdateResult.failed:
-                        result = 'Failed to check for updates';
-                      case UpdateResult.notAvailable:
-                        result = 'You have the latest version';
-                      case UpdateResult.success:
-                        // Not possible
-                        throw Exception('Unexpected update check result');
-                    }
-
-                    return Column(
-                      children: [
-                        Text(
-                          result,
-                          style: _style,
+              switch (widget._isThinking) {
+                case _VersionInfoIs.checkingForUpdates:
+                  return const Row(
+                    children: [
+                      SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              '(last checked ',
-                              style: _style,
-                            ),
-                            Tooltip(
-                              message: DateFormat("EEEE, MMMM d, y 'at' h:m a")
-                                  .format(velopack.lastChecked!),
-                              verticalOffset: 10,
-                              preferBelow: false,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              textStyle: _style,
-                              child: Text(
-                                ago.agoFormat,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Checking for updates...',
+                        style: _style,
+                      ),
+                    ],
+                  );
+                case _VersionInfoIs.isUpdating:
+                  return const Row(
+                    children: [
+                      SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Updating...',
+                        style: _style,
+                      ),
+                    ],
+                  );
+                case _VersionInfoIs.showingInfo:
+                  return Consumer<VelopackModel>(
+                    builder: (context, velopack, child) {
+                      if (velopack.lastChecked == null) {
+                        return const Text(
+                          'Current version is unknown',
+                          textAlign: TextAlign.center,
+                          style: _style,
+                        );
+                      }
+
+                      final Duration ago =
+                          DateTime.now().difference(velopack.lastChecked!);
+
+                      String result;
+                      switch (velopack.updateAvailable) {
+                        case UpdateResult.available:
+                          result = 'An update is available';
+                        case UpdateResult.outOfDate:
+                          result = 'Was not able to check for updates';
+                        case UpdateResult.debug:
+                          result = 'Debug mode';
+                        case null:
+                        case UpdateResult.failed:
+                          result = 'Failed to check for updates';
+                        case UpdateResult.notAvailable:
+                          result = 'You have the latest version';
+                        case UpdateResult.success:
+                          // Not possible
+                          throw Exception('Unexpected update check result');
+                      }
+
+                      return Column(
+                        children: [
+                          Text(
+                            result,
+                            style: _style,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                '(last checked ',
                                 style: _style,
                               ),
-                            ),
-                            const Text(
-                              ')',
-                              style: _style,
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                );
+                              Tooltip(
+                                message:
+                                    DateFormat("EEEE, MMMM d, y 'at' h:m a")
+                                        .format(velopack.lastChecked!),
+                                verticalOffset: 10,
+                                preferBelow: false,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                textStyle: _style,
+                                child: Text(
+                                  ago.agoFormat,
+                                  style: _style,
+                                ),
+                              ),
+                              const Text(
+                                ')',
+                                style: _style,
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  );
               }
             },
           ),
@@ -329,4 +365,10 @@ extension DurationAgo on Duration {
       return 'just now';
     }
   }
+}
+
+enum _VersionInfoIs {
+  showingInfo,
+  checkingForUpdates,
+  isUpdating,
 }
