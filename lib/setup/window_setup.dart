@@ -171,6 +171,7 @@ class _WindowSetupWatcherState extends State<WindowSetupWatcher>
     final bool isPreventClose =
         await WindowManagerPlus.current.isPreventClose();
     if (isPreventClose) {
+      await WindowManagerPlus.current.hide();
       await TtsModel().destroy();
       await WindowManagerPlus.current.destroy();
     }
