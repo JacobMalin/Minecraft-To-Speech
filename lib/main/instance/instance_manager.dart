@@ -9,7 +9,7 @@ import '../../setup/discord_model.dart';
 import 'instance_model.dart';
 import 'log_filter.dart';
 import 'log_river.dart';
-import 'tts_queue.dart';
+import 'tts_model.dart';
 
 /// Manages a minecraft instance. This includes the log streams and instance
 /// info.
@@ -69,7 +69,7 @@ class InstanceController {
 
   late final LogRiver _logRiver;
   final VoidCallback _notifyListeners;
-  final _tts = TtsQueue();
+  final _tts = TtsModel();
   final _discord = DiscordModel();
 
   /// The persitent data of the instance.

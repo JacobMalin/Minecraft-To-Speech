@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+import '../main/instance/tts_model.dart';
 import '../main/main_app.dart';
 import '../main/settings/settings_box.dart';
 import '../process/process_app.dart';
@@ -16,7 +17,10 @@ class WindowSetup {
   static const minSize = Size(450, 250);
 
   /// Starts the app based on the given arguments.
-  static void run(List<String> args) {
+  static Future<void> run(List<String> args) async {
+    final int windowId = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
+    await WindowManagerPlus.ensureInitialized(windowId);
+
     if (args.isEmpty) {
       WindowSetup.main();
 
@@ -56,6 +60,8 @@ class WindowSetup {
           appWindow.size = minSize; // Set starting size small
           appWindow.maximize();
         }
+
+        await WindowManagerPlus.current.setPreventClose(true);
 
         await WindowManagerPlus.current.show();
         await WindowManagerPlus.current.focus();
@@ -158,6 +164,16 @@ class _WindowSetupWatcherState extends State<WindowSetupWatcher>
   @override
   void onWindowUnmaximize([int? windowId]) {
     SettingsBox.isMaximized = false;
+  }
+
+  @override
+  Future<void> onWindowClose([int? windowId]) async {
+    final bool isPreventClose =
+        await WindowManagerPlus.current.isPreventClose();
+    if (isPreventClose) {
+      await TtsModel().destroy();
+      await WindowManagerPlus.current.destroy();
+    }
   }
 }
 
