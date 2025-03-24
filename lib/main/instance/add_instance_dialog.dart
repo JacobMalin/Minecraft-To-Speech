@@ -24,9 +24,9 @@ class AddInstanceDialog extends StatefulWidget {
 
 class _AddInstanceDialogState extends State<AddInstanceDialog> {
   var _isChooseLauncher = true;
-  List<String> _paths = [];
+  Map<String, String> _paths = {};
 
-  void _showOptions(List<String> paths) {
+  void _showOptions(Map<String, String> paths) {
     _paths = paths;
 
     setState(() {
@@ -84,10 +84,10 @@ class _AddInstanceDialogState extends State<AddInstanceDialog> {
 
 class _ChooseLauncher extends StatefulWidget {
   const _ChooseLauncher(
-    Function(List<String>) showOptions,
+    Function(Map<String, String>) showOptions,
   ) : _showOptions = showOptions;
 
-  final Function(List<String>) _showOptions;
+  final Function(Map<String, String>) _showOptions;
 
   @override
   State<_ChooseLauncher> createState() => _ChooseLauncherState();
@@ -99,6 +99,7 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
   final List<Launcher> _launchers = const [
     Minecraft(),
     CurseForge(),
+    MultiMC(),
   ];
 
   final _scrollController = ScrollController();
@@ -158,10 +159,10 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
 
 class _ChoosePath extends StatefulWidget {
   const _ChoosePath(
-    List<String> paths,
+    Map<String, String> paths,
   ) : _paths = paths;
 
-  final List<String> _paths;
+  final Map<String, String> _paths;
 
   @override
   State<_ChoosePath> createState() => _ChoosePathState();
@@ -194,9 +195,13 @@ class _ChoosePathState extends State<_ChoosePath> {
                     controller: _scrollController,
                     itemCount: widget._paths.length,
                     itemBuilder: (context, index) {
-                      final String instanceDirectory =
-                          p.dirname(p.dirname(widget._paths[index]));
-                      final String dirname = p.basename(instanceDirectory);
+                      final String name = widget._paths.keys.elementAt(index);
+
+                      final String instanceDirectory = p.dirname(
+                        p.dirname(
+                          widget._paths[name]!,
+                        ),
+                      );
 
                       return Material(
                         child: ListTile(
@@ -205,7 +210,7 @@ class _ChoosePathState extends State<_ChoosePath> {
                           minTileHeight: 0,
                           leading: const Icon(Icons.folder),
                           title: Text(
-                            PathFormatting.breakBetter(dirname),
+                            PathFormatting.breakBetter(name),
                           ),
                           subtitle: Text(
                             PathFormatting.breakBetter(instanceDirectory),
@@ -213,7 +218,7 @@ class _ChoosePathState extends State<_ChoosePath> {
                           ),
                           onTap: () {
                             Provider.of<InstanceModel>(context, listen: false)
-                                .addFromLog(widget._paths[index]);
+                                .addFromLog(widget._paths[name]!, name: name);
 
                             Navigator.of(context).pop();
                           },
@@ -234,12 +239,12 @@ class _ChoosePathState extends State<_ChoosePath> {
 class _AddFromLauncher extends StatelessWidget {
   const _AddFromLauncher(
     Launcher launcher,
-    Function(List<String>) showOptions,
+    Function(Map<String, String>) showOptions,
   )   : _launcher = launcher,
         _showOptions = showOptions;
 
   final Launcher _launcher;
-  final Function(List<String>) _showOptions;
+  final Function(Map<String, String>) _showOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -254,14 +259,16 @@ class _AddFromLauncher extends StatelessWidget {
         style: const TextStyle(fontSize: 12),
       ),
       onPressed: () {
-        final List<String> paths = _launcher.getPaths();
+        final Map<String, String> paths = _launcher.getPaths();
 
         if (paths.isEmpty) {
           Toaster.showToast('No instances found.');
           return;
         } else if (paths.length == 1) {
-          Provider.of<InstanceModel>(context, listen: false)
-              .addFromLog(paths[0]);
+          Provider.of<InstanceModel>(context, listen: false).addFromLog(
+            paths[paths.keys.first]!,
+            name: paths.keys.first,
+          );
 
           Navigator.of(context).pop();
           return;

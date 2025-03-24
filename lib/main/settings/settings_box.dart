@@ -84,6 +84,12 @@ class SettingsBox {
     _settingsBox['latestVersion'] = value;
   }
 
+  /// The last known path to the MultiMC launcher.
+  static String? get multiMCPath => _settingsBox['multiMCPath'];
+  static set multiMCPath(String? value) {
+    _settingsBox['multiMCPath'] = value;
+  }
+
   /// Expose the box watchKey method.
   static Stream watchKey(String key) {
     return _settingsBox.watchKey(key);
