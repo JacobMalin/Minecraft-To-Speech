@@ -1,7 +1,7 @@
 name: minecraft_to_speech
 description: A minecraft chat reader.
 publish_to: none
-version: 2.0.1
+version: 2.0.2
 
 environment:
   sdk: ^3.6.2
@@ -29,6 +29,7 @@ dependencies:
   provider: ^6.1.2
   smooth_list_view: ^2.0.2
   velopack_flutter: ^0.1.0
+  web_socket_channel: ^3.0.2
   win32: ^5.10.1
   window_manager_plus: ^1.0.5
 
@@ -42,6 +43,7 @@ flutter:
   assets:
     - assets/
     - assets/launchers/
+    - python-modules/dist/tts_server.exe
 
   fonts:
     - family: Minecraft

@@ -33,7 +33,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"minecraft_to_speech", origin, size)) {
     return EXIT_FAILURE;
   }
-  window.SetQuitOnClose(true);
+  window.SetQuitOnClose(false);
   
   WindowManagerPlusPluginSetWindowCreatedCallback(
       [](std::vector<std::string> command_line_arguments) {

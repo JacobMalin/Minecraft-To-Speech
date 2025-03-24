@@ -3,7 +3,7 @@ import 'dart:async';
 import '../../setup/path_formatting.dart';
 import 'instance_manager.dart';
 import 'log_filter.dart';
-import 'tts_queue.dart';
+import 'tts_model.dart';
 
 /// Adds chat commands to the log stream.
 class LogCommands {
@@ -16,7 +16,7 @@ class LogCommands {
 
   final InstanceController _instance;
   var _lastDataIsCommand = false;
-  final _tts = TtsQueue();
+  final _tts = TtsModel();
 
   /// Adds chat commands to the log stream.
   StreamTransformer<String, String> get transformer =>
