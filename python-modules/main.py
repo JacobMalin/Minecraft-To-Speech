@@ -2,6 +2,7 @@ from enum import Enum
 from tts import TTS
 
 import sys
+import signal
 import asyncio
 import functools
 import websockets
@@ -26,6 +27,7 @@ async def handler(websocket, stop):
                     t.speak(split[1])
                     await websocket.send(f"Message received")
     except websockets.ConnectionClosed:
+        t.exit()
         print("Exiting...")
 
 async def main(port):
@@ -35,6 +37,7 @@ async def main(port):
     partial_handler = functools.partial(handler, stop=stop)
     async with websockets.serve(partial_handler, "localhost", port) as server:
         await stop
+        t.exit()
         
 class Header(Enum):
     EXIT = "EXT"

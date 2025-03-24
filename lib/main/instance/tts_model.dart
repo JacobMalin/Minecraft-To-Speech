@@ -87,7 +87,7 @@ class _FlutterTtsStrategy implements _TtsStrategy {
 class _Sapi5Strategy implements _TtsStrategy {
   _Sapi5Strategy() {
     Future<void> init() async {
-      await Process.start(
+      _process = await Process.start(
         'python-modules/dist/tts_server.exe',
         ['--port', _port.toString()],
       );
@@ -105,6 +105,7 @@ class _Sapi5Strategy implements _TtsStrategy {
   static const _port = 53827;
 
   WebSocketChannel? _channel;
+  Process? _process;
 
   @override
   Future<void> speak(String message) async {
@@ -123,6 +124,9 @@ class _Sapi5Strategy implements _TtsStrategy {
   Future<void> destroy() async {
     await _channel?.ready;
     _channel?.sink.add(_TtsServerCodes.exit.toString());
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _process?.kill();
+    });
   }
 }
 
