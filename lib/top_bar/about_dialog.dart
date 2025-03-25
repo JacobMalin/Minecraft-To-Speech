@@ -31,9 +31,9 @@ class _AboutDialogState extends State<AboutDialog> {
           children: [
             Text(
               'About Minecraft To Speech',
-              style: Theme.of(context).textTheme.labelLarge,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Selector<VelopackModel, String>(
               selector: (context, velopack) => velopack.currentVersion,
               builder: (context, version, child) {
@@ -45,7 +45,7 @@ class _AboutDialogState extends State<AboutDialog> {
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
             const _CheckForUpdates(),
             const SizedBox(height: 6),
             TextButton(
@@ -135,10 +135,7 @@ class _CheckForUpdatesState extends State<_CheckForUpdates> {
                     Future.delayed(const Duration(milliseconds: 500))
                   ).wait;
 
-                  if (result == UpdateResult.success) {
-                    // May be unreachable; Needs testing
-                    Toaster.showToast('Updating! Application will restart.');
-                  } else {
+                  if (result != UpdateResult.success) {
                     Toaster.showToast('Failed to update.');
                   }
 

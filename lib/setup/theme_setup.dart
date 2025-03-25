@@ -17,7 +17,15 @@ class ThemeSetup {
     return ThemeData(
       colorScheme: colorScheme,
       splashFactory: NoSplash.splashFactory,
-      textButtonTheme: const TextButtonThemeData(style: buttonStyle),
+      textButtonTheme: TextButtonThemeData(
+        style: buttonStyle.copyWith(
+          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+        ),
+      ),
       iconButtonTheme: const IconButtonThemeData(style: buttonStyle),
       menuButtonTheme: const MenuButtonThemeData(style: buttonStyle),
       filledButtonTheme: const FilledButtonThemeData(style: buttonStyle),

@@ -8,10 +8,19 @@ class VelopackModel extends ChangeNotifier {
       final PackageInfo packageInfo = await PackageInfo.fromPlatform();
       currentVersion = packageInfo.version;
 
-      // Request the current version
-      await checkForUpdates();
+      if (SettingsBox.autoUpdate) {
+        if (updateAvailable == UpdateResult.available) {
+          await updateAndRestart();
+          if (kDebugMode) print('Update and restart');
+        }
 
-      // TODO: Implement auto-update
+        WindowSetup.main();
+      } else {
+        WindowSetup.main();
+
+        // Request the current version
+        await checkForUpdates();
+      }
     }
 
     unawaited(init());
@@ -31,6 +40,8 @@ class VelopackModel extends ChangeNotifier {
       exit(0);
     }
   }
+
+  static var ready = false;
 
   var _mutex = false;
 

@@ -22,7 +22,7 @@ class WindowSetup {
     await WindowManagerPlus.ensureInitialized(windowId);
 
     if (args.isEmpty) {
-      WindowSetup.main();
+      // Window setup moved to velopack init
 
       runApp(const MainApp());
     } else if (args.length >= 3 && args[1] == WindowType.process) {
@@ -64,7 +64,6 @@ class WindowSetup {
         await WindowManagerPlus.current.setPreventClose(true);
 
         await WindowManagerPlus.current.show();
-        await WindowManagerPlus.current.focus();
       }),
     );
   }

@@ -90,12 +90,44 @@ class _GeneralSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 20,
-      children: [
-        _BrightnessSwitch(),
-      ],
+    return Consumer<SettingsModel>(
+      builder: (context, settings, child) {
+        final brightnessValue = settings.themeMode == ThemeMode.system
+            ? Theme.of(context).brightness == Brightness.dark
+            : settings.themeMode == ThemeMode.dark;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 402,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchTile(
+                    text: 'Dark Mode',
+                    value: brightnessValue,
+                    onChanged: () => settings.themeMode =
+                        brightnessValue ? ThemeMode.light : ThemeMode.dark,
+                  ),
+                  SwitchTile(
+                    text: 'Hide Update Messages',
+                    value: settings.hideUpdate,
+                    onChanged: () => settings.hideUpdate = !settings.hideUpdate,
+                  ),
+                  SwitchTile(
+                    text: 'Automatically Update',
+                    value: settings.autoUpdate,
+                    onChanged: () => settings.autoUpdate = !settings.autoUpdate,
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+          ],
+        );
+      },
     );
   }
 }
@@ -107,7 +139,7 @@ class _TtsSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Placeholder());
+    return const Center(child: Text('No settings yet!'));
   }
 }
 
@@ -213,6 +245,63 @@ class _BrightnessSwitch extends StatelessWidget {
                       mode ? ThemeMode.dark : ThemeMode.light,
                 );
               },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A tile with a switch and text. A better version of SwitchListTile.
+class SwitchTile extends StatelessWidget {
+  /// A tile with a switch and text. A better version of SwitchListTile.
+  const SwitchTile({
+    required String text,
+    required bool value,
+    required VoidCallback onChanged,
+    super.key,
+  })  : _text = text,
+        _value = value,
+        _onChanged = onChanged;
+
+  final String _text;
+  final bool _value;
+  final VoidCallback _onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        TextButton(
+          style: ButtonStyle(
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+            textStyle: WidgetStatePropertyAll(
+              Theme.of(context).textTheme.bodySmall,
+            ),
+            foregroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.onSurface,
+            ),
+            padding: const WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: 2),
+            ),
+          ),
+          onPressed: _onChanged,
+          child: Text(
+            _text,
+            style:
+                Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 14),
+          ),
+        ),
+        const Spacer(),
+        SizedBox(
+          height: 30,
+          child: FittedBox(
+            fit: BoxFit.fill,
+            child: Switch(
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+              value: _value,
+              onChanged: (_) => _onChanged(),
             ),
           ),
         ),

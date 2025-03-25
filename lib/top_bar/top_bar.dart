@@ -29,7 +29,22 @@ class MainTopBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       menuButtons: const MenuButtons(),
-      nextToWindowsButtons: const IconSwapButton(),
+      nextToWindowsButtons: Consumer<VelopackModel>(
+        builder: (context, velopack, child) {
+          return Consumer<SettingsModel>(
+            builder: (context, settings, child) {
+              return Row(
+                children: [
+                  if (velopack.updateAvailable == UpdateResult.available &&
+                      !settings.hideUpdate)
+                    const UpdateAvailableButton(),
+                  const IconSwapButton(),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -151,7 +166,6 @@ class _TopBarState extends State<_TopBar> with WindowListener {
                 widget.menuButtons,
                 const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
                 widget.nextToWindowsButtons,
-                const DragToMoveArea(child: SizedBox(width: 2)),
                 WindowsButtons(brightness: brightness),
               ],
             ),
