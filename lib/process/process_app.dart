@@ -10,6 +10,7 @@ import 'package:smooth_list_view/smooth_list_view.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 import '../main/instance/instance_model.dart';
+import '../main/instance/log_blacklist.dart';
 import '../main/instance/log_filter.dart';
 import '../main/settings/settings_box.dart';
 import '../setup/focus_model.dart';
@@ -45,15 +46,9 @@ class _ProcessAppState extends State<ProcessApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SettingsModel>(
-          create: (_) => SettingsModel(),
-        ),
-        ChangeNotifierProvider<InstanceModel>(
-          create: (_) => InstanceModel(),
-        ),
-        ChangeNotifierProvider<FocusModel>(
-          create: (_) => FocusModel(),
-        ),
+        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+        ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
+        ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
       child: Selector<SettingsModel, ThemeMode>(
         selector: (context, settings) => settings.themeMode,
@@ -126,7 +121,9 @@ class _ProcessAppState extends State<ProcessApp> {
     await WindowSetup.focusAndBringToFront();
   }
 
-  static Future<String> _processLog(String? path) async {
+  static Future<String> _processLog(
+    String? path,
+  ) async {
     final inFile = File(path!);
 
     final String pathWithoutExt = p.withoutExtension(path);
@@ -150,6 +147,12 @@ class _ProcessAppState extends State<ProcessApp> {
         .where(LogFilter.onlyChat)
         .map(LogFilter.commonMap)
         .map(LogFilter.discordMap)
+        .where(
+          (msg) => LogBlacklist.filter(
+            msg,
+            blacklistStream: BlacklistStream.process,
+          ),
+        )
         .toList();
 
     await outFile.writeAsString(lines.join('\n'));

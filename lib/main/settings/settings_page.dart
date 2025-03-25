@@ -218,41 +218,6 @@ class _TokenFieldState extends State<_TokenField> {
   }
 }
 
-class _BrightnessSwitch extends StatelessWidget {
-  const _BrightnessSwitch();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Dark Mode',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: 5),
-        SizedBox(
-          height: 30,
-          child: FittedBox(
-            fit: BoxFit.fill,
-            child: Consumer<SettingsModel>(
-              builder: (context, settings, child) {
-                return Switch(
-                  value: settings.themeMode == ThemeMode.system
-                      ? Theme.of(context).brightness == Brightness.dark
-                      : settings.themeMode == ThemeMode.dark,
-                  onChanged: (mode) => settings.themeMode =
-                      mode ? ThemeMode.dark : ThemeMode.light,
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// A tile with a switch and text. A better version of SwitchListTile.
 class SwitchTile extends StatelessWidget {
   /// A tile with a switch and text. A better version of SwitchListTile.

@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 
 import '../main/instance/instance_manager.dart';
+import '../main/instance/log_blacklist.dart';
 
 /// A class to set up hive.
 class HiveSetup {
@@ -32,6 +33,10 @@ class HiveSetup {
     Hive.registerAdapter(
       'InstanceInfo',
       (dynamic json) => InstanceInfo.fromJson(json as Map<String, dynamic>),
+    );
+    Hive.registerAdapter(
+      'BlacklistItem',
+      (dynamic json) => BlacklistItem.fromJson(json as Map<String, dynamic>),
     );
   }
 }

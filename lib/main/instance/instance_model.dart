@@ -22,7 +22,12 @@ class InstanceModel extends ChangeNotifier {
       }
 
       for (final String path in InstanceBox.paths) {
-        instances.add(InstanceController(path, notifyListeners));
+        instances.add(
+          InstanceController(
+            path,
+            notifyListeners,
+          ),
+        );
       }
     } else {
       InstanceBox.infos.clear();
@@ -89,7 +94,13 @@ class InstanceModel extends ChangeNotifier {
     }
 
     // Else if new instance,
-    instances.add(InstanceController(path, notifyListeners, name: name));
+    instances.add(
+      InstanceController(
+        path,
+        notifyListeners,
+        name: name,
+      ),
+    );
     _updatePaths();
 
     selectedIndex = instances.length - 1; // Select newly added instance

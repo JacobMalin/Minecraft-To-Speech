@@ -41,8 +41,6 @@ class VelopackModel extends ChangeNotifier {
     }
   }
 
-  static var ready = false;
-
   var _mutex = false;
 
   /// The current version of the software.
