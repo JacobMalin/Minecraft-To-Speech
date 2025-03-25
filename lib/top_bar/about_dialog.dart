@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../main/settings/settings_box.dart';
 import '../setup/toaster.dart';
+import 'top_bar.dart';
 
 /// This is a dialog that shows information about the application.
 class AboutDialog extends StatefulWidget {
@@ -19,13 +20,12 @@ class AboutDialog extends StatefulWidget {
 class _AboutDialogState extends State<AboutDialog> {
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
+    const double horizPadding = 30;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.only(top: MainTopBar.height),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 12, 30, 6),
+        padding: const EdgeInsets.fromLTRB(horizPadding, 12, horizPadding, 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

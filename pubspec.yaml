@@ -7,7 +7,6 @@ environment:
   sdk: ^3.6.2
 
 dependencies:
-  aligned_dialog: ^0.0.7
   bitsdojo_window: ^0.1.6
   dynamic_background: ^0.5.0
   file_picker: ^8.3.3

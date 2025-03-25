@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -42,41 +43,41 @@ class _AddInstanceDialogState extends State<AddInstanceDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Stack(
-          children: [
-            if (_isChooseLauncher)
-              _ChooseLauncher(_showOptions)
-            else
-              _ChoosePath(_paths),
-            Positioned(
-              left: 8,
-              top: 8,
-              child: SizedBox.square(
-                dimension: 32,
-                child: IconButton(
-                  iconSize: 22,
-                  padding: EdgeInsets.zero,
-                  icon:
-                      Icon(_isChooseLauncher ? Icons.close : Icons.arrow_back),
-                  onPressed: () {
-                    if (_isChooseLauncher) {
-                      Navigator.of(context).pop();
-                    } else {
-                      _showLaunchers();
-                    }
-                  },
-                ),
+    const double horizPadding = 21, vertPadding = 13.5;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.fromLTRB(
+        horizPadding,
+        vertPadding + MainTopBar.height,
+        horizPadding,
+        vertPadding,
+      ),
+      child: Stack(
+        children: [
+          if (_isChooseLauncher)
+            _ChooseLauncher(_showOptions)
+          else
+            _ChoosePath(_paths),
+          Positioned(
+            left: 8,
+            top: 8,
+            child: SizedBox.square(
+              dimension: 32,
+              child: IconButton(
+                iconSize: 22,
+                padding: EdgeInsets.zero,
+                icon: Icon(_isChooseLauncher ? Icons.close : Icons.arrow_back),
+                onPressed: () {
+                  if (_isChooseLauncher) {
+                    Navigator.of(context).pop();
+                  } else {
+                    _showLaunchers();
+                  }
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -102,8 +103,6 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
     MultiMC(),
   ];
 
-  final _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
@@ -119,39 +118,60 @@ class _ChooseLauncherState extends State<_ChooseLauncher> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 26),
-        child: Column(
-          children: [
-            const SizedBox(height: 14),
-            Text(
-              'Add Instance',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            const Spacer(),
-            SizedBox(
-              height: 114,
-              child: Scrollbar(
-                controller: _scrollController,
-                thumbVisibility: true,
-                child: SmoothListView.separated(
-                  duration: const Duration(milliseconds: 300),
-                  controller: _scrollController,
-                  shrinkWrap: true,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: sources.length,
-                  itemBuilder: (context, index) => sources[index],
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 20),
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 26, right: 26, bottom: 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 14),
+              Text(
+                'Add Instance',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-            ),
-            const Spacer(),
-          ],
-        ),
+              const SizedBox(height: 8),
+              Builder(
+                builder: (context) {
+                  final controller = ScrollController();
+                  const double ignoreHeight = 52;
+                  const double runSpacing = 12, spacing = 20;
+                  const double heightBlock = 100 + runSpacing;
+                  const double widthBlock = 100 + spacing;
+
+                  final int numRows =
+                      (constraints.maxHeight - ignoreHeight) ~/ heightBlock;
+                  final int numCols = (sources.length / numRows).ceil();
+
+                  return Scrollbar(
+                    controller: controller,
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      controller: controller,
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: max(
+                              numCols * widthBlock - spacing,
+                              constraints.maxWidth,
+                            ),
+                          ),
+                          child: Wrap(
+                            spacing: spacing,
+                            runSpacing: runSpacing,
+                            children: sources,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -175,61 +195,58 @@ class _ChoosePathState extends State<_ChoosePath> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SizedBox(
-          height: constraints.maxHeight - MainTopBar.height - 20,
-          child: Column(
-            children: [
-              const SizedBox(height: 14),
-              Text(
-                'Choose Instance',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: Scrollbar(
+        return Column(
+          children: [
+            const SizedBox(height: 14),
+            Text(
+              'Choose Instance',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                child: SmoothListView.builder(
+                  shrinkWrap: true,
+                  duration: const Duration(milliseconds: 300),
                   controller: _scrollController,
-                  thumbVisibility: true,
-                  child: SmoothListView.builder(
-                    shrinkWrap: true,
-                    duration: const Duration(milliseconds: 300),
-                    controller: _scrollController,
-                    itemCount: widget._paths.length,
-                    itemBuilder: (context, index) {
-                      final String name = widget._paths.keys.elementAt(index);
+                  itemCount: widget._paths.length,
+                  itemBuilder: (context, index) {
+                    final String name = widget._paths.keys.elementAt(index);
 
-                      final String instanceDirectory = p.dirname(
-                        p.dirname(
-                          widget._paths[name]!,
+                    final String instanceDirectory = p.dirname(
+                      p.dirname(
+                        widget._paths[name]!,
+                      ),
+                    );
+
+                    return Material(
+                      child: ListTile(
+                        dense: true,
+                        minVerticalPadding: 6,
+                        minTileHeight: 0,
+                        leading: const Icon(Icons.folder),
+                        title: Text(
+                          PathFormatting.breakBetter(name),
                         ),
-                      );
-
-                      return Material(
-                        child: ListTile(
-                          dense: true,
-                          minVerticalPadding: 6,
-                          minTileHeight: 0,
-                          leading: const Icon(Icons.folder),
-                          title: Text(
-                            PathFormatting.breakBetter(name),
-                          ),
-                          subtitle: Text(
-                            PathFormatting.breakBetter(instanceDirectory),
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                          onTap: () {
-                            Provider.of<InstanceModel>(context, listen: false)
-                                .addFromLog(widget._paths[name]!, name: name);
-
-                            Navigator.of(context).pop();
-                          },
+                        subtitle: Text(
+                          PathFormatting.breakBetter(instanceDirectory),
+                          style: const TextStyle(fontSize: 10),
                         ),
-                      );
-                    },
-                  ),
+                        onTap: () {
+                          Provider.of<InstanceModel>(context, listen: false)
+                              .addFromLog(widget._paths[name]!, name: name);
+
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
