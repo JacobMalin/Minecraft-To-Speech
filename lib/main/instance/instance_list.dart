@@ -159,7 +159,7 @@ class _InstanceTile extends StatelessWidget {
         }
 
         return GestureDetector(
-          onSecondaryTapDown: (details) async => _showInstanceContextMenu(
+          onSecondaryTapDown: (details) async => _showContextMenu(
             context,
             details.globalPosition,
             _index,
@@ -209,7 +209,7 @@ class _InstanceTile extends StatelessWidget {
     );
   }
 
-  Future<void> _showInstanceContextMenu(
+  Future<void> _showContextMenu(
     BuildContext context,
     Offset position,
     int index,
@@ -227,6 +227,7 @@ class _InstanceTile extends StatelessWidget {
       ),
       menuPadding: EdgeInsets.zero,
       popUpAnimationStyle: AnimationStyle.noAnimation,
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       items: <PopupMenuEntry<void>>[
         if (index > 0)
           PopupMenuItem(

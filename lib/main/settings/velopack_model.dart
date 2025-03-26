@@ -14,9 +14,9 @@ class VelopackModel extends ChangeNotifier {
           if (kDebugMode) print('Update and restart');
         }
 
-        WindowSetup.main();
+        MainApp.setup();
       } else {
-        WindowSetup.main();
+        MainApp.setup();
 
         // Request the current version
         await checkForUpdates();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../blacklist/blacklist.dart';
 import '../../setup/discord_model.dart';
 import 'settings_box.dart';
 
@@ -69,14 +70,17 @@ class _SettingsPageState extends State<SettingsPage>
             ],
           ),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: const <Widget>[
-                _GeneralSettings(),
-                _TtsSettings(),
-                _DiscordSettings(),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const <Widget>[
+                  _GeneralSettings(),
+                  _TtsSettings(),
+                  _DiscordSettings(),
+                ],
+              ),
             ),
           ),
         ],
@@ -100,7 +104,7 @@ class _GeneralSettings extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 402,
+              width: 394,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -120,6 +124,11 @@ class _GeneralSettings extends StatelessWidget {
                     text: 'Automatically Update',
                     value: settings.autoUpdate,
                     onChanged: () => settings.autoUpdate = !settings.autoUpdate,
+                  ),
+                  ButtonTile(
+                    text: 'Edit Blacklist',
+                    buttonChild: const Icon(Icons.edit),
+                    onPressed: () async => Blacklist.edit(),
                   ),
                 ],
               ),
@@ -248,7 +257,7 @@ class SwitchTile extends StatelessWidget {
               Theme.of(context).colorScheme.onSurface,
             ),
             padding: const WidgetStatePropertyAll(
-              EdgeInsets.symmetric(horizontal: 2),
+              EdgeInsets.zero,
             ),
           ),
           onPressed: _onChanged,
@@ -268,6 +277,50 @@ class SwitchTile extends StatelessWidget {
               value: _value,
               onChanged: (_) => _onChanged(),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A tile with a button and text.
+class ButtonTile extends StatelessWidget {
+  /// A tile with a button and text.
+  const ButtonTile({
+    required String text,
+    required Widget buttonChild,
+    required VoidCallback onPressed,
+    super.key,
+  })  : _text = text,
+        _buttonChild = buttonChild,
+        _onPressed = onPressed;
+
+  final String _text;
+  final Widget _buttonChild;
+  final VoidCallback _onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          _text,
+          style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 14),
+        ),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          child: TextButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(context).colorScheme.surfaceBright,
+              ),
+              padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+              minimumSize: const WidgetStatePropertyAll(Size(49, 32)),
+            ),
+            onPressed: _onPressed,
+            child: _buttonChild,
           ),
         ),
       ],

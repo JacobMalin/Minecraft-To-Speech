@@ -4,8 +4,8 @@ import 'dart:ui';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 
+import '../blacklist/blacklist.dart';
 import '../main/instance/instance_manager.dart';
-import '../main/instance/log_blacklist.dart';
 
 /// A class to set up hive.
 class HiveSetup {

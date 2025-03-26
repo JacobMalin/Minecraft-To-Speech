@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:velopack_flutter/velopack_flutter.dart' as velopack;
 import '../../setup/hive_setup.dart';
-import '../../setup/window_setup.dart';
+import '../main_app.dart';
 
 part 'settings_model.dart';
 part 'velopack_model.dart';

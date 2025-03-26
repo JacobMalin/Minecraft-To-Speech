@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../setup/path_formatting.dart';
 import '../../setup/theme_setup.dart';
-import '../../setup/window_setup.dart';
 import '../../top_bar/top_bar.dart';
+import '../main_app.dart';
 import 'chat_view.dart';
 import 'instance_list.dart';
 import 'instance_manager.dart';
@@ -85,9 +85,8 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
         }
         if (_controller.text != selected.name) _controller.text = selected.name;
 
-        final double height = WindowSetup.minSize.height -
-            MainTopBar.height -
-            windowsTitleBarHeight;
+        final double height =
+            MainApp.minSize.height - MainTopBar.height - windowsTitleBarHeight;
         return Column(
           children: [
             Container(

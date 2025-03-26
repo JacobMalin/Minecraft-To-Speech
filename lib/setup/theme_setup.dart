@@ -40,6 +40,8 @@ class ThemeSetup {
         backgroundColor: colorScheme.surfaceContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+      dividerTheme:
+          DividerThemeData(color: colorScheme.surfaceContainerHighest),
     );
   }
 

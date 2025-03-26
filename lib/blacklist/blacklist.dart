@@ -1,14 +1,28 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../../setup/toaster.dart';
+import '../main/instance/log_filter.dart';
+import '../setup/toaster.dart';
+import '../setup/window_setup.dart';
 
 /// Blacklist certain phrases from being read.
-class LogBlacklist {
+class Blacklist {
   static final Box _blacklistBox = Hive.box<BlacklistItem>(name: 'blacklist');
+
+  static WindowManagerPlus? _window;
+
+  /// Edit the blacklist.
+  static Future<void> edit() async {
+    final List<int> windows = await WindowManagerPlus.getAllWindowManagerIds();
+    if (windows.contains(_window?.id)) {
+      await WindowSetup.focusAndBringToFront(_window!.id);
+    } else {
+      _window = await WindowManagerPlus.createWindow([WindowType.blacklist]);
+    }
+  }
 
   /// A filter for the blaclist items. If a message has a hit with any of the
   /// blacklist items, it will be filtered out.
@@ -90,7 +104,7 @@ class BlacklistItem {
     return other is BlacklistItem &&
         other.phrase == phrase &&
         other.blacklistMatch == blacklistMatch &&
-        other.blacklistStreams == blacklistStreams;
+        setEquals(other.blacklistStreams, blacklistStreams);
   }
 
   @override
@@ -98,8 +112,8 @@ class BlacklistItem {
 
   @override
   String toString() =>
-      'BlacklistItem(phrase: $phrase, blacklistMatch: $blacklistMatch, '
-      'blacklistStream: $blacklistStreams)';
+      'BlacklistItem(phrase: "$phrase", ${blacklistMatch.name}, '
+      '${blacklistStreams.map((stream) => stream.name)})';
 
   /// Convert the blacklist item to a json object.
   Map<String, dynamic> toJson() => {
@@ -114,8 +128,8 @@ class BlacklistItem {
       return false;
     }
 
-    final String lowerMessage = message.toLowerCase();
-    final String lowerPhrase = phrase.toLowerCase();
+    final String lowerMessage = message.toLowerCase().removeFormatTags();
+    final String lowerPhrase = phrase.toLowerCase().removeFormatTags();
 
     switch (blacklistMatch) {
       case BlacklistMatch.exact:

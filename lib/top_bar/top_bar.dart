@@ -88,6 +88,42 @@ class ProcessTopBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(_height);
 }
 
+/// The top bar of the blacklist window.
+class BlacklistTopBar extends StatelessWidget implements PreferredSizeWidget {
+  /// The top bar of the blacklist window.
+  const BlacklistTopBar({super.key});
+
+  static const double _height = 30;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TopBar(
+      height: _height,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).colorScheme.onSecondary
+          : Theme.of(context).colorScheme.secondaryFixed,
+      icon: Padding(
+        padding: const EdgeInsets.only(left: 8, right: 6),
+        child: ImageIcon(
+          size: 17,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+          const AssetImage('assets/mts_icon.ico'),
+        ),
+      ),
+      title: Text(
+        'Blacklist',
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(_height);
+}
+
 class _TopBar extends StatefulWidget {
   _TopBar({
     required double height,
