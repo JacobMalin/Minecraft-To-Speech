@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../blacklist/blacklist.dart';
+import '../../blacklist/blacklist_model.dart';
 import '../../setup/discord_model.dart';
+import '../../setup/text_field_context.dart';
 import 'settings_box.dart';
 
 /// The settings page. This page allows the user to change settings.
@@ -21,7 +22,11 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void initState() {
     super.initState();
+
+    final SettingsModel settings =
+        Provider.of<SettingsModel>(context, listen: false);
     _tabController = TabController(
+      initialIndex: settings.tabIndex,
       animationDuration: Duration.zero,
       length: 3,
       vsync: this,
@@ -58,6 +63,9 @@ class _SettingsPageState extends State<SettingsPage>
                 height: 30,
                 child: TabBar(
                   controller: _tabController,
+                  onTap: (value) =>
+                      Provider.of<SettingsModel>(context, listen: false)
+                          .tabIndex = value,
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
                   tabs: const [
@@ -128,7 +136,7 @@ class _GeneralSettings extends StatelessWidget {
                   ButtonTile(
                     text: 'Edit Blacklist',
                     buttonChild: const Icon(Icons.edit),
-                    onPressed: () async => Blacklist.edit(),
+                    onPressed: () async => BlacklistModel.edit(),
                   ),
                 ],
               ),
@@ -213,6 +221,7 @@ class _TokenFieldState extends State<_TokenField> {
           builder: (context, discord, child) => IntrinsicWidth(
             child: TextField(
               controller: _controller,
+              contextMenuBuilder: TextFieldContext.builder,
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 hintText: 'Enter a token to enable the discord bot!',

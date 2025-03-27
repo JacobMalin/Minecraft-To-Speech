@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+import '../blacklist/blacklist_model.dart';
 import '../process/process_controller.dart';
 import '../setup/dialog_service.dart';
 import '../setup/discord_model.dart';
@@ -72,6 +73,7 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<BlacklistModel>(create: (_) => BlacklistModel()),
         ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
         ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
         ChangeNotifierProvider<VelopackModel>(create: (_) => VelopackModel()),

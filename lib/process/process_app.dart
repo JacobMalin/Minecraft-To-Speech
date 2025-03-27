@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-import '../blacklist/blacklist.dart';
+import '../blacklist/blacklist_model.dart';
 import '../main/instance/instance_model.dart';
 import '../main/instance/log_filter.dart';
 import '../main/settings/settings_box.dart';
@@ -161,7 +161,7 @@ class _ProcessAppState extends State<ProcessApp> {
         .map(LogFilter.commonMap)
         .map(LogFilter.discordMap)
         .where(
-          (msg) => Blacklist.filter(
+          (msg) => BlacklistModel.filter(
             msg,
             blacklistStream: BlacklistStream.process,
           ),

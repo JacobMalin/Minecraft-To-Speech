@@ -225,9 +225,7 @@ class _InstanceTile extends StatelessWidget {
         position.dx,
         position.dy,
       ),
-      menuPadding: EdgeInsets.zero,
       popUpAnimationStyle: AnimationStyle.noAnimation,
-      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       items: <PopupMenuEntry<void>>[
         if (index > 0)
           PopupMenuItem(

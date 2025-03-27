@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
-import '../../blacklist/blacklist.dart';
+import '../../blacklist/blacklist_model.dart';
 import '../../setup/discord_model.dart';
 import 'instance_model.dart';
 import 'log_filter.dart';
@@ -48,7 +48,7 @@ class InstanceController {
         ..addSubscription(
           map: LogFilter.ttsMap,
           where: (msg) =>
-              Blacklist.filter(msg, blacklistStream: BlacklistStream.tts),
+              BlacklistModel.filter(msg, blacklistStream: BlacklistStream.tts),
           isEnabled: () => isEnabled && isTts,
           onData: _tts.speak,
           onCancel: _tts.clear,
@@ -57,8 +57,10 @@ class InstanceController {
         // Discord stream
         ..addSubscription(
           map: LogFilter.discordMap,
-          where: (msg) =>
-              Blacklist.filter(msg, blacklistStream: BlacklistStream.discord),
+          where: (msg) => BlacklistModel.filter(
+            msg,
+            blacklistStream: BlacklistStream.discord,
+          ),
           isEnabled: () => isEnabled && isDiscord,
           onData: _discord.send,
           onCancel: _discord.clear,

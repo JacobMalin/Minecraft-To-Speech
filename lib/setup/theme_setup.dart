@@ -33,8 +33,10 @@ class ThemeSetup {
       outlinedButtonTheme: const OutlinedButtonThemeData(style: buttonStyle),
       segmentedButtonTheme: const SegmentedButtonThemeData(style: buttonStyle),
       buttonTheme: const ButtonThemeData(splashColor: Colors.transparent),
-      toggleButtonsTheme: const ToggleButtonsThemeData(
+      toggleButtonsTheme: ToggleButtonsThemeData(
         splashColor: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        borderWidth: 2,
       ),
       dialogTheme: DialogTheme(
         backgroundColor: colorScheme.surfaceContainer,
@@ -42,6 +44,18 @@ class ThemeSetup {
       ),
       dividerTheme:
           DividerThemeData(color: colorScheme.surfaceContainerHighest),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(5),
+        ),
+        textStyle: TextStyle(color: colorScheme.onSurface),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: colorScheme.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        menuPadding: EdgeInsets.zero,
+      ),
     );
   }
 

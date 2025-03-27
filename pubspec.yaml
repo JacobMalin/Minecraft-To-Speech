@@ -40,6 +40,7 @@ flutter:
   assets:
     - assets/
     - assets/launchers/
+    - assets/blacklist/
     - python-modules/dist/tts_server.exe
 
   fonts:

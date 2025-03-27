@@ -316,12 +316,6 @@ class _VersionInfoState extends State<_VersionInfo> {
                                         .format(velopack.lastChecked!),
                                 verticalOffset: 10,
                                 preferBelow: false,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
                                 textStyle: _style,
                                 child: Text(
                                   ago.agoFormat,
