@@ -237,6 +237,23 @@ class _InstanceChatMessageState extends State<_InstanceChatMessage> {
     var divHeightAdd = 0;
     var divHeightDeleteEdit = 0;
 
+    if (!BlacklistModel.contains(widget._message)) {
+      buttonItems.add(
+        ContextMenuButtonItem(
+          onPressed: () {
+            final BlacklistModel blacklist =
+                Provider.of<BlacklistModel>(context, listen: false);
+            ContextMenuController.removeAny();
+            if (blacklist.add(widget._message)) {
+              Toaster.showToast('Added message to blacklist.');
+            }
+          },
+          label: 'Add message to blacklist',
+        ),
+      );
+      divHeightAdd++;
+    }
+
     final String textInside = _selection?.textInside(widget._message) ?? '';
     if (textInside.isNotEmpty && textInside != widget._message) {
       BlacklistMatch match;
@@ -246,23 +263,6 @@ class _InstanceChatMessageState extends State<_InstanceChatMessage> {
         match = BlacklistMatch.endsWith;
       } else {
         match = BlacklistMatch.contains;
-      }
-
-      if (!BlacklistModel.contains(widget._message)) {
-        buttonItems.add(
-          ContextMenuButtonItem(
-            onPressed: () {
-              final BlacklistModel blacklist =
-                  Provider.of<BlacklistModel>(context, listen: false);
-              ContextMenuController.removeAny();
-              if (blacklist.add(widget._message)) {
-                Toaster.showToast('Added message to blacklist.');
-              }
-            },
-            label: 'Add message to blacklist',
-          ),
-        );
-        divHeightAdd++;
       }
 
       if (!BlacklistModel.contains(textInside, blacklistMatch: match)) {
