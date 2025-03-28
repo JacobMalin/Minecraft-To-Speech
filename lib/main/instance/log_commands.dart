@@ -63,11 +63,11 @@ class LogCommands {
         if (_instance.isTts) {
           sink.add('Disabled text-to-speech');
           await _instance.updateWith(tts: false);
-          _tts.speak('Disabled text-to-speech');
+          await _tts.speak('Disabled text-to-speech');
         } else {
           sink.add('Enabled text-to-speech');
           await _instance.updateWith(tts: true);
-          _tts.speak('Enabled text-to-speech');
+          await _tts.speak('Enabled text-to-speech');
         }
       case 'clear':
         await _tts.clear();

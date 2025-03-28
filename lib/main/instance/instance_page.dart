@@ -271,6 +271,7 @@ class InstanceInfoButtons extends StatelessWidget {
                   : null,
               fillColor: instanceTheme.enabled.withAlpha(150),
               selectedColor: Theme.of(context).colorScheme.onSurface,
+              borderWidth: 1,
               children: const [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10),

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -21,8 +23,32 @@ class TtsModel {
 
   final _TtsStrategy _strategy = _Sapi5Strategy();
 
+  /// The volume of the TTS messages.
+  double get volume => _strategy.volume;
+
+  /// The volume of the TTS messages.
+  Future<void> setVolume(double value) async => _strategy.setVolume(value);
+
+  /// The speech rate of the TTS messages.
+  double get rate => _strategy.rate;
+
+  /// The speech rate of the TTS messages.
+  Future<void> setRate(double value) async => _strategy.setRate(value);
+
+  /// The speech rate of the TTS messages as a string.
+  String get rateAsString => _strategy.rateAsString;
+
+  /// The minimum acceptable speech rate for TTS messages.
+  double get rateMin => _strategy.rateMin;
+
+  /// The maximum acceptable speech rate for TTS messages.
+  double get rateMax => _strategy.rateMax;
+
+  /// The step size for the speech rate.
+  double get rateStep => _strategy.rateStep;
+
   /// Add a message to the TTS queue.
-  void speak(String message) => _strategy.speak(message);
+  Future<void> speak(String message) async => _strategy.speak(message);
 
   /// Clear the TTS queue.
   Future<void> clear() async => _strategy.clear();
@@ -33,8 +59,28 @@ class TtsModel {
 
 /// Strategy for speaking TTS messages.
 abstract class _TtsStrategy {
+  /// The volume for TTS messages.
+  double get volume;
+  Future<void> setVolume(double value);
+
+  /// The speech rate for TTS messages.
+  double get rate;
+  Future<void> setRate(double value);
+
+  /// The speech rate of the TTS messages as a string.
+  String get rateAsString;
+
+  // The minimum acceptable rate for TTS messages.
+  double get rateMin;
+
+  /// The maximum acceptable rate for TTS messages.
+  double get rateMax;
+
+  /// The step size for the speech rate.
+  double get rateStep;
+
   /// Speak a message.
-  void speak(String message);
+  Future<void> speak(String message);
 
   /// Clear the TTS queue.
   Future<void> clear();
@@ -49,8 +95,9 @@ class _FlutterTtsStrategy implements _TtsStrategy {
   _FlutterTtsStrategy() {
     Future<void> configureTts() async {
       await _flutterTts.setLanguage('en-US');
-      await _flutterTts.setSpeechRate(1);
-      await _flutterTts.setVolume(1);
+
+      await setVolume(_box.volume);
+      await setRate(_box.rate);
     }
 
     unawaited(configureTts());
@@ -68,12 +115,43 @@ class _FlutterTtsStrategy implements _TtsStrategy {
     });
   }
 
+  final _box = _TtsBox(
+    'flutterTts',
+    defaultVolume: 1,
+    defaultRate: 1,
+  );
   final _flutterTts = FlutterTts();
   final Queue _queue = Queue<String>();
   var _isSpeaking = false;
 
   @override
-  void speak(String message) => _queue.add(message);
+  double get volume => _box.volume;
+  @override
+  Future<void> setVolume(double volume) async {
+    _box.volume = volume;
+    await _flutterTts.setVolume(volume);
+  }
+
+  @override
+  double get rate => _box.rate;
+  @override
+  Future<void> setRate(double rate) async {
+    _box.rate = rate;
+    await _flutterTts.setSpeechRate(rate);
+  }
+
+  @override
+  String get rateAsString => rate.toStringAsFixed(2);
+
+  @override
+  double get rateMin => 0;
+  @override
+  double get rateMax => 1;
+  @override
+  double get rateStep => 0.1;
+
+  @override
+  Future<void> speak(String message) async => _queue.add(message);
 
   @override
   Future<void> clear() async {
@@ -125,7 +203,23 @@ class _Sapi5Strategy implements _TtsStrategy {
         Uri.parse('ws://localhost:$_port'),
       );
 
-      await clear();
+      if (kDebugMode) {
+        // Print is being avoided
+        // ignore: avoid_print
+        unawaited(_process!.stdout.forEach((msg) => print(utf8.decode(msg))));
+        // Print is being avoided
+        // ignore: avoid_print
+        unawaited(_process!.stderr.forEach((msg) => print(utf8.decode(msg))));
+
+        _channel?.stream.listen(
+          // Print is being avoided
+          // ignore: avoid_print
+          (dynamic message) => print(message as String),
+        );
+      }
+
+      await setVolume(_box.volume);
+      await setRate(_box.rate);
     }
 
     unawaited(init());
@@ -133,8 +227,42 @@ class _Sapi5Strategy implements _TtsStrategy {
 
   static const _port = 53827;
 
+  late final _box = _TtsBox(
+    'sapi5',
+    defaultVolume: 1,
+    defaultRate: 150,
+  );
+
   WebSocketChannel? _channel;
   Process? _process;
+
+  @override
+  double get volume => _box.volume;
+  @override
+  Future<void> setVolume(double volume) async {
+    _box.volume = volume;
+    await _channel?.ready;
+    _channel?.sink.add('${_TtsServerCodes.volume} $volume');
+  }
+
+  @override
+  double get rate => _box.rate;
+  @override
+  Future<void> setRate(double rate) async {
+    _box.rate = rate;
+    await _channel?.ready;
+    _channel?.sink.add('${_TtsServerCodes.rate} $rate');
+  }
+
+  @override
+  String get rateAsString => '${rate.toInt()} words per minute';
+
+  @override
+  double get rateMin => 50;
+  @override
+  double get rateMax => 500;
+  @override
+  double get rateStep => 10;
 
   @override
   Future<void> speak(String message) async {
@@ -160,6 +288,8 @@ class _Sapi5Strategy implements _TtsStrategy {
 enum _TtsServerCodes {
   msg,
   clear,
+  volume,
+  rate,
   exit;
 
   @override
@@ -169,8 +299,37 @@ enum _TtsServerCodes {
         return 'MSG';
       case _TtsServerCodes.clear:
         return 'CLR';
+      case _TtsServerCodes.volume:
+        return 'VOL';
+      case _TtsServerCodes.rate:
+        return 'RTE';
       case _TtsServerCodes.exit:
         return 'EXT';
     }
   }
+}
+
+/// A box for persistent TTS settings.
+class _TtsBox {
+  _TtsBox(
+    String identifier, {
+    required double defaultVolume,
+    required double defaultRate,
+  })  : _identifier = identifier,
+        _defaultVolume = defaultVolume,
+        _defaultRate = defaultRate;
+
+  static final Box _ttsBox = Hive.box(name: 'tts');
+
+  final String _identifier;
+  final double _defaultVolume;
+  final double _defaultRate;
+
+  /// The volume of the TTS messages.
+  double get volume => _ttsBox['$_identifier-volume'] ?? _defaultVolume;
+  set volume(double volume) => _ttsBox['$_identifier-volume'] = volume;
+
+  /// The speech rate of the TTS messages.
+  double get rate => _ttsBox['$_identifier-rate'] ?? _defaultRate;
+  set rate(double rate) => _ttsBox['$_identifier-rate'] = rate;
 }

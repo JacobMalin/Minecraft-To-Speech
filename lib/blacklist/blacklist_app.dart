@@ -495,7 +495,7 @@ class _ChatMessage extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
         minVerticalPadding: 0,
-        minTileHeight: 36,
+        minTileHeight: 0,
         tileColor: _tileColor ?? Theme.of(context).colorScheme.surfaceContainer,
         onTap: _onTap,
         selected: _isSelected ?? false,
@@ -505,26 +505,29 @@ class _ChatMessage extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Expanded(
-              child: Text(
-                _message,
-                textHeightBehavior: const TextHeightBehavior(
-                  applyHeightToFirstAscent: false,
-                  applyHeightToLastDescent: false,
-                ),
-                style: TextStyle(
-                  fontFamily: 'Minecraft', // Your Minecraft font
-                  fontSize: 20,
-                  height: 1,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  shadows: [
-                    Shadow(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withAlpha(70),
-                      offset: const Offset(2.49, 2.49),
-                    ),
-                  ],
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6, bottom: 8, right: 4),
+                child: Text(
+                  _message,
+                  textHeightBehavior: const TextHeightBehavior(
+                    applyHeightToFirstAscent: false,
+                    applyHeightToLastDescent: false,
+                  ),
+                  style: TextStyle(
+                    fontFamily: 'Minecraft', // Your Minecraft font
+                    fontSize: 20,
+                    height: 1,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    shadows: [
+                      Shadow(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withAlpha(70),
+                        offset: const Offset(2.49, 2.49),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

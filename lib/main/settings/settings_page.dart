@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../blacklist/blacklist_model.dart';
 import '../../setup/discord_model.dart';
 import '../../setup/text_field_context.dart';
+import '../instance/tts_model.dart';
 import 'settings_box.dart';
 
 /// The settings page. This page allows the user to change settings.
@@ -149,14 +150,66 @@ class _GeneralSettings extends StatelessWidget {
   }
 }
 
-class _TtsSettings extends StatelessWidget {
+class _TtsSettings extends StatefulWidget {
   const _TtsSettings();
 
   // TODO: Add tts options
 
   @override
+  State<_TtsSettings> createState() => _TtsSettingsState();
+}
+
+class _TtsSettingsState extends State<_TtsSettings> {
+  late double _volume;
+  late double _rate;
+
+  final _tts = TtsModel();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _volume = _tts.volume * 100;
+    _rate = _tts.rate;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('No settings yet!'));
+    return Column(
+      children: [
+        TextButton(
+          onPressed: () async {
+            await _tts.clear();
+            await _tts.speak('Minecraft to Speech text-to-speech is working!');
+          },
+          child: const Text('Test'),
+        ),
+        Slider(
+          value: _volume,
+          onChanged: (value) => setState(() => _volume = value),
+          onChangeEnd: (value) async {
+            // await _tts.setVolume(value / 100);
+            // await _tts.clear();
+            await _tts.speak('Volume set to ${value.toInt()} percent.');
+          },
+          max: 100,
+          label: 'Volume',
+        ),
+        Slider(
+          value: _rate,
+          onChanged: (value) => setState(() => _rate = value),
+          onChangeEnd: (value) async {
+            await _tts.setRate(value);
+            await _tts.clear();
+            await _tts.speak('Speech rate set to ${_tts.rateAsString}.');
+          },
+          min: _tts.rateMin,
+          max: _tts.rateMax,
+          divisions: ((_tts.rateMax - _tts.rateMin) / _tts.rateStep).round(),
+          label: 'Speech Rate',
+        ),
+      ],
+    );
   }
 }
 
