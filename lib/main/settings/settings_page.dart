@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -160,8 +162,11 @@ class _TtsSettings extends StatefulWidget {
 }
 
 class _TtsSettingsState extends State<_TtsSettings> {
+  late String _voice;
   late double _volume;
   late double _rate;
+
+  late final Map<String, String> _voices;
 
   final _tts = TtsModel();
 
@@ -169,44 +174,129 @@ class _TtsSettingsState extends State<_TtsSettings> {
   void initState() {
     super.initState();
 
+    _voice = _tts.voice;
     _volume = _tts.volume * 100;
     _rate = _tts.rate;
+
+    unawaited(() async {
+      _voices = await _tts.getVoices();
+    }());
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextButton(
-          onPressed: () async {
-            await _tts.clear();
-            await _tts.speak('Minecraft to Speech text-to-speech is working!');
-          },
-          child: const Text('Test'),
+        Row(
+          children: [
+            DropdownMenu<String>(
+              initialSelection: _voice,
+              width: 200,
+              dropdownMenuEntries: _voices.entries
+                  .map(
+                    (entry) =>
+                        DropdownMenuEntry(value: entry.key, label: entry.value),
+                  )
+                  .toList(),
+              onSelected: (value) async {
+                setState(() => _voice = value!);
+                await _tts.setVoice(value!);
+                await _tts.clear();
+                await _tts.speak('Voice set to ${_voices[value]}.');
+              },
+            ),
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).colorScheme.surfaceBright,
+                ),
+                minimumSize: const WidgetStatePropertyAll(Size.zero),
+                padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 12,
+                  ),
+                ),
+              ),
+              onPressed: () async {
+                await _tts.clear();
+                await _tts
+                    .speak('Minecraft to Speech text-to-speech is working!');
+              },
+              child: const Text('Test'),
+            ),
+          ],
         ),
-        Slider(
-          value: _volume,
-          onChanged: (value) => setState(() => _volume = value),
-          onChangeEnd: (value) async {
-            // await _tts.setVolume(value / 100);
-            // await _tts.clear();
-            await _tts.speak('Volume set to ${value.toInt()} percent.');
-          },
-          max: 100,
-          label: 'Volume',
+        const SizedBox(height: 10),
+        Text('Volume: ${_volume.toInt()}%'),
+        const SizedBox(height: 4),
+        Row(
+          spacing: 8,
+          children: [
+            const SizedBox(
+              width: 24,
+              child: Align(alignment: Alignment.centerRight, child: Text('0')),
+            ),
+            Expanded(
+              child: Slider(
+                value: _volume,
+                onChanged: (value) => setState(() => _volume = value),
+                onChangeEnd: (value) async {
+                  await _tts.setVolume(value / 100);
+                  await _tts.clear();
+                  await _tts.speak('Volume set to ${value.toInt()} percent.');
+                },
+                max: 100,
+                label: '${_volume.toInt()}%',
+              ),
+            ),
+            const SizedBox(
+              width: 24,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('100'),
+              ),
+            ),
+          ],
         ),
-        Slider(
-          value: _rate,
-          onChanged: (value) => setState(() => _rate = value),
-          onChangeEnd: (value) async {
-            await _tts.setRate(value);
-            await _tts.clear();
-            await _tts.speak('Speech rate set to ${_tts.rateAsString}.');
-          },
-          min: _tts.rateMin,
-          max: _tts.rateMax,
-          divisions: ((_tts.rateMax - _tts.rateMin) / _tts.rateStep).round(),
-          label: 'Speech Rate',
+        const SizedBox(height: 10),
+        Text('Speech Rate: ${_tts.formatRate(_rate)}'),
+        const SizedBox(height: 4),
+        Row(
+          spacing: 8,
+          children: [
+            SizedBox(
+              width: 24,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text('${_tts.rateMin.toInt()}'),
+              ),
+            ),
+            Expanded(
+              child: Slider(
+                value: _rate,
+                onChanged: (value) => setState(() => _rate = value),
+                onChangeEnd: (value) async {
+                  await _tts.setRate(value);
+                  await _tts.clear();
+                  await _tts.speak('Speech rate set to ${_tts.rateAsString}.');
+                },
+                min: _tts.rateMin,
+                max: _tts.rateMax,
+                divisions:
+                    ((_tts.rateMax - _tts.rateMin) / _tts.rateStep).round(),
+                label: _tts.formatRate(_rate),
+              ),
+            ),
+            SizedBox(
+              width: 24,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('${_tts.rateMax.toInt()}'),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -309,24 +399,27 @@ class SwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        TextButton(
-          style: ButtonStyle(
-            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-            textStyle: WidgetStatePropertyAll(
-              Theme.of(context).textTheme.bodySmall,
+        Focus(
+          descendantsAreFocusable: false,
+          canRequestFocus: false,
+          skipTraversal: true,
+          child: TextButton(
+            style: ButtonStyle(
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+              textStyle: WidgetStatePropertyAll(
+                Theme.of(context).textTheme.bodySmall,
+              ),
+              foregroundColor: WidgetStatePropertyAll(
+                Theme.of(context).colorScheme.onSurface,
+              ),
+              padding: const WidgetStatePropertyAll(EdgeInsets.zero),
             ),
-            foregroundColor: WidgetStatePropertyAll(
-              Theme.of(context).colorScheme.onSurface,
+            onPressed: _onChanged,
+            child: Text(
+              _text,
+              style:
+                  Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 14),
             ),
-            padding: const WidgetStatePropertyAll(
-              EdgeInsets.zero,
-            ),
-          ),
-          onPressed: _onChanged,
-          child: Text(
-            _text,
-            style:
-                Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 14),
           ),
         ),
         const Spacer(),

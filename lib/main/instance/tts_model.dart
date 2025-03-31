@@ -23,6 +23,15 @@ class TtsModel {
 
   final _TtsStrategy _strategy = _Sapi5Strategy();
 
+  /// Set the voice for TTS messages.
+  String get voice => _strategy.voice;
+
+  /// Set the voice for TTS messages.
+  Future<void> setVoice(String voice) async => _strategy.setVoice(voice);
+
+  /// Get the list of available voices for TTS messages.
+  Future<Map<String, String>> getVoices() async => _strategy.getVoices();
+
   /// The volume of the TTS messages.
   double get volume => _strategy.volume;
 
@@ -37,6 +46,9 @@ class TtsModel {
 
   /// The speech rate of the TTS messages as a string.
   String get rateAsString => _strategy.rateAsString;
+
+  /// The abbreviation of the unit for speech rate of the TTS messages.
+  String formatRate(double value) => _strategy.formatRate(value);
 
   /// The minimum acceptable speech rate for TTS messages.
   double get rateMin => _strategy.rateMin;
@@ -59,6 +71,11 @@ class TtsModel {
 
 /// Strategy for speaking TTS messages.
 abstract class _TtsStrategy {
+  /// The voice for TTS messages.
+  String get voice;
+  Future<void> setVoice(String voice);
+  Future<Map<String, String>> getVoices();
+
   /// The volume for TTS messages.
   double get volume;
   Future<void> setVolume(double value);
@@ -69,6 +86,9 @@ abstract class _TtsStrategy {
 
   /// The speech rate of the TTS messages as a string.
   String get rateAsString;
+
+  /// The abbreviation of the unit for speech rate of the TTS messages.
+  String formatRate(double value);
 
   // The minimum acceptable rate for TTS messages.
   double get rateMin;
@@ -117,12 +137,21 @@ class _FlutterTtsStrategy implements _TtsStrategy {
 
   final _box = _TtsBox(
     'flutterTts',
+    defaultVoice:
+        r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0',
     defaultVolume: 1,
     defaultRate: 1,
   );
   final _flutterTts = FlutterTts();
   final Queue _queue = Queue<String>();
   var _isSpeaking = false;
+
+  @override
+  String get voice => '';
+  @override
+  Future<void> setVoice(String voice) async {}
+  @override
+  Future<Map<String, String>> getVoices() async => {};
 
   @override
   double get volume => _box.volume;
@@ -142,6 +171,8 @@ class _FlutterTtsStrategy implements _TtsStrategy {
 
   @override
   String get rateAsString => rate.toStringAsFixed(2);
+  @override
+  String formatRate(double value) => value.toStringAsFixed(2);
 
   @override
   double get rateMin => 0;
@@ -218,6 +249,7 @@ class _Sapi5Strategy implements _TtsStrategy {
         );
       }
 
+      await setVoice(_box.voice);
       await setVolume(_box.volume);
       await setRate(_box.rate);
     }
@@ -229,12 +261,31 @@ class _Sapi5Strategy implements _TtsStrategy {
 
   late final _box = _TtsBox(
     'sapi5',
+    defaultVoice: '',
     defaultVolume: 1,
     defaultRate: 150,
   );
 
   WebSocketChannel? _channel;
   Process? _process;
+
+  @override
+  String get voice => _box.voice;
+  @override
+  Future<void> setVoice(String voice) async {
+    await _channel?.ready;
+    _channel?.sink.add('${_TtsServerCodes.voice} $voice');
+    final message = await _channel!.stream.first as String;
+    _box.voice = message.split('Voice set to ')[1];
+  }
+
+  @override
+  Future<Map<String, String>> getVoices() async {
+    await _channel?.ready;
+    _channel?.sink.add('${_TtsServerCodes.getVoices}');
+    final message = await _channel!.stream.first as String;
+    return jsonDecode(message.split('Voices: ')[1]);
+  }
 
   @override
   double get volume => _box.volume;
@@ -256,6 +307,8 @@ class _Sapi5Strategy implements _TtsStrategy {
 
   @override
   String get rateAsString => '${rate.toInt()} words per minute';
+  @override
+  String formatRate(double value) => '${value.toInt()} wpm';
 
   @override
   double get rateMin => 50;
@@ -288,6 +341,8 @@ class _Sapi5Strategy implements _TtsStrategy {
 enum _TtsServerCodes {
   msg,
   clear,
+  voice,
+  getVoices,
   volume,
   rate,
   exit;
@@ -299,6 +354,10 @@ enum _TtsServerCodes {
         return 'MSG';
       case _TtsServerCodes.clear:
         return 'CLR';
+      case _TtsServerCodes.voice:
+        return 'VOC';
+      case _TtsServerCodes.getVoices:
+        return 'GVC';
       case _TtsServerCodes.volume:
         return 'VOL';
       case _TtsServerCodes.rate:
@@ -313,17 +372,24 @@ enum _TtsServerCodes {
 class _TtsBox {
   _TtsBox(
     String identifier, {
+    required String defaultVoice,
     required double defaultVolume,
     required double defaultRate,
   })  : _identifier = identifier,
+        _defaultVoice = defaultVoice,
         _defaultVolume = defaultVolume,
         _defaultRate = defaultRate;
 
   static final Box _ttsBox = Hive.box(name: 'tts');
 
   final String _identifier;
+  final String _defaultVoice;
   final double _defaultVolume;
   final double _defaultRate;
+
+  /// The id for the voice of the TTS messages.
+  String get voice => _ttsBox['$_identifier-voice'] ?? _defaultVoice;
+  set voice(String voice) => _ttsBox['$_identifier-voice'] = voice;
 
   /// The volume of the TTS messages.
   double get volume => _ttsBox['$_identifier-volume'] ?? _defaultVolume;

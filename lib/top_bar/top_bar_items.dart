@@ -85,8 +85,6 @@ class IconSwapButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color hoverColor = theme.colorScheme.onPrimary;
-    final Color selectedColor = theme.colorScheme.onSecondary;
 
     Widget iconStyle(VoidCallback? onPressed, Icon icon) {
       return SizedBox(
@@ -94,8 +92,9 @@ class IconSwapButton extends StatelessWidget {
         width: 33,
         child: IconButton(
           padding: EdgeInsets.zero,
-          hoverColor: hoverColor,
-          highlightColor: selectedColor,
+          hoverColor: const Color.fromARGB(40, 0, 0, 0),
+          focusColor: const Color.fromARGB(40, 0, 0, 0),
+          highlightColor: Colors.transparent,
           onPressed: onPressed,
           style: ButtonStyle(
             foregroundColor: WidgetStateProperty.resolveWith((states) {
@@ -144,16 +143,15 @@ class UpdateAvailableButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color hoverColor = theme.colorScheme.onPrimary;
-    final Color selectedColor = theme.colorScheme.onSecondary;
 
     return SizedBox(
       height: 33,
       width: 33,
       child: IconButton(
         padding: EdgeInsets.zero,
-        hoverColor: hoverColor,
-        highlightColor: selectedColor,
+        hoverColor: const Color.fromARGB(40, 0, 0, 0),
+        focusColor: const Color.fromARGB(40, 0, 0, 0),
+        highlightColor: Colors.transparent,
         onPressed: () async {
           await DialogService.showDialogElsewhere(
             builder: (_) => const UpdateAvailableDialog(),
@@ -379,6 +377,8 @@ class MenuButtons extends StatelessWidget {
           return theme.colorScheme.onSecondary;
         } else if (states.contains(WidgetState.hovered)) {
           return theme.colorScheme.onPrimary;
+        } else if (states.contains(WidgetState.focused)) {
+          return theme.colorScheme.onPrimary.withAlpha(200);
         }
         return Colors.transparent;
       }),

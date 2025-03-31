@@ -56,6 +56,11 @@ class ThemeSetup {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         menuPadding: EdgeInsets.zero,
       ),
+      sliderTheme: const SliderThemeData(
+        showValueIndicator: ShowValueIndicator.always,
+        overlayColor: Colors.transparent,
+        padding: EdgeInsets.symmetric(horizontal: 10),
+      ),
     );
   }
 
