@@ -86,8 +86,11 @@ class BlacklistModel extends ChangeNotifier {
       blacklistStreams: blacklistStreams,
     );
 
-    if (_blacklistBox.getRange(0, _blacklistBox.length).contains(item)) {
-      Toaster.showToast('Already in blacklist.');
+    if (phrase.isNotEmpty &&
+        _blacklistBox.getRange(0, _blacklistBox.length).contains(item)) {
+      if (WindowManagerPlus.current.id == 0) {
+        Toaster.showToast('Already in blacklist.');
+      }
       return false;
     }
 
@@ -152,6 +155,38 @@ class BlacklistModel extends ChangeNotifier {
       final BlacklistItem item = _blacklistBox[i];
       if (item.matchAny(phrase)) _blacklistBox.deleteAt(i);
     }
+  }
+
+  /// Delete item if phrase is empty.
+  static void deleteIfEmpty(int? index) {
+    if (index == null || index >= _blacklistBox.length) return;
+    final BlacklistItem item = _blacklistBox[index];
+    if (item.phrase.isEmpty) _blacklistBox.deleteAt(index);
+  }
+
+  /// Delete all empty blacklist items.
+  static void deleteAllEmpty() {
+    for (int i = _blacklistBox.length - 1; i >= 0; i--) {
+      deleteIfEmpty(i);
+    }
+  }
+
+  /// Delete all duplicate blacklist items.
+  static void deleteAllDuplicates() {
+    for (int i = _blacklistBox.length - 1; i >= 0; i--) {
+      for (int j = i - 1; j >= 0; j--) {
+        if (_blacklistBox[i] == _blacklistBox[j]) {
+          _blacklistBox.deleteAt(i);
+          break;
+        }
+      }
+    }
+  }
+
+  /// Delete empty and duplicate items.
+  static void cleanUp() {
+    deleteAllEmpty();
+    deleteAllDuplicates();
   }
 
   /// Update a blacklist item.
@@ -250,7 +285,7 @@ class BlacklistItem {
 
   /// Check if the message matches the blacklist item with any stream.
   bool matchAny(String message) {
-    if (blacklistStreams.isEmpty) return false;
+    if (blacklistStreams.isEmpty || phrase.isEmpty) return false;
 
     final String lowerMessage = message.toLowerCase().removeFormatTags();
     final String lowerPhrase = phrase.toLowerCase().removeFormatTags();

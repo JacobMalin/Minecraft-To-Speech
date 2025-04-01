@@ -28,6 +28,8 @@ class _BlacklistAppState extends State<BlacklistApp> {
   void initState() {
     super.initState();
 
+    BlacklistModel.cleanUp();
+
     const windowOptions = WindowOptions(
       title: 'Blacklist',
       size: Size(500, 400),
@@ -86,7 +88,11 @@ class BlacklistBody extends StatefulWidget {
 class _BlacklistBodyState extends State<BlacklistBody> {
   int? _selectedIndex;
 
-  void _changeSelected(int? index) => setState(() => _selectedIndex = index);
+  void _changeSelected(int? index) {
+    BlacklistModel.deleteIfEmpty(_selectedIndex);
+
+    setState(() => _selectedIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,8 +114,6 @@ class _BlacklistOptions extends StatefulWidget {
         _changeSelected = changeSelected;
 
   final int? _selectedIndex;
-  // TODO: use
-  // ignore: unused_field
   final Function(int?) _changeSelected;
 
   @override
@@ -118,6 +122,7 @@ class _BlacklistOptions extends StatefulWidget {
 
 class _BlacklistOptionsState extends State<_BlacklistOptions> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   int? _lastSelected;
 
   @override
@@ -129,11 +134,13 @@ class _BlacklistOptionsState extends State<_BlacklistOptions> {
           ? blacklist[widget._selectedIndex!].phrase
           : null,
     );
+    _focusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -143,7 +150,8 @@ class _BlacklistOptionsState extends State<_BlacklistOptions> {
       padding: const EdgeInsets.all(8),
       child: Consumer<BlacklistModel>(
         builder: (context, blacklist, child) {
-          final BlacklistItem? selected = widget._selectedIndex != null
+          final BlacklistItem? selected = widget._selectedIndex != null &&
+                  widget._selectedIndex! < blacklist.length
               ? blacklist[widget._selectedIndex!]
               : null;
           if (selected != null && _controller.text != selected.phrase) {
@@ -160,25 +168,76 @@ class _BlacklistOptionsState extends State<_BlacklistOptions> {
           return Column(
             spacing: 10,
             children: [
-              SizedBox(
-                height: 40,
-                child: TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                    hintText: 'Enter phrase to blacklist',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Minecraft', // Your Minecraft font
-                      color: Colors.grey,
+              Row(
+                spacing: 8,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                          hintText: 'Enter phrase to blacklist',
+                          hintStyle: TextStyle(
+                            fontFamily: 'Minecraft', // Your Minecraft font
+                            color: Colors.grey,
+                          ),
+                        ),
+                        style: const TextStyle(
+                          fontFamily: 'Minecraft', // Your Minecraft font
+                          fontSize: 20,
+                        ),
+                        cursorHeight: 20,
+                        onChanged: (value) {
+                          if (widget._selectedIndex == null) {
+                            blacklist.add(value);
+                            widget._changeSelected(blacklist.length - 1);
+                          } else {
+                            blacklist.updateWith(
+                              widget._selectedIndex!,
+                              phrase: value,
+                            );
+                          }
+                        },
+                        onSubmitted: (value) {
+                          if (value.isNotEmpty) {
+                            blacklist.add('');
+                            widget._changeSelected(blacklist.length - 1);
+                          }
+                          _focusNode.requestFocus();
+                        },
+                      ),
                     ),
                   ),
-                  style: const TextStyle(
-                    fontFamily: 'Minecraft', // Your Minecraft font
-                    fontSize: 20,
+                  SizedBox.square(
+                    dimension: 36,
+                    child: IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceBright,
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      onPressed: () {
+                        if (_controller.text.isNotEmpty ||
+                            widget._selectedIndex == null) {
+                          blacklist.add('');
+                          widget._changeSelected(blacklist.length - 1);
+                          _focusNode.requestFocus();
+                        }
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
                   ),
-                  cursorHeight: 20,
-                ),
+                ],
               ),
               Row(
                 children: [
@@ -387,7 +446,7 @@ class _BlacklistItemTile extends StatelessWidget {
             ],
           ),
           child: _ChatMessage(
-            message: _message(),
+            item: _item,
             isSelected: _selectedIndex == _index,
             onTap: () =>
                 _changeSelected(_selectedIndex == _index ? null : _index),
@@ -396,19 +455,6 @@ class _BlacklistItemTile extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _message() {
-    switch (_item.blacklistMatch) {
-      case BlacklistMatch.exact:
-        return _item.phrase;
-      case BlacklistMatch.startsWith:
-        return '${_item.phrase}...';
-      case BlacklistMatch.endsWith:
-        return '...${_item.phrase}';
-      case BlacklistMatch.contains:
-        return '...${_item.phrase}...';
-    }
   }
 }
 
@@ -472,18 +518,18 @@ class _BlacklistIcons extends StatelessWidget {
 class _ChatMessage extends StatelessWidget {
   /// Constructor for the chat message.
   const _ChatMessage({
-    required String message,
+    required BlacklistItem item,
     Widget? trailing,
     Color? tileColor,
     VoidCallback? onTap,
     bool? isSelected,
-  })  : _message = message,
+  })  : _item = item,
         _trailing = trailing,
         _tileColor = tileColor,
         _onTap = onTap,
         _isSelected = isSelected;
 
-  final String _message;
+  final BlacklistItem _item;
   final Widget? _trailing;
   final Color? _tileColor;
   final VoidCallback? _onTap;
@@ -507,27 +553,47 @@ class _ChatMessage extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(top: 6, bottom: 8, right: 4),
-                child: Text(
-                  _message,
-                  textHeightBehavior: const TextHeightBehavior(
-                    applyHeightToFirstAscent: false,
-                    applyHeightToLastDescent: false,
-                  ),
-                  style: TextStyle(
-                    fontFamily: 'Minecraft', // Your Minecraft font
-                    fontSize: 20,
-                    height: 1,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    shadows: [
-                      Shadow(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withAlpha(70),
-                        offset: const Offset(2.49, 2.49),
+                child: Builder(
+                  builder: (context) {
+                    if (_item.phrase.isEmpty) {
+                      return const Text(
+                        'Empty filter',
+                        textHeightBehavior: TextHeightBehavior(
+                          applyHeightToFirstAscent: false,
+                          applyHeightToLastDescent: false,
+                        ),
+                        style: TextStyle(
+                          fontFamily: 'Minecraft', // Your Minecraft font
+                          fontSize: 20,
+                          height: 1,
+                          color: Colors.grey,
+                        ),
+                      );
+                    }
+
+                    return Text(
+                      _message(),
+                      textHeightBehavior: const TextHeightBehavior(
+                        applyHeightToFirstAscent: false,
+                        applyHeightToLastDescent: false,
                       ),
-                    ],
-                  ),
+                      style: TextStyle(
+                        fontFamily: 'Minecraft', // Your Minecraft font
+                        fontSize: 20,
+                        height: 1,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        shadows: [
+                          Shadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withAlpha(70),
+                            offset: const Offset(2.49, 2.49),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -536,5 +602,18 @@ class _ChatMessage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _message() {
+    switch (_item.blacklistMatch) {
+      case BlacklistMatch.exact:
+        return _item.phrase;
+      case BlacklistMatch.startsWith:
+        return '${_item.phrase}...';
+      case BlacklistMatch.endsWith:
+        return '...${_item.phrase}';
+      case BlacklistMatch.contains:
+        return '...${_item.phrase}...';
+    }
   }
 }
