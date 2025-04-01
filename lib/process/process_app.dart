@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:smooth_list_view/smooth_list_view.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+import '../blacklist/blacklist_model.dart';
 import '../main/instance/instance_model.dart';
 import '../main/instance/log_filter.dart';
 import '../main/settings/settings_box.dart';
@@ -39,24 +40,31 @@ class _ProcessAppState extends State<ProcessApp> {
 
     _pathCount = widget._paths.length;
     unawaited(process(widget._paths));
+
+    const windowOptions = WindowOptions(
+      title: 'Log Processing',
+      size: Size(350, 200),
+      center: true,
+      backgroundColor: Colors.transparent,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    unawaited(
+      WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+        await WindowManagerPlus.current.setResizable(false);
+      }),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SettingsModel>(
-          create: (_) => SettingsModel(),
-        ),
-        ChangeNotifierProvider<InstanceModel>(
-          create: (_) => InstanceModel(),
-        ),
-        ChangeNotifierProvider<FocusModel>(
-          create: (_) => FocusModel(),
-        ),
+        ChangeNotifierProvider<SettingsModel>(create: (_) => SettingsModel()),
+        ChangeNotifierProvider<InstanceModel>(create: (_) => InstanceModel()),
+        ChangeNotifierProvider<FocusModel>(create: (_) => FocusModel()),
       ],
       child: Selector<SettingsModel, ThemeMode>(
-        selector: (context, settings) => settings.themeMode,
+        selector: (_, settings) => settings.themeMode,
         builder: (context, themeMode, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -126,7 +134,9 @@ class _ProcessAppState extends State<ProcessApp> {
     await WindowSetup.focusAndBringToFront();
   }
 
-  static Future<String> _processLog(String? path) async {
+  static Future<String> _processLog(
+    String? path,
+  ) async {
     final inFile = File(path!);
 
     final String pathWithoutExt = p.withoutExtension(path);
@@ -150,6 +160,12 @@ class _ProcessAppState extends State<ProcessApp> {
         .where(LogFilter.onlyChat)
         .map(LogFilter.commonMap)
         .map(LogFilter.discordMap)
+        .where(
+          (msg) => BlacklistModel.filter(
+            msg,
+            blacklistStream: BlacklistStream.process,
+          ),
+        )
         .toList();
 
     await outFile.writeAsString(lines.join('\n'));

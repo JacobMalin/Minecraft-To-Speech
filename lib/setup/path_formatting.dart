@@ -21,6 +21,7 @@ class PathFormatting {
   static String breakLess(String path) {
     return path
         .replaceFirst(':', ':$wordJoiner')
+        .replaceAll('-', '-$wordJoiner')
         .replaceAll(' ', nonBreakingSpace);
   }
 }

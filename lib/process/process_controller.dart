@@ -77,7 +77,7 @@ class _ProcessControllerState extends State<ProcessController>
 /// Events that can be sent from the process window.
 class ProcessEvent {
   /// Event for when the process window finishes quickly.
-  static var quickSuccess = 'quickSucess';
+  static const quickSuccess = 'quickSucess';
 
   /// The event name used when the process completes with no errors.
   static const success = 'success';

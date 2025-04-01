@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:win32/win32.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+import '../blacklist/blacklist_app.dart';
 import '../main/instance/tts_model.dart';
 import '../main/main_app.dart';
 import '../main/settings/settings_box.dart';
@@ -13,80 +13,27 @@ import '../process/process_app.dart';
 
 /// Setup for the application window.
 class WindowSetup {
-  /// The minimum size of the mainWindow.
-  static const minSize = Size(450, 250);
-
   /// Starts the app based on the given arguments.
   static Future<void> run(List<String> args) async {
-    final int windowId = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
+    final int windowId = args.isEmpty ? 0 : int.tryParse(args.first) ?? 0;
     await WindowManagerPlus.ensureInitialized(windowId);
 
-    if (args.isEmpty) {
-      WindowSetup.main();
-
-      runApp(const MainApp());
-    } else if (args.length >= 3 && args[1] == WindowType.process) {
-      final List<String> paths = [...jsonDecode(args[2])];
-
-      WindowSetup.process();
-
-      runApp(ProcessApp(paths));
+    Widget app;
+    switch (args.elementAtOrNull(1)) {
+      case WindowType.process:
+        final List<String> paths = [...jsonDecode(args[2])];
+        app = ProcessApp(paths);
+      case WindowType.blacklist:
+        app = const BlacklistApp();
+      default:
+        app = const MainApp();
     }
+
+    runApp(app);
   }
 
-  /// Setup for the main window that is run before the application starts.
-  static void main() {
-    final Offset? startPosition = SettingsBox.position;
-    final Size? startSize = SettingsBox.size;
-    final bool? startIsMaximized = SettingsBox.isMaximized;
-
-    const windowOptions = WindowOptions(
-      title: 'Minecraft To Speech',
-      backgroundColor: Colors.transparent,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    unawaited(
-      WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
-        appWindow.minSize = minSize;
-        appWindow.size = startSize ?? minSize;
-        // Must be after size
-        if (startPosition != null) appWindow.position = startPosition;
-
-        // Check if window has landed offscreen
-        if (!_isWindowOnValidMonitor()) appWindow.alignment = Alignment.center;
-
-        if (startIsMaximized != null && startIsMaximized) {
-          appWindow.alignment = Alignment.center;
-          appWindow.size = minSize; // Set starting size small
-          appWindow.maximize();
-        }
-
-        await WindowManagerPlus.current.setPreventClose(true);
-
-        await WindowManagerPlus.current.show();
-        await WindowManagerPlus.current.focus();
-      }),
-    );
-  }
-
-  /// Setup for the log processing window that is run before the application
-  /// starts.
-  static void process() {
-    const windowOptions = WindowOptions(
-      title: 'Log Processing',
-      size: Size(350, 200),
-      center: true,
-      backgroundColor: Colors.transparent,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    unawaited(
-      WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
-        await WindowManagerPlus.current.setResizable(false);
-      }),
-    );
-  }
-
-  static bool _isWindowOnValidMonitor() {
+  /// Check if the window is on a valid monitor.
+  static bool isWindowOnValidMonitor() {
     final int hwnd = GetForegroundWindow();
     if (hwnd == 0) return false;
 
@@ -187,4 +134,7 @@ class WindowType {
 
   /// A process window.
   static const process = 'Process';
+
+  /// A blacklist window.
+  static const blacklist = 'Blacklist';
 }

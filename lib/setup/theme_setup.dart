@@ -4,27 +4,62 @@ import 'package:flutter/material.dart';
 class ThemeSetup {
   static const _seedColor = Color(0x00204969);
 
-  static const _buttonStyle = ButtonStyle(
-    splashFactory: NoSplash.splashFactory,
-  );
-
   static ThemeData _baseTheme(Brightness brightness) {
-    return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _seedColor,
-        brightness: brightness,
-      ),
+    const buttonStyle = ButtonStyle(
       splashFactory: NoSplash.splashFactory,
-      textButtonTheme: const TextButtonThemeData(style: _buttonStyle),
-      iconButtonTheme: const IconButtonThemeData(style: _buttonStyle),
-      menuButtonTheme: const MenuButtonThemeData(style: _buttonStyle),
-      filledButtonTheme: const FilledButtonThemeData(style: _buttonStyle),
-      elevatedButtonTheme: const ElevatedButtonThemeData(style: _buttonStyle),
-      outlinedButtonTheme: const OutlinedButtonThemeData(style: _buttonStyle),
-      segmentedButtonTheme: const SegmentedButtonThemeData(style: _buttonStyle),
+    );
+
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _seedColor,
+      brightness: brightness,
+    );
+
+    return ThemeData(
+      colorScheme: colorScheme,
+      splashFactory: NoSplash.splashFactory,
+      textButtonTheme: TextButtonThemeData(
+        style: buttonStyle.copyWith(
+          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+        ),
+      ),
+      iconButtonTheme: const IconButtonThemeData(style: buttonStyle),
+      menuButtonTheme: const MenuButtonThemeData(style: buttonStyle),
+      filledButtonTheme: const FilledButtonThemeData(style: buttonStyle),
+      elevatedButtonTheme: const ElevatedButtonThemeData(style: buttonStyle),
+      outlinedButtonTheme: const OutlinedButtonThemeData(style: buttonStyle),
+      segmentedButtonTheme: const SegmentedButtonThemeData(style: buttonStyle),
       buttonTheme: const ButtonThemeData(splashColor: Colors.transparent),
-      toggleButtonsTheme: const ToggleButtonsThemeData(
+      toggleButtonsTheme: ToggleButtonsThemeData(
         splashColor: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        borderWidth: 2,
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: colorScheme.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      dividerTheme:
+          DividerThemeData(color: colorScheme.surfaceContainerHighest),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(5),
+        ),
+        textStyle: TextStyle(color: colorScheme.onSurface),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: colorScheme.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        menuPadding: EdgeInsets.zero,
+      ),
+      sliderTheme: const SliderThemeData(
+        showValueIndicator: ShowValueIndicator.always,
+        overlayColor: Colors.transparent,
+        padding: EdgeInsets.symmetric(horizontal: 10),
       ),
     );
   }

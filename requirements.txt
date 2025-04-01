@@ -1,2 +1,0 @@
-pyttsx3==2.98
-websockets==15.0.1

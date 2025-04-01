@@ -1,4 +1,3 @@
-import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 
 /// A service for showing dialogs.
@@ -14,7 +13,7 @@ class DialogService {
       throw Exception('DialogProvider must first be used in the tree.');
     }
 
-    await showAlignedDialog(
+    await showDialog(
       context: _context!,
       builder: builder,
     );

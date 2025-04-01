@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:velopack_flutter/velopack_flutter.dart' as velopack;
 import '../../setup/hive_setup.dart';
+import '../main_app.dart';
 
 part 'settings_model.dart';
 part 'velopack_model.dart';
@@ -88,6 +89,18 @@ class SettingsBox {
   static String? get multiMCPath => _settingsBox['multiMCPath'];
   static set multiMCPath(String? value) {
     _settingsBox['multiMCPath'] = value;
+  }
+
+  /// Hide update messages.
+  static bool get _hideUpdate => _settingsBox['hideUpdate'] ?? false;
+  static set _hideUpdate(bool value) {
+    _settingsBox['hideUpdate'] = value;
+  }
+
+  /// Automatically update.
+  static bool get autoUpdate => _settingsBox['autoUpdate'] ?? false;
+  static set _autoUpdate(bool value) {
+    _settingsBox['autoUpdate'] = value;
   }
 
   /// Expose the box watchKey method.

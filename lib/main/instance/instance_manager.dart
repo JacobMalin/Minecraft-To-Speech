@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 
+import '../../blacklist/blacklist_model.dart';
 import '../../setup/discord_model.dart';
 import 'instance_model.dart';
 import 'log_filter.dart';
@@ -15,8 +16,11 @@ import 'tts_model.dart';
 /// info.
 class InstanceController {
   /// Creates a controller for a minecraft instance.
-  InstanceController(this.path, notifyListeners, {name})
-      : _notifyListeners = notifyListeners {
+  InstanceController(
+    this.path,
+    notifyListeners, {
+    name,
+  }) : _notifyListeners = notifyListeners {
     _logRiver = LogRiver(
       path,
       notifyListeners: _notifyListeners,
@@ -43,6 +47,8 @@ class InstanceController {
         // TTS stream
         ..addSubscription(
           map: LogFilter.ttsMap,
+          where: (msg) =>
+              BlacklistModel.filter(msg, blacklistStream: BlacklistStream.tts),
           isEnabled: () => isEnabled && isTts,
           onData: _tts.speak,
           onCancel: _tts.clear,
@@ -51,6 +57,10 @@ class InstanceController {
         // Discord stream
         ..addSubscription(
           map: LogFilter.discordMap,
+          where: (msg) => BlacklistModel.filter(
+            msg,
+            blacklistStream: BlacklistStream.discord,
+          ),
           isEnabled: () => isEnabled && isDiscord,
           onData: _discord.send,
           onCancel: _discord.clear,

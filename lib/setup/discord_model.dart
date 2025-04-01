@@ -126,7 +126,7 @@ class _DiscordBot {
         else if (message.contains('here')) {
           SettingsBox.botChannel = event.message.channel.id.value;
           await event.message.channel.sendMessage(
-            MessageBuilder(content: 'Chat logs moved to this channel'),
+            MessageBuilder(content: 'Chat logs moved to this channel!'),
           );
         }
 

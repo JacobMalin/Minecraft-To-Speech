@@ -1,13 +1,12 @@
 name: minecraft_to_speech
 description: A minecraft chat reader.
 publish_to: none
-version: 2.0.4
+version: 2.0.5
 
 environment:
   sdk: ^3.6.2
 
 dependencies:
-  aligned_dialog: ^0.0.7
   bitsdojo_window: ^0.1.6
   dynamic_background: ^0.5.0
   file_picker: ^8.3.3
@@ -41,6 +40,7 @@ flutter:
   assets:
     - assets/
     - assets/launchers/
+    - assets/blacklist/
     - python-modules/dist/tts_server.exe
 
   fonts:

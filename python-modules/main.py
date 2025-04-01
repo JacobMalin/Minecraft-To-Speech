@@ -2,7 +2,7 @@ from enum import Enum
 from tts import TTS
 
 import sys
-import signal
+import json
 import asyncio
 import functools
 import websockets
@@ -26,6 +26,20 @@ async def handler(websocket, stop):
                 case Header.MSG.value:
                     t.speak(split[1])
                     await websocket.send(f"Message received")
+                case Header.VOICE.value:
+                    voice = split[1]
+                    await websocket.send(f"Voice set to {t.set_voice(voice)}")
+                case Header.GET_VOICES.value:
+                    voices = t.get_voices()
+                    await websocket.send(f"Voices: {json.dumps(voices)}")
+                case Header.VOLUME.value:
+                    vol = float(split[1])
+                    t.set_volume(vol)
+                    await websocket.send(f"Volume set to {vol}")
+                case Header.RATE.value:
+                    rate = float(split[1])
+                    t.set_rate(rate)
+                    await websocket.send(f"Rate set to {rate}")
     except websockets.ConnectionClosed:
         t.exit()
         print("Exiting...")
@@ -43,6 +57,10 @@ class Header(Enum):
     EXIT = "EXT"
     CLEAR = "CLR"
     MSG = "MSG"
+    VOICE = "VOC"
+    GET_VOICES = "GVC"
+    VOLUME = "VOL"
+    RATE = "RTE"
 
 if __name__ == "__main__":
     port = 53827

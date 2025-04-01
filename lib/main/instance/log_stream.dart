@@ -41,7 +41,10 @@ class LogStream {
     }
   }
 
-  Stream<String> _makeStream(String path, InstanceController instance) =>
+  Stream<String> _makeStream(
+    String path,
+    InstanceController instance,
+  ) =>
       _baseStream(path)
           .where(LogFilter.onlyChat)
           .map(LogFilter.commonMap)

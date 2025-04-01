@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../setup/path_formatting.dart';
+import '../../setup/text_field_context.dart';
 import '../../setup/theme_setup.dart';
-import '../../setup/window_setup.dart';
 import '../../top_bar/top_bar.dart';
+import '../main_app.dart';
 import 'chat_view.dart';
 import 'instance_list.dart';
 import 'instance_manager.dart';
@@ -23,17 +24,29 @@ class InstancePage extends StatefulWidget {
 class _InstancePageState extends State<InstancePage> {
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Flexible(
-          flex: 3,
-          child: InstanceList(),
-        ),
-        Flexible(
-          flex: 7,
-          child: InstanceInfoPage(),
-        ),
-      ],
+    const double listMaxWidth = 320;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth * 0.3 < listMaxWidth) {
+          return const Row(
+            children: [
+              Flexible(flex: 3, child: InstanceList()),
+              Flexible(flex: 7, child: InstanceInfoPage()),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: listMaxWidth),
+              child: const InstanceList(),
+            ),
+            const Expanded(child: InstanceInfoPage()),
+          ],
+        );
+      },
     );
   }
 }
@@ -85,9 +98,8 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
         }
         if (_controller.text != selected.name) _controller.text = selected.name;
 
-        final double height = WindowSetup.minSize.height -
-            MainTopBar.height -
-            windowsTitleBarHeight;
+        final double height =
+            MainApp.minSize.height - MainTopBar.height - windowsTitleBarHeight;
         return Column(
           children: [
             Container(
@@ -101,6 +113,7 @@ class _InstanceInfoPageState extends State<InstanceInfoPage> {
                       constraints: const BoxConstraints(minWidth: 180),
                       child: TextField(
                         controller: _controller,
+                        contextMenuBuilder: TextFieldContext.builder,
                         style: Theme.of(context).textTheme.headlineMedium,
                         textAlign: TextAlign.center,
                         onChanged: (newName) async =>
@@ -256,9 +269,9 @@ class InstanceInfoButtons extends StatelessWidget {
                       }
                     }
                   : null,
-              borderRadius: BorderRadius.circular(10),
               fillColor: instanceTheme.enabled.withAlpha(150),
               selectedColor: Theme.of(context).colorScheme.onSurface,
+              borderWidth: 1,
               children: const [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10),
