@@ -234,6 +234,8 @@ class _Sapi5Strategy implements _TtsStrategy {
         Uri.parse('ws://localhost:$_port'),
       );
 
+      _stream = _channel?.stream.asBroadcastStream().cast<String>();
+
       if (kDebugMode) {
         // Print is being avoided
         // ignore: avoid_print
@@ -242,11 +244,9 @@ class _Sapi5Strategy implements _TtsStrategy {
         // ignore: avoid_print
         unawaited(_process!.stderr.forEach((msg) => print(utf8.decode(msg))));
 
-        _channel?.stream.listen(
-          // Print is being avoided
-          // ignore: avoid_print
-          (dynamic message) => print(message as String),
-        );
+        // Print is being avoided
+        // ignore: avoid_print
+        // _stream?.listen((dynamic message) => print(message as String));
       }
 
       await setVoice(_box.voice);
@@ -267,6 +267,7 @@ class _Sapi5Strategy implements _TtsStrategy {
   );
 
   WebSocketChannel? _channel;
+  Stream<String>? _stream;
   Process? _process;
 
   @override
@@ -275,7 +276,7 @@ class _Sapi5Strategy implements _TtsStrategy {
   Future<void> setVoice(String voice) async {
     await _channel?.ready;
     _channel?.sink.add('${_TtsServerCodes.voice} $voice');
-    final message = await _channel!.stream.first as String;
+    final String message = await _stream!.first;
     _box.voice = message.split('Voice set to ')[1];
   }
 
@@ -283,8 +284,8 @@ class _Sapi5Strategy implements _TtsStrategy {
   Future<Map<String, String>> getVoices() async {
     await _channel?.ready;
     _channel?.sink.add('${_TtsServerCodes.getVoices}');
-    final message = await _channel!.stream.first as String;
-    return jsonDecode(message.split('Voices: ')[1]);
+    final String message = await _stream!.first;
+    return Map.castFrom(jsonDecode(message.split('Voices: ')[1]));
   }
 
   @override

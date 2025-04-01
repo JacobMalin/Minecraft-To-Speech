@@ -166,7 +166,7 @@ class _TtsSettingsState extends State<_TtsSettings> {
   late double _volume;
   late double _rate;
 
-  late final Map<String, String> _voices;
+  late final Future<Map<String, String>> _voices;
 
   final _tts = TtsModel();
 
@@ -178,127 +178,191 @@ class _TtsSettingsState extends State<_TtsSettings> {
     _volume = _tts.volume * 100;
     _rate = _tts.rate;
 
-    unawaited(() async {
-      _voices = await _tts.getVoices();
-    }());
+    // Resolved later
+    // ignore: discarded_futures
+    _voices = _tts.getVoices();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownMenu<String>(
-              initialSelection: _voice,
-              width: 200,
-              dropdownMenuEntries: _voices.entries
-                  .map(
-                    (entry) =>
-                        DropdownMenuEntry(value: entry.key, label: entry.value),
-                  )
-                  .toList(),
-              onSelected: (value) async {
-                setState(() => _voice = value!);
-                await _tts.setVoice(value!);
-                await _tts.clear();
-                await _tts.speak('Voice set to ${_voices[value]}.');
-              },
-            ),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(
-                  Theme.of(context).colorScheme.surfaceBright,
+            const SizedBox(height: 3),
+            Row(
+              spacing: 10,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FutureBuilder<Map<String, String>>(
+                  future: _voices,
+                  builder: (context, snapshot) {
+                    final isReady =
+                        snapshot.connectionState == ConnectionState.done;
+                    if (!isReady || !snapshot.hasData) {
+                      return const DropdownMenu<String>(
+                        width: 334,
+                        requestFocusOnTap: false,
+                        label: Text('Voice'),
+                        initialSelection: 'Default',
+                        inputDecorationTheme: InputDecorationTheme(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          constraints: BoxConstraints(
+                            maxHeight: 38,
+                          ),
+                        ),
+                        dropdownMenuEntries: [
+                          DropdownMenuEntry(
+                            value: 'Default',
+                            label: 'Loading...',
+                          ),
+                        ],
+                      );
+                    }
+
+                    return DropdownMenu<String>(
+                      width: 334,
+                      menuHeight: constraints.maxHeight - 38,
+                      requestFocusOnTap: false,
+                      label: const Text('Voice'),
+                      initialSelection: _voice,
+                      inputDecorationTheme: const InputDecorationTheme(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        constraints: BoxConstraints(
+                          maxHeight: 38,
+                        ),
+                      ),
+                      dropdownMenuEntries: snapshot.requireData.entries
+                          .map(
+                            (entry) => DropdownMenuEntry(
+                              value: entry.key,
+                              label: entry.value,
+                            ),
+                          )
+                          .toList(),
+                      onSelected: (value) async {
+                        if (_voice == value || value == null) return;
+
+                        setState(() => _voice = value);
+                        await _tts.setVoice(value);
+                        await _tts.clear();
+                        await _tts.speak(
+                          'Voice set to ${snapshot.requireData[value]}.',
+                        );
+                      },
+                    );
+                  },
                 ),
-                minimumSize: const WidgetStatePropertyAll(Size.zero),
-                padding: const WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 12,
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.surfaceBright,
+                    ),
+                    minimumSize: const WidgetStatePropertyAll(Size.zero),
+                    padding: const WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await _tts.clear();
+                    await _tts.speak(
+                      'Minecraft to Speech text-to-speech is working!',
+                    );
+                  },
+                  child: const Text('Test'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text('Volume: ${_volume.toInt()}%'),
+            const SizedBox(height: 4),
+            Row(
+              spacing: 8,
+              children: [
+                const SizedBox(
+                  width: 24,
+                  child:
+                      Align(alignment: Alignment.centerRight, child: Text('0')),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: _volume,
+                    onChanged: (value) => setState(() => _volume = value),
+                    onChangeEnd: (value) async {
+                      await _tts.setVolume(value / 100);
+                      await _tts.clear();
+                      await _tts
+                          .speak('Volume set to ${value.toInt()} percent.');
+                    },
+                    max: 100,
+                    label: '${_volume.toInt()}%',
                   ),
                 ),
-              ),
-              onPressed: () async {
-                await _tts.clear();
-                await _tts
-                    .speak('Minecraft to Speech text-to-speech is working!');
-              },
-              child: const Text('Test'),
+                const SizedBox(
+                  width: 24,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('100'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text('Speech Rate: ${_tts.formatRate(_rate)}'),
+            const SizedBox(height: 4),
+            Row(
+              spacing: 8,
+              children: [
+                SizedBox(
+                  width: 24,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('${_tts.rateMin.toInt()}'),
+                  ),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: _rate,
+                    onChanged: (value) => setState(() => _rate = value),
+                    onChangeEnd: (value) async {
+                      await _tts.setRate(value);
+                      await _tts.clear();
+                      await _tts
+                          .speak('Speech rate set to ${_tts.rateAsString}.');
+                    },
+                    min: _tts.rateMin,
+                    max: _tts.rateMax,
+                    divisions:
+                        ((_tts.rateMax - _tts.rateMin) / _tts.rateStep).round(),
+                    label: _tts.formatRate(_rate),
+                  ),
+                ),
+                SizedBox(
+                  width: 24,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('${_tts.rateMax.toInt()}'),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        const SizedBox(height: 10),
-        Text('Volume: ${_volume.toInt()}%'),
-        const SizedBox(height: 4),
-        Row(
-          spacing: 8,
-          children: [
-            const SizedBox(
-              width: 24,
-              child: Align(alignment: Alignment.centerRight, child: Text('0')),
-            ),
-            Expanded(
-              child: Slider(
-                value: _volume,
-                onChanged: (value) => setState(() => _volume = value),
-                onChangeEnd: (value) async {
-                  await _tts.setVolume(value / 100);
-                  await _tts.clear();
-                  await _tts.speak('Volume set to ${value.toInt()} percent.');
-                },
-                max: 100,
-                label: '${_volume.toInt()}%',
-              ),
-            ),
-            const SizedBox(
-              width: 24,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('100'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text('Speech Rate: ${_tts.formatRate(_rate)}'),
-        const SizedBox(height: 4),
-        Row(
-          spacing: 8,
-          children: [
-            SizedBox(
-              width: 24,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text('${_tts.rateMin.toInt()}'),
-              ),
-            ),
-            Expanded(
-              child: Slider(
-                value: _rate,
-                onChanged: (value) => setState(() => _rate = value),
-                onChangeEnd: (value) async {
-                  await _tts.setRate(value);
-                  await _tts.clear();
-                  await _tts.speak('Speech rate set to ${_tts.rateAsString}.');
-                },
-                min: _tts.rateMin,
-                max: _tts.rateMax,
-                divisions:
-                    ((_tts.rateMax - _tts.rateMin) / _tts.rateStep).round(),
-                label: _tts.formatRate(_rate),
-              ),
-            ),
-            SizedBox(
-              width: 24,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('${_tts.rateMax.toInt()}'),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
