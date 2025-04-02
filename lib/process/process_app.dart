@@ -50,6 +50,7 @@ class _ProcessAppState extends State<ProcessApp> {
     );
     unawaited(
       WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+        await WindowManagerPlus.current.setPreventClose(true);
         await WindowManagerPlus.current.setResizable(false);
       }),
     );
@@ -72,7 +73,14 @@ class _ProcessAppState extends State<ProcessApp> {
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
             themeMode: themeMode,
-            builder: (context, child) => FocusWatcher(child!),
+            builder: (context, child) {
+              child!;
+
+              child = ProcessWatcher(child);
+              child = FocusWatcher(child);
+
+              return child;
+            },
             home: Scaffold(
               appBar: const ProcessTopBar(),
               body: ProcessBody(_futures, _pathCount),
@@ -324,5 +332,43 @@ class _ErrorListState extends State<ErrorList> {
         ),
       ),
     );
+  }
+}
+
+/// A window listener for the process app.
+class ProcessWatcher extends StatefulWidget {
+  /// A window listener for the process app.
+  const ProcessWatcher(
+    Widget child, {
+    super.key,
+  }) : _child = child;
+
+  final Widget _child;
+
+  @override
+  State<ProcessWatcher> createState() => _ProcessWatcherState();
+}
+
+class _ProcessWatcherState extends State<ProcessWatcher> with WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    WindowManagerPlus.current.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    WindowManagerPlus.current.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget._child;
+
+  @override
+  Future<void> onWindowClose([int? windowId]) async {
+    final bool isPreventClose =
+        await WindowManagerPlus.current.isPreventClose();
+    if (isPreventClose) await WindowManagerPlus.current.hide();
   }
 }

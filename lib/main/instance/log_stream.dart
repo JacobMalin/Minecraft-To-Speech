@@ -29,13 +29,12 @@ class LogStream {
       final int fileLength = log.lengthSync();
       if (fileLength < position) position = 0;
 
-      final Stream<List<int>> stream = log.openRead(position);
+      final Stream<List<int>> stream = log.openRead(position, fileLength);
+      position = fileLength;
 
       final Stream<String> lines =
           stream.transform(utf8.decoder).transform(const LineSplitter());
       await for (final line in lines) {
-        position += utf8.encode(line).length + 2;
-
         if (line.isNotEmpty) yield line;
       }
     }

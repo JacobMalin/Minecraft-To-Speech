@@ -40,6 +40,8 @@ class _BlacklistAppState extends State<BlacklistApp> {
     );
     unawaited(
       WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+        await WindowManagerPlus.current.setPreventClose(true);
+
         await WindowManagerPlus.current.show();
       }),
     );
@@ -62,7 +64,14 @@ class _BlacklistAppState extends State<BlacklistApp> {
             theme: ThemeSetup.brightTheme,
             darkTheme: ThemeSetup.darkTheme,
             themeMode: themeMode,
-            builder: (context, child) => FocusWatcher(child!),
+            builder: (context, child) {
+              child!;
+
+              child = BlacklistWatcher(child);
+              child = FocusWatcher(child);
+
+              return child;
+            },
             home: const Scaffold(
               appBar: BlacklistTopBar(),
               body: BlacklistBody(),
@@ -615,5 +624,44 @@ class _ChatMessage extends StatelessWidget {
       case BlacklistMatch.contains:
         return '...${_item.phrase}...';
     }
+  }
+}
+
+/// A window listener for the blacklist window.
+class BlacklistWatcher extends StatefulWidget {
+  /// A window listener for the blacklist window.
+  const BlacklistWatcher(
+    Widget child, {
+    super.key,
+  }) : _child = child;
+
+  final Widget _child;
+
+  @override
+  State<BlacklistWatcher> createState() => _BlacklistWatcherState();
+}
+
+class _BlacklistWatcherState extends State<BlacklistWatcher>
+    with WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    WindowManagerPlus.current.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    WindowManagerPlus.current.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget._child;
+
+  @override
+  Future<void> onWindowClose([int? windowId]) async {
+    final bool isPreventClose =
+        await WindowManagerPlus.current.isPreventClose();
+    if (isPreventClose) await WindowManagerPlus.current.hide();
   }
 }
