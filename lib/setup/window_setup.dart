@@ -48,6 +48,7 @@ class WindowSetup {
         ? WindowManagerPlus.fromWindowId(windowId)
         : WindowManagerPlus.current;
 
+    await window.show();
     await window.setAlwaysOnTop(true);
     await window.setAlwaysOnTop(false);
     await window.focus();

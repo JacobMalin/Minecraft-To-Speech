@@ -333,8 +333,8 @@ class _Sapi5Strategy implements _TtsStrategy {
 
   @override
   Future<void> destroy() async {
-    await _channel!.ready;
-    _channel!.sink.add(_TtsServerCodes.exit.toString());
+    await _channel?.ready;
+    _channel?.sink.add(_TtsServerCodes.exit.toString());
     _process?.kill();
   }
 }
