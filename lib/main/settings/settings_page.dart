@@ -376,7 +376,7 @@ class _DiscordSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 20,
+      spacing: 10,
       children: [
         _TokenField(),
         _BotMonitor(),
