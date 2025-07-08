@@ -379,6 +379,7 @@ class _DiscordSettings extends StatelessWidget {
       spacing: 20,
       children: [
         _TokenField(),
+        _BotMonitor(),
       ],
     );
   }
@@ -439,6 +440,50 @@ class _TokenFieldState extends State<_TokenField> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BotMonitor extends StatelessWidget {
+  const _BotMonitor();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<DiscordModel>(
+      builder: (context, discord, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Discord Bot Monitor',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text(
+                  'Rate Limited: ',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (discord.isRateLimited)
+                  Text(
+                    'Rate limited! ${discord.rateLimitReason}',
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Colors.red,
+                        ),
+                  )
+                else
+                  Text(
+                    'All normal',
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Colors.green,
+                        ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

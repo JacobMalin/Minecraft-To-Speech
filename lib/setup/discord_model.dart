@@ -43,6 +43,12 @@ class DiscordModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Whether the discord bot is rate limited.
+  bool get isRateLimited => _bot?.isRateLimited ?? false;
+
+  /// The reason for the rate limit.
+  String get rateLimitReason => _bot?.rateLimitReason ?? 'No Reason Given';
+
   Future<void> _restartBot() async {
     await _bot?.close();
 
@@ -50,7 +56,7 @@ class DiscordModel extends ChangeNotifier {
       return;
     }
 
-    _bot = _DiscordBot(botKey!);
+    _bot = _DiscordBot(botKey!, notifyListeners);
   }
 
   /// Add a message to the discord bot queue.
@@ -65,15 +71,19 @@ class DiscordModel extends ChangeNotifier {
 }
 
 class _DiscordBot {
-  _DiscordBot(String token) : _token = token {
+  _DiscordBot(String token, VoidCallback notifyListeners)
+      : _token = token,
+        _notifyListeners = notifyListeners {
     unawaited(_init());
   }
 
   final String _token;
+  final VoidCallback _notifyListeners;
   NyxxGateway? _client;
 
   /// Whether the bot is rate limited.
   var isRateLimited = false;
+  String? rateLimitReason;
 
   Future<void> _init() async {
     try {
@@ -104,7 +114,13 @@ class _DiscordBot {
 
     _client?.httpHandler.onRateLimit.listen((info) {
       isRateLimited = true;
-      Future.delayed(info.delay, () => isRateLimited = false);
+      rateLimitReason = info.request.auditLogReason;
+      _notifyListeners();
+      Future.delayed(info.delay, () {
+        isRateLimited = false;
+        rateLimitReason = null;
+        _notifyListeners();
+      });
     });
 
     final User botUser = await _client!.users.fetchCurrentUser();
